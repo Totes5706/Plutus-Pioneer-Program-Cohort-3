@@ -88,7 +88,7 @@ Prelude Week05.Free>
 
 We first looked at a new constructor Value:
 
-```
+```haskell
 Value	 
 getValue :: Map CurrencySymbol (Map TokenName Integer)	 
 ```
@@ -97,14 +97,14 @@ Each native token, including ADA, is represented by a currency symbol and token 
 
 Token name is:
 
-```
+```haskell
 TokenName	 
 unTokenName :: BuiltinByteString	
 ```
 
 Asset Class is
 
-```
+```haskell
 AssetClass	 
 unAssetClass :: (CurrencySymbol, TokenName)
 ```
@@ -126,18 +126,20 @@ Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> :set -XOverload
 
 We first look at adaSymbol, adaToken, and lovelaceValueof:
 
-```
-adaSymbol :: CurrencySymbolSource#
+```haskell
+adaSymbol :: CurrencySymbol
 
 The CurrencySymbol of the Ada currency.
 ```
-```
-adaToken :: TokenNameSource#
+
+```haskell
+adaToken :: TokenName
 
 The TokenName of the Ada currency.
 ```
-```
-lovelaceValueOf :: Integer -> ValueSource#
+
+```haskell
+lovelaceValueOf :: Integer -> Value
 
 A Value with the given amount of Lovelace (the currency unit).
 
@@ -165,8 +167,8 @@ Value (Map [(,Map [("",246)])])
 
 Then we learned how to use the function singleton that allows us to create values with native tokens:
 
-```
-singleton :: CurrencySymbol -> TokenName -> Integer -> ValueSource#
+```haskell
+singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 
 Make a Value containing only the given quantity of the given currency.
 ```
@@ -191,8 +193,8 @@ Value (Map [(,Map [("",42)]),(a8ff,Map [("ABC",7),("XYZ",100)])])
 
 We can then take the value of the result using:
 
-```
-valueOf :: Value -> CurrencySymbol -> TokenName -> IntegerSource#
+```haskell
+valueOf :: Value -> CurrencySymbol -> TokenName -> Integer
 
 Get the quantity of the given currency in the Value.
 ```
@@ -214,8 +216,8 @@ Output:
 
 We can then flatten the map using the flattenValue function:
 
-```
-flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]Source#
+```haskell
+flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 
 Convert a value to a simple list, keeping only the non-zero amounts.
 ```
@@ -237,8 +239,8 @@ Output:
 Before we look at a simple minting script, we can review the 
 relevant script context.
 
-```
-data ScriptContextSource#
+```haskell
+data ScriptContext
 
 Constructors
 
@@ -247,8 +249,8 @@ scriptContextTxInfo :: TxInfo
 scriptContextPurpose :: ScriptPurpose	
 ```
 
-```
-data TxInfoSource#
+```haskell
+data TxInfo
 
 A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 
@@ -284,8 +286,8 @@ txInfoId :: TxId
 Hash of the pending transaction (excluding witnesses)
 ```
 
-```
-data ScriptPurposeSource#
+```haskell
+data ScriptPurpose
 
 Purpose of the script that is currently running
 
@@ -435,14 +437,14 @@ curSymbol = scriptCurrencySymbol . policy
 
 Where txSignedBy and scriptContextTxInfo are:
 
-```
-txSignedBy :: TxInfo -> PubKeyHash -> BoolSource#
+```haskell
+txSignedBy :: TxInfo -> PubKeyHash -> Bool
 
 Check if a transaction was signed by the given public key.
 ```
 
-```
-data ScriptContextSource#
+```haskell
+data ScriptContext
 
 Constructors
 
