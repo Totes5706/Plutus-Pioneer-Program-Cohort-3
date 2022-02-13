@@ -1,10 +1,11 @@
-Plutus Pioneer Program - Cohort 3 - Lecture 5 - February 10, 2022
-
-
-# Minting Tokens and NFTS 
+Plutus Pioneer Program - Cohort 3 
+February 10, 2022
 
 Contributed By:
 Joe Totes
+
+# Lecture 5: Minting Tokens and NFTS 
+
 
 ## Table of Contents
 
@@ -17,6 +18,7 @@ Joe Totes
 7. Homework Part 2
 
 ## Preparation for Lecture 5
+
 Before we can get started in lecture 5, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 5 contents. Execute: 
@@ -27,65 +29,81 @@ totinj@penguin:~/plutus-pioneer-program$ git pull
 
 You can now navigate to the current week05 directory and open the cabal.project file:
 
+```
 totinj@penguin:~/plutus-pioneer-program/code/week05$ cat cabal.project
-
+```
 
  
 
 Grab the plutus-apps tag inside the cabal.project file:
 
+```
 location: https://github.com/input-output-hk/plutus-apps.git
   tag:62efdd2bfab3e076d40e07f8f4d7864a7f2ccc91
-
+```
 
 Head back to  to the plutus-apps directory and update it to the  current git tag:
 
+```
 totinj@penguin:~/plutus-apps$ git checkout main
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git pull
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git checkout 62efdd2bfab3e076d40e07f8f4d7864a7f2ccc91
-
+```
 
 
 
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
+```
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head back to the week05 folder to start running the cabal commands:
+
+```
 [nix-shell:~/plutus-pioneer-program/code/week05]$ cabal update
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week05]$ cabal build
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week05]$ cabal repl
+```
 
 If successful,  you should now be ready to start the lecture:
 
+```
 Ok, five modules loaded.
 Prelude Week05.Free> 
+```
 
 
-
-Values
+## Values
 
 
 
 We first looked at a new constructor Value:
 
+```
+Value	 
+getValue :: Map CurrencySymbol (Map TokenName Integer)	 
+```
+
 Each native token, including ADA, is represented by a currency symbol and token name. Where currency symbol is:
 
 Token name is:
 
+TokenName	 
+unTokenName :: BuiltinByteString	
 
 Asset Class is
 
-
+AssetClass	 
+unAssetClass :: (CurrencySymbol, TokenName)
 
 ADA will be one asset class. Custom native tokens will be other asset classes.
 
