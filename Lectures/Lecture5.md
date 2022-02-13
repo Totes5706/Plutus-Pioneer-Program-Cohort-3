@@ -165,6 +165,12 @@ Value (Map [(,Map [("",246)])])
 
 Then we learned how to use the function singleton that allows us to create values with native tokens:
 
+```
+singleton :: CurrencySymbol -> TokenName -> Integer -> ValueSource#
+
+Make a Value containing only the given quantity of the given currency.
+```
+
 Example:
 
 ```
@@ -185,6 +191,12 @@ Value (Map [(,Map [("",42)]),(a8ff,Map [("ABC",7),("XYZ",100)])])
 
 We can then take the value of the result using:
 
+```
+valueOf :: Value -> CurrencySymbol -> TokenName -> IntegerSource#
+
+Get the quantity of the given currency in the Value.
+```
+
 Example, where x is the input from the above entry:
 
 ```
@@ -202,6 +214,12 @@ Output:
 
 We can then flatten the map using the flattenValue function:
 
+```
+flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]Source#
+
+Convert a value to a simple list, keeping only the non-zero amounts.
+```
+
 
 Example:
 
@@ -213,23 +231,71 @@ Output:
 ```
 
 
-
-
-
-
-
-
 ## A Simple Minting Policy
 
 
 Before we look at a simple minting script, we can review the 
 relevant script context.
 
+```
+data ScriptContextSource#
 
+Constructors
 
+ScriptContext	 
+scriptContextTxInfo :: TxInfo	 
+scriptContextPurpose :: ScriptPurpose	
+```
 
+```
+data TxInfoSource#
 
+A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 
+Constructors
+
+TxInfo	 
+txInfoInputs :: [TxInInfo]	
+Transaction inputs
+
+txInfoOutputs :: [TxOut]	
+Transaction outputs
+
+txInfoFee :: Value	
+The fee paid by this transaction.
+
+txInfoMint :: Value	
+The Value minted by this transaction.
+
+txInfoDCert :: [DCert]	
+Digests of certificates included in this transaction
+
+txInfoWdrl :: [(StakingCredential, Integer)]	
+Withdrawals
+
+txInfoValidRange :: POSIXTimeRange	
+The valid range for the transaction.
+
+txInfoSignatories :: [PubKeyHash]	
+Signatures provided with the transaction, attested that they all signed the tx
+
+txInfoData :: [(DatumHash, Datum)]	 
+txInfoId :: TxId	
+Hash of the pending transaction (excluding witnesses)
+```
+
+```
+data ScriptPurposeSource#
+
+Purpose of the script that is currently running
+
+Constructors
+
+Minting CurrencySymbol	 
+Spending TxOutRef	 
+Rewarding StakingCredential	 
+Certifying DCert	
+```
 
 
 We can now open and load the Free.hs minting script.
@@ -257,8 +323,6 @@ curSymbol :: CurrencySymbol
 curSymbol = scriptCurrencySymbol policy
 ```
 
-
-
 You can now run ```curSymbol``` to get the hash of the script:
 
 ```
@@ -267,10 +331,6 @@ Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> curSymbol
 Output:
 983cf28fd53484a220dc42c0ae430b0c1c16b210a72975c5a98dec63
 ```
-
-
-
-
 
 Looking at the off chain code of Free.hs:
 
@@ -342,11 +402,7 @@ Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
 Note how both wallets have the same hash associated with “ABC”.
 
 
-
 ## A More Realistic Minting Policy
-
-
-
 
 Instead of having an unparameterized minting policy, we will change it to a parametrized one. This will instead allow an owner from a specific public key hash to mint, rather than anyone.
 
@@ -379,9 +435,22 @@ curSymbol = scriptCurrencySymbol . policy
 
 Where txSignedBy and scriptContextTxInfo are:
 
+```
+txSignedBy :: TxInfo -> PubKeyHash -> BoolSource#
 
+Check if a transaction was signed by the given public key.
+```
 
+```
+data ScriptContextSource#
 
+Constructors
+
+ScriptContext	 
+scriptContextTxInfo :: TxInfo	 
+scriptContextPurpose :: ScriptPurpose	 
+
+```
 
 And the modified off chain code to account for the PaymentPubKeyHash:
 
@@ -448,11 +517,6 @@ Output:
 Ok, one module loaded.
 ```
 
-
-
-
-
-
 The onchain code for NFT.hs looks like:
 
 ```haskell
@@ -515,7 +579,6 @@ endpoints = mint' >> endpoints
 ```
 
 Run the test emulator Trace:
-
 
 ```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.NFT> test
