@@ -44,7 +44,7 @@ mkPolicy oref () ctx =
 
     checkMintedAmount :: Bool
     checkMintedAmount = case flattenValue (txInfoMint info) of
-        [(_, _, amt)] -> amt == 1
+        [(_, tn', amt)] -> tn' == "" amt == 1
         _               -> False 
 
 policy :: TxOutRef -> Scripts.MintingPolicy
