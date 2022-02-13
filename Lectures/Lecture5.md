@@ -11,11 +11,11 @@ Joe Totes
 
 1. [Preparation for Lecture 5](#Preparation-for-Lecture-5)
 2. [Values](#Values)
-3. A Simple Minting Policy
-4. A More Realistic Minting Policy
-5. NFT’s
-6. Homework Part 1
-7. Homework Part 2
+3. [A Simple Minting Policy](#A-Simple-Minting-Policy)
+4. [A More Realistic Minting Policy](#A-More-Realistic-Minting-Policy)
+5. [NFT’s](#NFT's)
+6. [Homework Part 1](#Homework-Part-1)
+7. [Homework Part 2](#Homework-Part-2)
 
 ## Preparation for Lecture 5
 
