@@ -300,23 +300,6 @@ mkSchemaDefinitions ''FreeSchema
 
 mkKnownCurrencies []
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Then finally, the Emulator Trace of Free.hs:
 
 ```haskell
@@ -340,8 +323,6 @@ test = runEmulatorTraceIO $ do
        }
    void $ Emulator.waitNSlots 1
 ```
-
-
 
 We can now run the test emulator trace:
 
@@ -396,34 +377,7 @@ curSymbol :: PaymentPubKeyHash -> CurrencySymbol
 curSymbol = scriptCurrencySymbol . policy
 ```
 
-
 Where txSignedBy and scriptContextTxInfo are:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -479,9 +433,6 @@ The wallet’s now have different hashes associated with “ABC”.
 
 ## NFT’s
 
-
-
-
 Non Fungible Tokens are tokens which only exist once. Previous examples were not NFTs because we were able to mint as many tokens as possible.
 Since the Mary era, it was possible to implement pseudo NFTs based using deadlines to lock down the minting process. This requires checking with a blockchain explorer whether or not one was minted before the deadline. These are not true NFTs since they require secondary checks.
 
@@ -489,13 +440,13 @@ Since the plutus era, we can construct true NFTs that are only minted once, with
 
 We can now open and load the NFT.hs minting script.
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> 
 :l src/Week05/NFT.hs
 
 Output:
 Ok, one module loaded.
-
+```
 
 
 
@@ -504,6 +455,7 @@ Ok, one module loaded.
 
 The onchain code for NFT.hs looks like:
 
+```haskell
 {-# INLINABLE mkPolicy #-}
 mkPolicy :: TxOutRef -> TokenName -> () -> ScriptContext -> Bool
 mkPolicy oref tn () ctx = traceIfFalse "UTxO not consumed"   hasUTxO           &&
@@ -530,17 +482,11 @@ policy oref tn = mkMintingPolicyScript $
 
 curSymbol :: TxOutRef -> TokenName -> CurrencySymbol
 curSymbol oref tn = scriptCurrencySymbol $ policy oref tn
-
-
-
-
-
-
-
-
+```
 
 The offchain code for NFT.hs looks like:
 
+```haskell
 data NFTParams = NFTParams
    { npToken   :: !TokenName
    , npAddress :: !Address
@@ -566,23 +512,12 @@ endpoints :: Contract () NFTSchema Text ()
 endpoints = mint' >> endpoints
  where
    mint' = awaitPromise $ endpoint @"mint" mint
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Run the test emulator Trace:
 
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.NFT> test
 
 Output:
@@ -593,44 +528,21 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {, ""}: 99996890
     {dd34121ddddfd43091b6f4368b4ea1715228bfb2e65558942bf052cc, "ABC"}: 1
+```
 
 
+## Homework Part 1
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Homework Part 1
-
-
-
+```haskell
 -- This policy should only allow minting (or burning) of tokens if the owner of the specified PaymentPubKeyHash
 -- has signed the transaction and if the specified deadline has not passed.
-
+```
 
 The goal of homework 1 is to write a Mary era contract that uses deadlines and signature checks to mint a specific token ABC.
 We first need to implement the mkPolicy that takes the PaymentPubKeyHash, POSIXTime and ScriptContext to produce a Boolean to check both cases in which the beneficiary has signed the transaction; as well as checking that the deadline has not passed.
 
+```haskell
 mkPolicy :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
 mkPolicy pkh deadline () ctx =  -- FIX ME!
    traceIfFalse "beneficiary's signature missing" checkSig      &&
@@ -644,7 +556,7 @@ mkPolicy pkh deadline () ctx =  -- FIX ME!
 
    checkDeadline :: Bool
    checkDeadline = to deadline `contains` txInfoValidRange info
-
+```
 
 
 I created && logic that checks both the signature in the checkSig function and the deadline in the checkDeadline function. This will only return true if both are true. In checkDeadline, we also want to use “to” making sure we are in the valid range.
@@ -652,6 +564,7 @@ I created && logic that checks both the signature in the checkSig function and t
 
 We then need to create the policy that takes both PaymentPubKeyHash and POSIXTime as pkh and deadline respectively.
 
+```haskell
 policy :: PaymentPubKeyHash -> POSIXTime -> Scripts.MintingPolicy
 policy pkh deadline = mkMintingPolicyScript $
    $$(PlutusTx.compile [|| \pkh' deadline' -> Scripts.wrapMintingPolicy $ mkPolicy pkh' deadline' ||])
@@ -659,25 +572,16 @@ policy pkh deadline = mkMintingPolicyScript $
    PlutusTx.liftCode pkh
    `PlutusTx.applyCode`
    PlutusTx.liftCode deadline
-
+```
 
 Finally, we need to get the hash for curSymbol taking in both PaymentPubKeyHash and POSIXTime.
 curSymbol :: PaymentPubKeyHash -> POSIXTime -> CurrencySymbol
 curSymbol pkh deadline = scriptCurrencySymbol $ policy pkh deadline
 
 
-
-
-
-
-
-
-
-
-
-
-
 The final Code looks like:
+
+```haskell
 {-# INLINABLE mkPolicy #-}
 -- This policy should only allow minting (or burning) of tokens if the owner of the specified PaymentPubKeyHash
 -- has signed the transaction and if the specified deadline has not passed.
@@ -705,17 +609,11 @@ policy pkh deadline = mkMintingPolicyScript $
 
 curSymbol :: PaymentPubKeyHash -> POSIXTime -> CurrencySymbol
 curSymbol pkh deadline = scriptCurrencySymbol $ policy pkh deadline
-
-
-
-
-
-
-
+```
 
 The final output running the test trace looks like:
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Homework1> test
 
 Output:
@@ -726,31 +624,14 @@ Slot 00111: SlotAdd Slot 112
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {, ""}: 99996184
     {b995b54607b38bd87d0895eafd8d32b4b25d0c98312d1ccb0542d81a, "ABC"}: 555
+```
 
+## Homework Part 2
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Homework Part 2
-
-
+```haskell
 -- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
 -- and where the TokenName will be the empty ByteString.
-
+```
 
 
 The goal of homework part 2 is to mint an NFT for a given UTxO where the TokenName is a ByteString.
@@ -759,6 +640,7 @@ First we need to write the mkPolicy in which checks if the UTxO is consumed, and
 The "hasUTx0" function is a boolean that checks the TxOutRef to report true or false.
 The checkMintedAmount will check to make sure only 1 is actually minted. We also pass _ into the token argument since we are working with an empty argument.
 
+```haskell
 {-# INLINABLE mkPolicy #-}
 -- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
 -- and where the TokenName will be the empty ByteString.
@@ -777,10 +659,11 @@ mkPolicy oref () ctx =
    checkMintedAmount = case flattenValue (txInfoMint info) of
        [(_, _, amt)] -> amt == 1
        _               -> False
-
+```
 
 Next we will implement the policy and curSymbol functions. Each of these will only accept the oref since we are not working with the token names.
 
+```haskell
 policy :: TxOutRef -> Scripts.MintingPolicy
 policy oref = mkMintingPolicyScript $
     $$(PlutusTx.compile [|| \oref' -> Scripts.wrapMintingPolicy $ mkPolicy oref' ||])
@@ -789,23 +672,24 @@ policy oref = mkMintingPolicyScript $
    
 curSymbol :: TxOutRef -> CurrencySymbol
 curSymbol oref = scriptCurrencySymbol $ policy oref
-
+```
 
 Finally, we need to implement the mint function. The mint function passes only the address here. Since the TokenName is a bytestring, we also need to declare it as:
-let tn      = TokenName ""
 
+```haskell
+let tn      = TokenName ""
+```
 
 We also only need to pass 2 arguments into the singleton and mintingPolicy function:
+
+```haskell
 let val     = Value.singleton (curSymbol oref ) tn 1
                lookups = Constraints.mintingPolicy (policy oref ) <> Constraints.unspentOutputs utxos
-
-
-
-
-
-
+```
 
 The mint function should then look like:
+
+```haskell
 mint :: Address -> Contract w NFTSchema Text ()
 mint address =  do
    utxos <- utxosAt address
@@ -824,20 +708,11 @@ endpoints :: Contract () NFTSchema Text ()
 endpoints = mint' >> endpoints
  where
    mint' = awaitPromise $ endpoint @"mint" mint
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 The final code should then look like:
+
+```haskell
 {-# INLINABLE mkPolicy #-}
 -- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
 -- and where the TokenName will be the empty ByteString.
@@ -886,13 +761,11 @@ endpoints :: Contract () NFTSchema Text ()
 endpoints = mint' >> endpoints
  where
    mint' = awaitPromise $ endpoint @"mint" mint
-
-
-
+```
 
 The final output running the test trace looks like:
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Homework2> test
 
 Output:
@@ -903,7 +776,7 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {, ""}: 99996914
     {638de4f0870aae2a48cc73b8c07ea5ecaa28073349517f4117f4b87f, ""}: 1
-
+```
 
 
 
