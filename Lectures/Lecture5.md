@@ -9,7 +9,7 @@ Joe Totes
 
 ## Table of Contents
 
-1. Preparation for Lecture 5
+1. [Preparation for Lecture 5](Preparation-for-Lecture-5)
 2. Values
 3. A Simple Minting Policy
 4. A More Realistic Minting Policy
