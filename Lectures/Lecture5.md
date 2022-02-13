@@ -4,6 +4,8 @@ February 10, 2022
 Contributed By:
 Joe Totes
 
+Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture5](https://youtu.be/mGPqi9m0EPw)
+
 Google Doc version can be found [HERE](https://docs.google.com/document/d/1o89UQlihqCQH-DvMcGJeoInqmZtm8AlCUbcemAerxmk/edit)
 
 # Lecture 5: Minting Tokens and NFTS 
