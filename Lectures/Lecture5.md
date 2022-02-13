@@ -97,82 +97,107 @@ Each native token, including ADA, is represented by a currency symbol and token 
 
 Token name is:
 
+```
 TokenName	 
 unTokenName :: BuiltinByteString	
+```
 
 Asset Class is
 
+```
 AssetClass	 
 unAssetClass :: (CurrencySymbol, TokenName)
+```
 
 ADA will be one asset class. Custom native tokens will be other asset classes.
 
 Starting with the repl, we can first import Plutus.V1.Ledger.Value and Plutus.V1.Ledger.Ada:
 
+```
 Prelude Week05.Free> import Plutus.V1.Ledger.Value
 Prelude Plutus.V1.Ledger.Value Week05.Free> import Plutus.V1.Ledger.Ada
-
+```
 
 Then, we can set -XOverloadedStrings:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> :set -XOverloadedStrings
-
+```
 
 We first look at adaSymbol, adaToken, and lovelaceValueof:
 
+```
+adaSymbol :: CurrencySymbolSource#
 
+The CurrencySymbol of the Ada currency.
+```
+```
+adaToken :: TokenNameSource#
 
+The TokenName of the Ada currency.
+```
+```
+lovelaceValueOf :: Integer -> ValueSource#
 
+A Value with the given amount of Lovelace (the currency unit).
+
+lovelaceValueOf == toValue . lovelaceOf
+```
 
 Example:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> lovelaceValueOf 123
 
 Output:
 Value (Map [(,Map [("",123)])])
-
+```
 
 Combining Values:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> lovelaceValueOf 123 <> lovelaceValueOf 123
 
 Output:
 Value (Map [(,Map [("",246)])])
-
+```
 
 
 Then we learned how to use the function singleton that allows us to create values with native tokens:
 
 Example:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> singleton "a8ff" "ABC" 7
 
 Output:
 Value (Map [(a8ff,Map [("ABC",7)])])
-
+```
 
 Combining Values:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> singleton "a8ff" "ABC" 7 <> lovelaceValueOf 42 <> singleton "a8ff" "XYZ" 100
 
 Output:
 Value (Map [(,Map [("",42)]),(a8ff,Map [("ABC",7),("XYZ",100)])])
-
+```
 
 We can then take the value of the result using:
 
 Example, where x is the input from the above entry:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> 
 x = singleton "a8ff" "ABC" 7 <> lovelaceValueOf 42 <> singleton "a8ff" "XYZ" 100
+```
 
-
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> valueOf x "a8ff" "XYZ"
 
 Output:
 100
-
+```
 
 
 We can then flatten the map using the flattenValue function:
@@ -180,10 +205,12 @@ We can then flatten the map using the flattenValue function:
 
 Example:
 
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> flattenValue x
 
 Output:
 [(,"",42),(a8ff,"XYZ",100),(a8ff,"ABC",7)]
+```
 
 
 
@@ -192,8 +219,7 @@ Output:
 
 
 
-
-A Simple Minting Policy
+## A Simple Minting Policy
 
 
 Before we look at a simple minting script, we can review the 
@@ -208,16 +234,18 @@ relevant script context.
 
 We can now open and load the Free.hs minting script.
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> 
 :l src/Week05/Free.hs
 
+
 Output:
 Ok, one module loaded.
-
+```
 
 The onchain code for Free.hs looks like:
 
+```haskell
 {-# INLINABLE mkPolicy #-}
 mkPolicy :: () -> ScriptContext -> Bool
 mkPolicy () _ = True
@@ -227,18 +255,18 @@ policy = mkMintingPolicyScript $$(PlutusTx.compile [|| Scripts.wrapMintingPolicy
 
 curSymbol :: CurrencySymbol
 curSymbol = scriptCurrencySymbol policy
+```
 
 
 
+You can now run ```curSymbol``` to get the hash of the script:
 
-You can now run curSymbol to get the hash of the script:
-
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> curSymbol
 
 Output:
 983cf28fd53484a220dc42c0ae430b0c1c16b210a72975c5a98dec63
-
+```
 
 
 
@@ -246,7 +274,7 @@ Output:
 
 Looking at the off chain code of Free.hs:
 
-
+```haskell
 data MintParams = MintParams
    { mpTokenName :: !TokenName
    , mpAmount    :: !Integer
@@ -271,7 +299,7 @@ endpoints = mint' >> endpoints
 mkSchemaDefinitions ''FreeSchema
 
 mkKnownCurrencies []
-
+```
 
 
 
@@ -291,7 +319,7 @@ mkKnownCurrencies []
 
 Then finally, the Emulator Trace of Free.hs:
 
-
+```haskell
 test :: IO ()
 test = runEmulatorTraceIO $ do
    let tn = "ABC"
@@ -311,11 +339,13 @@ test = runEmulatorTraceIO $ do
        , mpAmount    = -222
        }
    void $ Emulator.waitNSlots 1
-
+```
 
 
 
 We can now run the test emulator trace:
+
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> test
 
 Output:
@@ -326,15 +356,13 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {983cf28fd53484a220dc42c0ae430b0c1c16b210a72975c5a98dec63, "ABC"}: 333
     {, ""}: 99994934
-
-
-
+```
 
 Note how both wallets have the same hash associated with “ABC”.
 
 
 
-A More Realistic Minting Policy
+## A More Realistic Minting Policy
 
 
 
@@ -343,15 +371,17 @@ Instead of having an unparameterized minting policy, we will change it to a para
 
 We can now open and load the Signed.hs minting script.
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free> 
 :l src/Week05/Signed.hs
 
 Output:
 Ok, one module loaded.
-
+```
 
 The onchain code for Signed.hs looks like:
+
+```haskell
 {-# INLINABLE mkPolicy #-}
 mkPolicy :: PaymentPubKeyHash -> () -> ScriptContext -> Bool
 mkPolicy pkh () ctx = txSignedBy (scriptContextTxInfo ctx) $ unPaymentPubKeyHash pkh
@@ -364,13 +394,7 @@ policy pkh = mkMintingPolicyScript $
 
 curSymbol :: PaymentPubKeyHash -> CurrencySymbol
 curSymbol = scriptCurrencySymbol . policy
-
-
-
-
-
-
-
+```
 
 
 Where txSignedBy and scriptContextTxInfo are:
@@ -407,7 +431,7 @@ Where txSignedBy and scriptContextTxInfo are:
 
 And the modified off chain code to account for the PaymentPubKeyHash:
 
-
+```haskell
 data MintParams = MintParams
    { mpTokenName :: !TokenName
    , mpAmount    :: !Integer
@@ -433,27 +457,11 @@ endpoints = mint' >> endpoints
 mkSchemaDefinitions ''FreeSchema
 
 mkKnownCurrencies []
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Run the test emulator Trace:
 
-
+```
 Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Signed> test
 
 Output:
@@ -464,30 +472,12 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {abd8957f184c0b8dae47f4ff1d56c87a3781c15ca6203f7727fa902b, "ABC"}: 333
     {, ""}: 99994546
-
-
-
-
+```
 
 The wallet’s now have different hashes associated with “ABC”.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-NFT’s
+## NFT’s
 
 
 
