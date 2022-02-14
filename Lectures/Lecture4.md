@@ -19,7 +19,9 @@ The Emulator Trace Monad
 The Contract Monad
 Homework Part 1
 Homework Part 2
-Preparation for Lecture 4
+
+## Preparation for Lecture 4
+
 Before we can get started in lecture 4, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
 
 
@@ -72,10 +74,7 @@ If successful,  you should now be ready to start the lecture:
 Ok, 9 modules loaded.
 Prelude Week04.Contract> 
 
-
-
-
-Monads
+## Monads
 
 
 In order to explore some new Haskell classes, we need to load hello.hs. In the nix-shell in the week04 folder, *run:
@@ -584,19 +583,7 @@ Monad
 return :: Monad m => a -> m a
  
 
-
-
-
-
-
-
-
-
-
-
-
-
-The Emulator Trace Monad
+ ## The Emulator Trace Monad
 
 
 Before we can get started with using the Emulator Trace Monad, start by loading the repl.
@@ -880,7 +867,7 @@ Wallet d3eddd0d37989746b029a0e050386bc425363901:
 
 
 
-The Contract Monad
+## The Contract Monad
 
 
 
@@ -1090,23 +1077,7 @@ Slot 00017: SlotAdd Slot 18
 Slot 00027: *** USER LOG: [1,2]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Homework Part 1
+## Homework Part 1
 
 
 -- A trace that invokes the pay endpoint of payContract on Wallet 1 twice, each time with Wallet 2 as
@@ -1204,12 +1175,7 @@ Wallet d3eddd0d37989746b029a0e050386bc425363901:
 
 
 
-
-
-
-
-
-Homework Part 2
+## Homework Part 2
 
 
 The goal of homework 2 is to account for the case where a wallet has insufficient funds to pass to the second wallet. In payTest2, the first payment is larger than the wallet balance in wallet 1. Therefore we need to handle an error for the first payment x, while still continuing the contract to pass for value y.
