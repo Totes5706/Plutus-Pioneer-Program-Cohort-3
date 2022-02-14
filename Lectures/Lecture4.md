@@ -590,46 +590,23 @@ return :: Monad m => a -> m a
 
 Before we can get started with using the Emulator Trace Monad, start by loading the repl.
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week04]$ cabal repl
-
+```
 
 
 Import Plutus.Trace.Emulator and Data.Default
 
-
+```
 Prelude Week04.Contract> import Plutus.Trace.Emulator
 
 Prelude Plutus.Trace.Emulator Week04.Contract> import Data.Default
 
 Prelude Plutus.Trace.Emulator Data.Default Week04.Contract>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 We are introduced to the Emulator Config:
-
+```haskell
 data EmulatorConfig
 Constructors
 EmulatorConfig
@@ -640,90 +617,53 @@ _slotConfig :: SlotConfig
 Set the start time of slot 0 and the length of one slot
 _feeConfig :: FeeConfig
 Configure the fee of a transaction
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Then the Default Emulator Config instance:
 
-
+```haskell
 Defined in Wallet.Emulator.Stream
 Methods
 def :: EmulatorConfig
-
+```
 
 Simple example of an Default Emulator Config:
 
+```
 Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 def :: EmulatorConfig
 
 Output:
 EmulatorConfig {_initialChainState = Left (fromList [(Wallet 1bc5f27d7b4e20083977418e839e429d00cc87f3,Value (Map [(,Map [("",100000000)])])),(Wallet 3a4778247ad35117d7c3150d194da389f3148f4a,Value (Map [(,Map [("",100000000)])])),(Wallet 4e76ce6b3f12c6cc5a6a2545f6770d2bcb360648,Value (Map [(,Map [("",100000000)])])),(Wallet 5f5a4f5f465580a5500b9a9cede7f4e014a37ea8,Value (Map [(,Map [("",100000000)])])),(Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58,Value (Map [(,Map [("",100000000)])])),(Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491,Value (Map [(,Map [("",100000000)])])),(Wallet bdf8dbca0cadeb365480c6ec29ec746a2b85274f,Value (Map [(,Map [("",100000000)])])),(Wallet c19599f22890ced15c6a87222302109e83b78bdf,Value (Map [(,Map [("",100000000)])])),(Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154,Value (Map [(,Map [("",100000000)])])),(Wallet d3eddd0d37989746b029a0e050386bc425363901,Value (Map [(,Map [("",100000000)])]))]), _slotConfig = SlotConfig {scSlotLength = 1000, scSlotZeroTime = POSIXTime {getPOSIXTime = 1596059091000}}, _feeConfig = FeeConfig {fcConstantFee = Lovelace {getLovelace = 10}, fcScriptsFeeFactor = 1.0}}
-
-
-
-
-
-
-
+```
 
 
 Run Emulator Trace:
 
-
+```haskell
 runEmulatorTrace :: EmulatorConfig -> EmulatorTrace () -> ([EmulatorEvent], Maybe EmulatorErr, EmulatorState)Source#
 Run an emulator trace to completion, returning a tuple of the final state of the emulator, the events, and any error, if any.
-
+```
+```
 Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 runEmulatorTrace def $ return ()
 
 Output:
 <pages of data>
-
-
-
+```
 
 We see here that the output contains an overwhelming amount of data, corresponding to the emulator events of the default configuration. This is not practical, so we will instead use another emulator trace called runEmulatorTraceIO.
 
 Run Emulator Trace IO:
 
+```haskell
 runEmulatorTraceIO :: EmulatorTrace () -> IO ()
 Runs the trace with runEmulatorTrace, with default configuration that prints a selection of events to stdout.
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Simple example of Run Emulator TraceIO:
 
-
+```
 Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 runEmulatorTraceIO $ return ()
 
@@ -750,28 +690,19 @@ Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154:
     {, ""}: 100000000
 Wallet d3eddd0d37989746b029a0e050386bc425363901: 
     {, ""}: 100000000
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 Run Emulator TraceIO’
 
+```haskell
 runEmulatorTraceIO' :: TraceConfig -> EmulatorConfig -> EmulatorTrace () -> IO ()
-
+```
 As you can see, Run Emulator TraceIO’ takes two additional arguments. You could potentially change the initial wallet distribution.
 
 Where TraceConfig is:
 
+```haskell
 data TraceConfig
 Options for how to set up and print the trace.
 Constructors
@@ -781,27 +712,22 @@ showEvent :: EmulatorEvent' -> Maybe String
 Function to decide how to print the particular events.
 outputHandle :: Handle
 Where to print the outputs to. Default: stdout
-
-
-
-
-
-
-
-
+```
 
 We will now look at a practical example in the file Trace.hs. Load the Trace.hs file:
 
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 :l src/Week04/Trace.hs
 
 Output:
 Ok, two modules loaded.
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Trace> 
-
+```
 
 Looking at the Trace.hs file:
 
+```haskell
 -- Contract w s e a
 -- EmulatorTrace a
 
@@ -821,16 +747,11 @@ myTrace = do
    callEndpoint @"grab" h2 ()
    s <- waitNSlots 2
    Extras.logInfo $ "reached " ++ show s
-
-
-
-
-
-
+```
 
 We can run a trace using the test function:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Trace> 
 test
 
@@ -865,24 +786,23 @@ Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154:
     {, ""}: 100000000
 Wallet d3eddd0d37989746b029a0e050386bc425363901: 
     {, ""}: 100000000
-
-
+```
 
 
 ## The Contract Monad
 
 
-
+```haskell
 -- Contract w s e a
-
-
+```
+```haskell
 newtype Contract w (s :: Row *) e aSource#
 Contract w s e a is a contract with schema s, producing a value of type a or an error e. See note [Contract Schema].
 Constructors
 Contract
  
 unContract :: Eff (ContractEffs w e) a
-
+```
 
 
 Where W: Allows contract to write log messages of type w (can pass information to the outside)
@@ -894,34 +814,22 @@ Where E: Specifies the type of error messages
 Where A: Is the Result
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 First, we need to load the Contract.hs file:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Trace> 
 :l src/Week04/Contract.hs
 
 Output:
 Ok, one module loaded.
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
-
+```
 
 
 
 Opening the file Contract.hs, we will first learn how to throw an error in the contract:
 
-
+```haskell
 myContract1 :: Contract () Empty Text ()
 myContract1 = do
    void $ Contract.throwError "BOOM!"
@@ -932,26 +840,22 @@ myTrace1 = void $ activateContractWallet (knownWallet 1) myContract1
 
 test1 :: IO ()
 test1 = runEmulatorTraceIO myTrace1
-
+```
 
 
 We can test out contract 1 by calling the test1 function:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 test1
 
 Output:
 Slot 00001: *** CONTRACT STOPPED WITH ERROR: "\"BOOM!\""
-
-
-
-
-
+```
 
 We can modify myContract1 in order to instead catch the exception. Contract2 is now created to handle the exception:
 
-
+```haskell
 myContract2 :: Contract () Empty Void ()
 myContract2 = Contract.handleError
    (\err -> Contract.logError $ "caught: " ++ unpack err)
@@ -962,31 +866,22 @@ myTrace2 = void $ activateContractWallet (knownWallet 1) myContract2
 
 test2 :: IO ()
 test2 = runEmulatorTraceIO myTrace2
-
+```
 
 
 We can test out contract 2 by calling the test2 function:
 
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 test2
 
 Output:
 SSlot 00001: *** CONTRACT LOG: "caught: BOOM!"
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Creating a new contract myContract3, we can see how to use endpoints in the Contract:
 
+```haskell
 type MySchema = Endpoint "foo" Int .\/ Endpoint "bar" String
 
 myContract3 :: Contract () MySchema Text ()
@@ -1002,11 +897,11 @@ myTrace3 = do
 
 test3 :: IO ()
 test3 = runEmulatorTraceIO myTrace3
-
+```
 
 We can test out contract 3 by calling the test3 function:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 test3
 
@@ -1015,16 +910,11 @@ Receive endpoint call on 'foo' for Object XXX
 Contract log: Number 42.0
 Receive endpoint call on 'bar' for Object XXX
 Slot 00001: *** CONTRACT LOG: "Haskell"
-
-
-
-
-
-
-
+```
 
 Creating a new contract myContract4, we can see how to have the contract wait ‘n’ slots:
 
+```haskell
 myContract4 :: Contract [Int] Empty Text ()
 myContract4 = do
    void $ Contract.waitNSlots 10
@@ -1051,23 +941,11 @@ myTrace4 = do
 
 test4 :: IO ()
 test4 = runEmulatorTraceIO myTrace4
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 We can test out contract 4 by calling the test4 function:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract> 
 test4
 
@@ -1077,15 +955,15 @@ Slot 00007: SlotAdd Slot 8
 Slot 00017: *** USER LOG: [1]
 Slot 00017: SlotAdd Slot 18
 Slot 00027: *** USER LOG: [1,2]
-
+```
 
 ## Homework Part 1
 
-
+```haskell
 -- A trace that invokes the pay endpoint of payContract on Wallet 1 twice, each time with Wallet 2 as
 -- recipient, but with amounts given by the two arguments. There should be a delay of one slot
 -- after each endpoint call.
-
+```
 
 
 The goal homework 1 is to write an emulator trace that takes 2 integer payments, and utilizes the payContract to execute two payments to the recipient wallet 2 with a delay of one slot.
@@ -1094,41 +972,48 @@ import Wallet.Emulator.Wallet
 
 
 First, we need to pass two values into paytrace (I defined them as x , y respectively):
+```haskell
 payTrace x y = do
-
+```
 
 Second, we need to call the payContract from Wallet 1:
+```haskell
 h <- activateContractWallet (knownWallet 1) payContract
 let pkh = mockWalletPaymentPubKeyHash $ knownWallet 2
-
+```
 
 Now, we need to use the @pay endpoint and use the Payparams to pay the beneficiary Wallet2 with the first value, x:
+```haskell
 callEndpoint @"pay" h $ PayParams
        { ppRecipient = pkh
        , ppLovelace  = x
        }
 
-
+```
 
 
 
 Wait 1 slot before calling the next payment:
+```haskell
 void $ Emulator.waitNSlots 1
-
+```
 
 Now, we need to use the @pay endpoint again and use the Payparams to pay the beneficiary Wallet2 with the second value, y:
+```haskell
 callEndpoint @"pay" h $ PayParams
        { ppRecipient = pkh
        , ppLovelace  = y
        }
-
+```
 
 Wait 1 slot after the second payment:
+```haskell
 void $ Emulator.waitNSlots 1
-
+```
 
 The final trace emulator should look like:
 
+```haskell
 payTrace :: Integer -> Integer -> EmulatorTrace ()
 payTrace x y = do
    h <- activateContractWallet (knownWallet 1) payContract
@@ -1143,12 +1028,12 @@ payTrace x y = do
        , ppLovelace  = y
        }
    void $ Emulator.waitNSlots 1
-
+```
 
 
 Running payTest1, we get the following result:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Homework> 
 payTest1
 
@@ -1174,7 +1059,7 @@ Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154:
     {, ""}: 100000000
 Wallet d3eddd0d37989746b029a0e050386bc425363901: 
     {, ""}: 100000000
-
+```
 
 
 ## Homework Part 2
@@ -1183,32 +1068,33 @@ Wallet d3eddd0d37989746b029a0e050386bc425363901:
 The goal of homework 2 is to account for the case where a wallet has insufficient funds to pass to the second wallet. In payTest2, the first payment is larger than the wallet balance in wallet 1. Therefore we need to handle an error for the first payment x, while still continuing the contract to pass for value y.
 
 We need to first look at the payContract, more specifically:
+```haskell
 $ void $ submitTx tx
-
+```
 
 First, since we will be using the unpack error handling, we need to import it to the file:
+```haskell
 import Data.Text              (Text, unpack)
-
+```
 
 Now we can modify the submit transaction line above to handle an error, create a log, and then continue the contract:
+```haskell
 handleError (\err -> Contract.logInfo $ "caught error: " ++ unpack err) $ void $ submitTx tx
-
+```
 
 The final payContract should look like:
+```haskell
 payContract :: Contract () PaySchema Text ()
 payContract = do
    pp <- awaitPromise $ endpoint @"pay" return
    let tx = mustPayToPubKey (ppRecipient pp) $ lovelaceValueOf $ ppLovelace pp
    handleError (\err -> Contract.logInfo $ "caught error: " ++ unpack err) $ void $ submitTx tx
    payContract
-
-
-
-
+```
 
 Running payTest2, we get the following result:
 
-
+```
 Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Homework> 
 payTest2
 
@@ -1236,7 +1122,7 @@ Wallet c30efb78b4e272685c1f9f0c93787fd4b6743154:
     {, ""}: 100000000
 Wallet d3eddd0d37989746b029a0e050386bc425363901: 
     {, ""}: 100000000
-
+```
 
 
 
