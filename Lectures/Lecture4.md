@@ -876,7 +876,7 @@ Prelude Prelude Plutus.Trace.Emulator Data.Default Week04.Contract>
 test2
 
 Output:
-SSlot 00001: *** CONTRACT LOG: "caught: BOOM!"
+Slot 00001: *** CONTRACT LOG: "caught: BOOM!"
 ```
 
 Creating a new contract myContract3, we can see how to use endpoints in the Contract:
