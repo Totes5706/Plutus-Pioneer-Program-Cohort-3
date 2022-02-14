@@ -13,12 +13,12 @@ Google Doc version can be found [HERE](https://docs.google.com/document/d/1gRv1m
 
 ## Table of Contents
 
-Preparation for Lecture 4
-Monads
-The Emulator Trace Monad
-The Contract Monad
-Homework Part 1
-Homework Part 2
+1. [Preparation for Lecture 4](#Preparation-for-Lecture-4)
+2. [Monads](#Monads)
+3. [The Emulator Trace Monad](#The-Emulator-Trace-Monad)
+4. [The Contract Monad](#The-Contract-Monad)
+5. [Homework Part 1](#Homework-Part-1)
+6. [Homework Part 2](#Homework-Part-2)
 
 ## Preparation for Lecture 4
 
@@ -27,9 +27,9 @@ Before we can get started in lecture 4, we first must get our development enviro
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 4 contents. Execute: 
 
-
+```
 totinj@penguin:~/plutus-pioneer-program$ git pull
-
+```
 
 You can now navigate to the current week04 directory and open the cabal.project file:
 
