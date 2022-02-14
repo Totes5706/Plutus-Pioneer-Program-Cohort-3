@@ -74,14 +74,17 @@ Head back to the week04 folder to start running the cabal commands:
 ```
 If successful,  you should now be ready to start the lecture:
 
+```
 Ok, 9 modules loaded.
 Prelude Week04.Contract> 
+```
 
 ## Monads
 
 
 In order to explore some new Haskell classes, we need to load hello.hs. In the nix-shell in the week04 folder, *run:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week04]$ cabal repl plutus-pioneer-program-week04:exe:hello
 
 Output:
@@ -94,7 +97,7 @@ GHCi, version 8.10.4.20210212: https://www.haskell.org/ghc/  :? for help
 [1 of 1] Compiling Main             ( app/hello.hs, interpreted )
 Ok, one module loaded.
 *Main>
-
+```
 
 
 *note: If repl is already running you can hit CTRL+Z to return to nix-shell
@@ -103,11 +106,14 @@ Ok, one module loaded.
 
 We learned about the Functor IO class.
 
+```haskell
 class Functor f where
 Plutus Tx version of Functor.
 Methods
 fmap :: (a -> b) -> f a -> f b
 Plutus Tx version of fmap.
+```
+
 Example, upper case function. First import Data.Char:
 
 *Main> import Data.Char
