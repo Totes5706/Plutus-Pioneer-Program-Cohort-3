@@ -149,7 +149,7 @@ Output:
 
 ```haskell
 (>>) :: Monad m => m a -> m b -> m b
- ```
+```
 
 ```
 *Main Data.Char> putStrLn "Hello" >> putStrLn "World"
@@ -157,7 +157,7 @@ Output:
 Output:
 Hello
 World
-
+```
 
 (>>=) Bind Operator:
 
