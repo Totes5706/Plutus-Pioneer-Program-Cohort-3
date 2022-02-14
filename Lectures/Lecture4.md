@@ -285,16 +285,18 @@ Prelude Week04.Contract>
 
 Now we load the Maybe.hs file:
 
+```
 Prelude Week04.Contract> :l src/Week4/Maybe.hs
 
 Output:
 Ok, two modules loaded.
 Prelude Week04.Maybe>
-
+```
 
 
 Inside the Maybe.hs file, we first look at the foo function:
 
+```haskell
 foo :: String -> String -> String -> Maybe Int
 foo x y z = case readMaybe x of
    Nothing -> Nothing
@@ -303,9 +305,11 @@ foo x y z = case readMaybe x of
        Just l  -> case readMaybe z of
            Nothing -> Nothing
            Just m  -> Just (k + l + m)
-
+```
 
 Example outputs of the foo function:
+
+```
 Prelude Week04.Maybe> foo "1" "2" "3"
 
 Output:
@@ -320,9 +324,11 @@ Prelude Week04.Maybe> foo "1" "2" ""
 
 Output:
 Nothing
+```
 
 Now we look at bindMaybe in Maybe.hs(to create a more concise version of the foo function called foo’ ):
 
+```haskell
 bindMaybe :: Maybe a -> (a -> Maybe b) -> Maybe b
 bindMaybe Nothing  _ = Nothing
 bindMaybe (Just x) f = f x
@@ -332,10 +338,11 @@ foo' x y z = readMaybe x `bindMaybe` \k ->
             readMaybe y `bindMaybe` \l ->
             readMaybe z `bindMaybe` \m ->
             Just (k + l + m)
-
+```
 
 Example outputs of the foo’ function as expected:
 
+```
 Prelude Week04.Maybe> foo' "1" "2" "3"
 
 Output:
@@ -350,26 +357,22 @@ Prelude Week04.Maybe> foo' "1" "2" ""
 
 Output:
 Nothing
-
-
-
-
-
+```
 
 Either Type:
 
+```haskell
 data Either a b
 Constructors
 
 Left a
  
 Right b
-
-
-
+```
 
 Example of Either Type:
 
+```
 Prelude Week04.Maybe> Left "Haskell" :: Either String Int
 
 Output:
@@ -379,28 +382,31 @@ Prelude Week04.Maybe> Right 7 :: Either String Int
 
 Output:
 Right 7
-
+```
 
 
 Now we load the Either.hs file:
 
+```
 Prelude Week04.Contract> :l src/Week04/Either.hs
 
 Output:
 Ok, two modules loaded.
 Prelude Week04.Either>
-
+```
 
 Inside Either.hs, we first look at the readEither function:
 
+```haskell
 readEither :: Read a => String -> Either String a
 readEither s = case readMaybe s of
    Nothing -> Left $ "can't parse: " ++ s
    Just a  -> Right a
-
+```
 
 Example outputs of readEither:
 
+```
 Prelude Week04.Either> readEither "42" :: Either String Int
 
 Output:
@@ -410,22 +416,12 @@ Prelude Week04.Either> readEither "42+x" :: Either String Int
 
 Output:
 Left "can't parse: 42+x"
-
-
-
-
-
-
-
-
-
-
-
+```
 
 We then look at the foo function:
 
 
-
+```haskell
 readEither :: Read a => String -> Either String a
 readEither s = case readMaybe s of
    Nothing -> Left $ "can't parse: " ++ s
@@ -439,10 +435,11 @@ foo x y z = case readEither x of
        Right l  -> case readEither z of
            Left err -> Left err
            Right m  -> Right (k + l + m)
-
+```
 
 Example outputs of foo:
 
+```
 Prelude Week04.Either> foo "1" "2" "3"
 
 Output:
@@ -462,9 +459,11 @@ Prelude Week04.Either> foo "1" "2" "aws"
 
 Output:
 Left "can't parse: aws"
+```
 
 We then look at foo’ (more concise version of foo):
 
+```haskell
 bindEither :: Either String a -> (a -> Either String b) -> Either String b
 bindEither (Left err) _ = Left err
 bindEither (Right x)  f = f x
@@ -474,12 +473,12 @@ foo' x y z = readEither x `bindEither` \k ->
             readEither y `bindEither` \l ->
             readEither z `bindEither` \m ->
             Right (k + l + m)
-
+```
 
 
 Example outputs of foo’ as expected:
 
-
+```
 Prelude Week04.Either> foo' "1" "2" "3"
 
 Output:
@@ -499,33 +498,37 @@ Prelude Week04.Either> foo' "1" "2" "aws"
 
 Output:
 Left "can't parse: aws"
-
+```
 
 Finally, we load the Writer.hs file:
 
+```
 Prelude Week04.Either> :l src/Week04/Writer.hs
 
 Output:
 Ok, two modules loaded.
 Prelude Week04.Writer>
-
+```
 
 The first function of interest in the file is number:
 
+```haskell
 number :: Int -> Writer Int
 number n = Writer n $ ["number: " ++ show n]
-
+```
 
 Example of number:
 
+```
 Prelude Week04.Writer> number 42
 
 Output:
 Writer 42 ["number: 42"]
-
+```
 
 Now we look at foo:
 
+```haskell
 foo :: Writer Int -> Writer Int -> Writer Int -> Writer Int
 foo (Writer k xs) (Writer l ys) (Writer m zs) =
  let
@@ -533,20 +536,21 @@ foo (Writer k xs) (Writer l ys) (Writer m zs) =
    Writer _ us = tell ["sum: " ++ show s]
  in
    Writer s $ xs ++ ys ++ zs ++ us
-
+```
 
 
 Example of foo:
-
+```
 Prelude Week04.Writer> foo (number 1) (number 2) (number 3)
 
 Output:
 Writer 6 ["number: 1","number: 2","number: 3","sum: 6"]
-
+```
 
 
 Now we look at the bindWriter function with foo’:
 
+```haskell
 bindWriter :: Writer a -> (a -> Writer b) -> Writer b
 bindWriter (Writer a xs) f =
  let
@@ -561,24 +565,25 @@ foo' x y z = x `bindWriter` \k ->
             let s = k + l + m
             in tell ["sum: " ++ show s] `bindWriter` \_ ->
                Writer s []
-
+```
 
 
 
 Example of foo’:
-
+```
 Prelude Week04.Writer> foo' (number 1) (number 2) (number 3)
 
 Output:
 Writer 6 ["number: 1","number: 2","number: 3","sum: 6"]
-
+```
 Lastly, we looked at the entire Monad Class:
+```haskell
 Monad
 (>>=) :: Monad m => m a -> (a -> m b) -> m b
 (=<<) :: Monad m => (a -> m b) -> m a -> m b
 (>>) :: Monad m => m a -> m b -> m b
 return :: Monad m => a -> m a
- 
+ ```
 
  ## The Emulator Trace Monad
 
