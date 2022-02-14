@@ -116,6 +116,7 @@ Plutus Tx version of fmap.
 
 Example, upper case function. First import Data.Char:
 
+```
 *Main> import Data.Char
 
 
@@ -123,32 +124,34 @@ Example, upper case function. First import Data.Char:
 
 Output:
 'Q'
+```
 
 
-
-
+```
 *Main Data.Char> map toUpper "haskell"
 
 Output:
 "HASKELL"
+```
 
 
 
-
-
+```
 *Main Data.Char> fmap (map toUpper) getLine 
 <user input> Haskell
 
 Output:
 "HASKELL"
-
+```
 
 
 (>>) Operator:
 
+```haskell
 (>>) :: Monad m => m a -> m b -> m b
- 
+ ```
 
+```
 *Main Data.Char> putStrLn "Hello" >> putStrLn "World"
 
 Output:
@@ -156,45 +159,36 @@ Hello
 World
 
 
-
-
-
-
-
-
-
-
-
 (>>=) Bind Operator:
 
+```haskell
 (>>=) :: Monad m => m a -> (a -> m b) -> m b
-
+```
+```
 *Main Data.Char> getLine >>= putStrLn
 <user input> Haskell
 
 Output:
 Haskell
-
+```
 
 
 Return:
 
+```haskell
 return :: Monad m => a -> m a
- 
-
+ ```
+```
 *Main Data.Char> return "Haskell" :: IO String
 
 Output:
 Haskell
-
-
- 
-
-
+```
 
 
 A more complicated IO function in hello.hs:
 
+```haskell
 main :: IO ()
 main = bar -- putStrLn "Hello, world!"
 
@@ -202,21 +196,23 @@ bar :: IO ()
 bar = getLine >>= \s ->
       getLine >>= \t ->
       putStrLn (s ++ t)
-
+```
 
 
 Call the *bar function:
 
+```
 *Main Data.Char> bar
 <user input> one
 <user input> two
 
 Output:
 onetwo
-
+```
 
 *note, if you are outside the repl you can directly run hello.hs by:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week04]$ cabal run hello
 Up to date
 <user input> one
@@ -224,7 +220,7 @@ Up to date
 
 Output:
 onetwo
-
+```
 
 
 
@@ -232,68 +228,60 @@ onetwo
 
 Maybe Type:
 
+```haskell
 data Maybe a
 Constructors
 Nothing
  
 Just a
- 
+ ```
 
 
 Example, read. First import Text.Read (readMaybe):
 
+```
 *Main Data.Char> import Text.Read (readMaybe)
-
-
+```
+```
 *Main Data.Char Text.Read> read "42" :: Int
 
 Output:
 42
-
-
+```
+```
 *Main Data.Char Text.Read> read "42+x" :: Int
 
 Output:
 *** Exception: Prelude.read: no parse
-
-
-
-
-
-
+```
 
 
 Read Maybe (more ideal, avoids throwing an exception):
-
+```
 *Main Data.Char Text.Read> readMaybe "42+x" :: Maybe Int
 
 Output:
 Nothing
+```
 
-
-
+```
 *Main Data.Char Text.Read> readMaybe "42" :: Maybe Int
 
 Output:
 Just 42
-
+```
 
 
 
 We will now learn more intricate uses of readMaybe in the Maybe.hs file. Exit the repl with CTRL+Z, then execute:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week04]$ cabal repl
 
 Output:
 Ok, 9 modules loaded.
 Prelude Week04.Contract>
-
-
-
-
-
-
-
+```
 
 Now we load the Maybe.hs file:
 
