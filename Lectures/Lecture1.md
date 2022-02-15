@@ -64,7 +64,7 @@ totinj@penguin:~$ . /home/totinj/.nix-profile/etc/profile.d/nix.sh
 ```
 
 
-We now need to add Input Outputs caches to greatly speed up the building process. Without this step, you might be running nix-shell for days rather than minutes! Let’s create a new config file that has the associated IOG links. Run:
+We now need to add Input Outputs caches to greatly speed up the building process. Without this step, you might be running nix-shell for days rather than minutes! This can be found here: [IOG Binaries](https://github.com/input-output-hk/plutus-apps#iohk-binary-cache). Let’s create a new config file that has the associated IOG links. Run:
 ```
 totinj@penguin:~$ mkdir ~/.config/nix
 echo 'substituters = https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/' >> ~/.config/nix/nix.conf
