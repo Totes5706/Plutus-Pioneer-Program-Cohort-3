@@ -26,7 +26,7 @@ If you want to use linux but only have a computer with windows, you can run a vi
 [How to install an Ubuntu VM in Windows](https://www.google.com/url?q=https://youtu.be/x5MhydijWmc&sa=D&source=editors&ust=1644942252628903&usg=AOvVaw0y0kxJWz9VN7FAqqN8tkDT)
 
 You can copy and paste any of the code in this guide directly into your terminal or IDE. If you are new to linux and are unfamiliar with terminal shell commands, this cheat sheet gives a quick overview:<br/>
-[Linux Command Master List] (https://drive.google.com/file/d/10xz7Dm3E_20doL08Wu_dfWJqiIfvTKlc/view?usp=sharing)
+[Linux Command Master List](https://drive.google.com/file/d/10xz7Dm3E_20doL08Wu_dfWJqiIfvTKlc/view?usp=sharing)
 
 
 The haddock documentation is also a great source of information for all the public plutus libraries.  This can be found here:<br/>
