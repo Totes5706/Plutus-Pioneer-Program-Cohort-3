@@ -126,7 +126,7 @@ Prelude Week01.EnglishAuction>
 ```
 
 ## The EUTxO Model
-This is the transcript for the lecture video on EUTxOs by Lars Brünjes. Further information about EUTxO models can be found here: Accounting Systems for Blockchains
+This is the transcript for the lecture video on EUTxOs by Lars Brünjes. Further information about EUTxO models can be found here:<br/> [Accounting Systems for Blockchains]( https://iohk.io/en/blog/posts/2021/03/11/cardanos-extended-utxo-accounting-model/) <br/><br/>
 One of the most important things you need to understand in order to write Plutus smart contracts is the counting model that Cardano uses; and that is the so-called (E)UTxO model, which is an abbreviation for extended unspent transaction output model. The UTxO model without being extended is the one that has been introduced by Bitcoin.  But there are other models. Ethereum, for example, uses a so-called account-based model, which is what you're used to from a normal bank, where everybody has an account and each account has a balance. And if you transfer money from one account to another, then the balance gets updated accordingly, but that is not how the UTxO model works. Unspent transaction outputs are exactly what the name says. They are transaction outputs that are outputs from previous transactions that happened on the blockchain that have not yet been spent.<br/>
 
 So let's look at an example where we have two such UTxOs, one belonging to Alice, 100 ADA and another one belonging to Bob, 50 ADA. And as an example, let's assume that Alice wants to send 10 ADA to Bob. So she creates a transaction and the transaction is something that has inputs and outputs, can be an arbitrary number of inputs and an arbitrary number of outputs. And an important thing is that you can always only use complete UTxOs as input. So, if she wants to send 10 ADA to Bob, she can't simply split herexisting 100 ADA into a 90 to 10 piece. She has to use the full 100 ADA as input. So by using the UTxO 100 ADA as input to a transaction. Alice has not spent that UTxO, so it's no longer an UTxO. It's no longer unspent, it's been spent. And now she can create outputs for a transaction. So she wants to pay 10 ADA to Bob. So one output will be 10 ADA to Bob, and then she wants her change back. So she creates a second output of 90 ADA to herself.<br/>
@@ -423,310 +423,164 @@ mkSchemaDefinitions ''AuctionSchema
 myToken :: KnownCurrency
 myToken = KnownCurrency (ValidatorHash "f") "Token" (TokenName "T" :| [])
 ```
-Instead of having an unparameterized minting policy, we will change it to a parametrized one. This will instead allow an owner from a specific public key hash to mint, rather than anyone.
-We can now open and load the Signed.hs minting script.
-Where txSignedBy and scriptContextTxInfo are:
-And the modified off chain code to account for the PaymentPubKeyHash:
-```haskell
-data MintParams = MintParams
-  { mpTokenName :: !TokenName
-  , mpAmount    :: !Integer
-  } deriving (Generic, ToJSON, FromJSON, ToSchema)
-type FreeSchema = Endpoint "mint" MintParams
-mint :: MintParams -> Contract w FreeSchema Text ()
-mint mp = do
-  pkh <- Contract.ownPaymentPubKeyHash
-  let val     = Value.singleton (curSymbol pkh) (mpTokenName mp) (mpAmount mp)
-      lookups = Constraints.mintingPolicy $ policy pkh
-      tx      = Constraints.mustMintValue val
-  ledgerTx <- submitTxConstraintsWith @Void lookups tx
-  void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
-  Contract.logInfo @String $ printf "forged %s" (show val)
-endpoints :: Contract () FreeSchema Text ()
-endpoints = mint' >> endpoints
-where
-  mint' = awaitPromise $ endpoint @"mint" mint
-mkSchemaDefinitions ''FreeSchema
-mkKnownCurrencies []
-```
-Run the test emulator Trace:
-```haskell
-Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Signed> test
-Output:
-Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
-    {, ""}: 99997273
-    {6a23f49d0acb4de48549c11b5f9963861579ae778c65886ab9fbc627, "ABC"}: 444
-Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
-    {abd8957f184c0b8dae47f4ff1d56c87a3781c15ca6203f7727fa902b, "ABC"}: 333
-    {, ""}: 99994546
-```
-The wallet’s now have different hashes associated with “ABC”.
 
-## NFT’s
-Non Fungible Tokens are tokens which only exist once. Previous examples were not NFTs because we were able to mint as many tokens as possible.
-Since the Mary era, it was possible to implement pseudo NFTs based using deadlines to lock down the minting process. This requires checking with a blockchain explorer whether or not one was minted before the deadline. These are not true NFTs since they require secondary checks.
+## The Auction Contract in Plutus Playground
 
-Since the plutus era, we can construct true NFTs that are only minted once, without the need to validate from a blockchain explorer. The trick is to use a unique ID that cannot be duplicated; and in this case for Cardano, it is the UtxOs that only exist once. UtxOs are never reused.
-We can now open and load the NFT.hs minting script.
-```haskell
-Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Free>
-:l src/Week05/NFT.hs
-Output:
-Ok, one module loaded.
+
+In order to get started with Plutus Playground, we need to have two terminals running, both of which are in the nix-shell.
+
+Let’s get started with terminal 1. Head to the plutus-apps directory and first run nix-shell:
+
+
+
+Terminal 1
+```
+totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
-The onchain code for NFT.hs looks like:
-```haskell
-{-# INLINABLE mkPolicy #-}
-mkPolicy :: TxOutRef -> TokenName -> () -> ScriptContext -> Bool
-mkPolicy oref tn () ctx = traceIfFalse "UTxO not consumed"   hasUTxO           &&
-                        traceIfFalse "wrong amount minted" checkMintedAmount
-where
-  info :: TxInfo
-  info = scriptContextTxInfo ctx
-  hasUTxO :: Bool
-  hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
-  checkMintedAmount :: Bool
-  checkMintedAmount = case flattenValue (txInfoMint info) of
-      [(_, tn', amt)] -> tn' == tn && amt == 1
-      _               -> False
-policy :: TxOutRef -> TokenName -> Scripts.MintingPolicy
-policy oref tn = mkMintingPolicyScript $
-  $$(PlutusTx.compile [|| \oref' tn' -> Scripts.wrapMintingPolicy $ mkPolicy oref' tn' ||])
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode oref
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode tn
-curSymbol :: TxOutRef -> TokenName -> CurrencySymbol
-curSymbol oref tn = scriptCurrencySymbol $ policy oref tn
+
+Next we head to plutus-playground-server directory and run: 
+
+Terminal 1
 ```
-The offchain code for NFT.hs looks like:
-```haskell
-data NFTParams = NFTParams
-  { npToken   :: !TokenName
-  , npAddress :: !Address
-  } deriving (Generic, FromJSON, ToJSON, Show)
-type NFTSchema = Endpoint "mint" NFTParams
-mint :: NFTParams -> Contract w NFTSchema Text ()
-mint np = do
-  utxos <- utxosAt $ npAddress np
-  case Map.keys utxos of
-      []       -> Contract.logError @String "no utxo found"
-      oref : _ -> do
-          let tn      = npToken np
-          let val     = Value.singleton (curSymbol oref tn) tn 1
-              lookups = Constraints.mintingPolicy (policy oref tn) <> Constraints.unspentOutputs utxos
-              tx      = Constraints.mustMintValue val <> Constraints.mustSpendPubKeyOutput oref
-          ledgerTx <- submitTxConstraintsWith @Void lookups tx
-          void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
-          Contract.logInfo @String $ printf "forged %s" (show val)
-endpoints :: Contract () NFTSchema Text ()
-endpoints = mint' >> endpoints
-where
-  mint' = awaitPromise $ endpoint @"mint" mint
+[nix-shell:~/plutus-apps/plutus-playground-server]$ plutus-playground-server
 ```
-Run the test emulator Trace:
-```haskell
-Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.NFT> test
-Output:
-Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
-    {, ""}: 99996890
-    {2d8911eaeda275b8e0c4ba484f1857435a3e5720fa9ac648fc343b57, "ABC"}: 1
-Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
-    {, ""}: 99996890
-    {dd34121ddddfd43091b6f4368b4ea1715228bfb2e65558942bf052cc, "ABC"}: 1
-```
-## Homework Part 1
-```haskell
--- This policy should only allow minting (or burning) of tokens if the owner of the specified PaymentPubKeyHash
--- has signed the transaction and if the specified deadline has not passed.
-```
-The goal of homework 1 is to write a Mary era contract that uses deadlines and signature checks to mint a specific token ABC.
-We first need to implement the mkPolicy that takes the PaymentPubKeyHash, POSIXTime and ScriptContext to produce a Boolean to check both cases in which the beneficiary has signed the transaction; as well as checking that the deadline has not passed.
-```haskell
-mkPolicy :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
-mkPolicy pkh deadline () ctx =  -- FIX ME!
-  traceIfFalse "beneficiary's signature missing" checkSig      &&
-  traceIfFalse "deadline has passed"             checkDeadline
-where
-  info :: TxInfo
-  info = scriptContextTxInfo ctx
-  checkSig :: Bool
-  checkSig = unPaymentPubKeyHash pkh `elem` txInfoSignatories info
-  checkDeadline :: Bool
-  checkDeadline = to deadline `contains` txInfoValidRange info
-```
-I created && logic that checks both the signature in the checkSig function and the deadline in the checkDeadline function. This will only return true if both are true. In checkDeadline, we also want to use “to” making sure we are in the valid range.
-We then need to create the policy that takes both PaymentPubKeyHash and POSIXTime as pkh and deadline respectively.
-```haskell
-policy :: PaymentPubKeyHash -> POSIXTime -> Scripts.MintingPolicy
-policy pkh deadline = mkMintingPolicyScript $
-  $$(PlutusTx.compile [|| \pkh' deadline' -> Scripts.wrapMintingPolicy $ mkPolicy pkh' deadline' ||])
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode pkh
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode deadline
-```
-Finally, we need to get the hash for curSymbol taking in both PaymentPubKeyHash and POSIXTime.
-```haskell
-curSymbol :: PaymentPubKeyHash -> POSIXTime -> CurrencySymbol
-curSymbol pkh deadline = scriptCurrencySymbol $ policy pkh deadline
-```
-The final Code looks like:
-```haskell
-{-# INLINABLE mkPolicy #-}
--- This policy should only allow minting (or burning) of tokens if the owner of the specified PaymentPubKeyHash
--- has signed the transaction and if the specified deadline has not passed.
-mkPolicy :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
-mkPolicy pkh deadline () ctx =  -- FIX ME!
-  traceIfFalse "beneficiary's signature missing" checkSig      &&
-  traceIfFalse "deadline has passed"             checkDeadline
-where
-  info :: TxInfo
-  info = scriptContextTxInfo ctx
-  checkSig :: Bool
-  checkSig = unPaymentPubKeyHash pkh `elem` txInfoSignatories info
-  checkDeadline :: Bool
-  checkDeadline = to deadline `contains` txInfoValidRange info
-policy :: PaymentPubKeyHash -> POSIXTime -> Scripts.MintingPolicy
-policy pkh deadline = mkMintingPolicyScript $
-  $$(PlutusTx.compile [|| \pkh' deadline' -> Scripts.wrapMintingPolicy $ mkPolicy pkh' deadline' ||])
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode pkh
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode deadline
-curSymbol :: PaymentPubKeyHash -> POSIXTime -> CurrencySymbol
-curSymbol pkh deadline = scriptCurrencySymbol $ policy pkh deadline
-```
-The final output running the test trace looks like:
-```haskell
-Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Homework1> test
-Output:
-Slot 00111: *** CONTRACT LOG: "deadline passed"
-Slot 00111: SlotAdd Slot 112
-Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
-    {, ""}: 99996184
-    {b995b54607b38bd87d0895eafd8d32b4b25d0c98312d1ccb0542d81a, "ABC"}: 555
-```
-## Homework Part 2
-```haskell
--- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
--- and where the TokenName will be the empty ByteString.
-```
-The goal of homework part 2 is to mint an NFT for a given UTxO where the TokenName is a ByteString.
-First we need to write the mkPolicy in which checks if the UTxO is consumed, and also if the correct amount was minted.
-The "hasUTx0" function is a boolean that checks the TxOutRef to report true or false.
-The checkMintedAmount will check to make sure only 1 is actually minted. We also set tn’ ==  “” since we are working with an empty Bytestring.
-```haskell
-{-# INLINABLE mkPolicy #-}
--- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
--- and where the TokenName will be the empty ByteString.
-mkPolicy :: TxOutRef -> () -> ScriptContext -> Bool
-mkPolicy oref () ctx =
-  traceIfFalse "UTxO not consumed"   hasUTxO           &&
-  traceIfFalse "wrong amount minted" checkMintedAmount
-where
-  info :: TxInfo
-  info = scriptContextTxInfo ctx
-  hasUTxO :: Bool
-  hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
-  checkMintedAmount :: Bool
-  checkMintedAmount = case flattenValue (txInfoMint info) of
-     [(_, tn', amt)] -> tn' == "" && amt == 1
-      _               -> False
-```
-Next we will implement the policy and curSymbol functions. Each of these will only accept the oref since we are not working with the token names.
-```haskell
-policy :: TxOutRef -> Scripts.MintingPolicy
-policy oref = mkMintingPolicyScript $
-   $$(PlutusTx.compile [|| \oref' -> Scripts.wrapMintingPolicy $ mkPolicy oref' ||])
-   `PlutusTx.applyCode`
-   PlutusTx.liftCode oref
+
+If Successful, you will see the output:
+
+Terminal 1
+Interpreter Ready
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Let’s get started with terminal 2. Head to the plutus-apps directory and first run nix-shell:
+
+
+
+Terminal 2
+totinj@penguin:~/plutus-apps$ nix-shell
+
+
+
+Next we head to plutus-playground-client directory and run: 
+
+Terminal 2
+[nix-shell:~/plutus-apps/plutus-playground-client]$ npm run start
+
+
+If Successful, you will see the output:
+
+Terminal 2
+[wdm]: Compiled successfully.
+
+or
+
+[wdm]: Compiled with warnings.
+
+
+
+Keep both terminals open, and we should now be able to access Plutus Playground from the browser.
+
+Open a browser and head to the address:
+
+https://localhost:8009
+
+
+You will get a warning complaining about it being a risky website, ignore the message to click through anyway.
+
+You should now be able to successfully compile and run the auctions contract by using the two buttons in the top right corner: “Compile” and “Simulate”.
+The next part is taken from reddit (u/RikAlexander) which walks through plutus playground. Credit to him for this submission:
+
  
-curSymbol :: TxOutRef -> CurrencySymbol
-curSymbol oref = scriptCurrencySymbol $ policy oref
-```
-Finally, we need to implement the mint function. The mint function passes only the address here. Since the TokenName is a bytestring, we also need to declare it as:
-```haskell
-let tn      = TokenName ""
-```
-We also only need to pass 2 arguments into the singleton and mintingPolicy function:
-```haskell
-let val     = Value.singleton (curSymbol oref ) tn 1
-              lookups = Constraints.mintingPolicy (policy oref ) <> Constraints.unspentOutputs utxos
-```
-The mint function should then look like:
-```haskell
-mint :: Address -> Contract w NFTSchema Text ()
-mint address =  do
-  utxos <- utxosAt address
-  case Map.keys utxos of
-      []       -> Contract.logError @String "no utxo found"
-      oref : _ -> do
-          let tn      = TokenName ""
-          let val     = Value.singleton (curSymbol oref ) tn 1
-              lookups = Constraints.mintingPolicy (policy oref ) <> Constraints.unspentOutputs utxos
-              tx      = Constraints.mustMintValue val <> Constraints.mustSpendPubKeyOutput oref
-          ledgerTx <- submitTxConstraintsWith @Void lookups tx
-          void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
-          Contract.logInfo @String $ printf "forged %s" (show val)
-endpoints :: Contract () NFTSchema Text ()
-endpoints = mint' >> endpoints
-where
-  mint' = awaitPromise $ endpoint @"mint" mint
-```
-The final code should then look like:
-```haskell
-{-# INLINABLE mkPolicy #-}
--- Minting policy for an NFT, where the minting transaction must consume the given UTxO as input
--- and where the TokenName will be the empty ByteString.
-mkPolicy :: TxOutRef -> () -> ScriptContext -> Bool
-mkPolicy oref () ctx =
-  traceIfFalse "UTxO not consumed"   hasUTxO           &&
-  traceIfFalse "wrong amount minted" checkMintedAmount
-where
-  info :: TxInfo
-  info = scriptContextTxInfo ctx
-  hasUTxO :: Bool
-  hasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
-  checkMintedAmount :: Bool
-  checkMintedAmount = case flattenValue (txInfoMint info) of
-      [(_, tn', amt)] -> tn' == "" && amt == 1
-      _               -> False
-policy :: TxOutRef -> Scripts.MintingPolicy
-policy oref = mkMintingPolicyScript $
-  $$(PlutusTx.compile [|| \oref' -> Scripts.wrapMintingPolicy $ mkPolicy oref' ||])
-  `PlutusTx.applyCode`
-  PlutusTx.liftCode oref
-curSymbol :: TxOutRef -> CurrencySymbol
-curSymbol oref = scriptCurrencySymbol $ policy oref
-type NFTSchema = Endpoint "mint" Address
-mint :: Address -> Contract w NFTSchema Text ()
-mint address =  do
-  utxos <- utxosAt address
-  case Map.keys utxos of
-      []       -> Contract.logError @String "no utxo found"
-      oref : _ -> do
-          let tn      = TokenName ""
-          let val     = Value.singleton (curSymbol oref ) tn 1
-              lookups = Constraints.mintingPolicy (policy oref ) <> Constraints.unspentOutputs utxos
-              tx      = Constraints.mustMintValue val <> Constraints.mustSpendPubKeyOutput oref
-          ledgerTx <- submitTxConstraintsWith @Void lookups tx
-          void $ awaitTxConfirmed $ getCardanoTxId ledgerTx
-          Contract.logInfo @String $ printf "forged %s" (show val)
-endpoints :: Contract () NFTSchema Text ()
-endpoints = mint' >> endpoints
-where
-  mint' = awaitPromise $ endpoint @"mint" mint
-```
-The final output running the test trace looks like:
-```haskell
-Prelude Plutus.V1.Ledger.Value Plutus.V1.Ledger.Ada Week05.Homework2> test
-Output:
-Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
-    {, ""}: 99996914
-    {ab0e3b47e0b0b01f5121ceab2b531feea584d2ed89217ab8434e06ce, ""}: 1
-Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
-    {, ""}: 99996914
-    {638de4f0870aae2a48cc73b8c07ea5ecaa28073349517f4117f4b87f, ""}: 1
-```
+Press "simulate" (blue button in the top right).
+This opens the Simulate window, where we can try out our newly compiled contract.
+This defaults to 2 wallets, to make things interesting though, add another one. (the big "add wallet" button)
+The whole idea of this contract is to auction off an NFT (Non-Fungible Token).
+Each wallet has 10 lovelaces, and 10 T (T is the Token here).
+Change the total of T's for Wallet1 to 1, and for Wallet2 and 3, to 0. (if there were more than 1 it wouldn't be an NFT ofcourse)
+Simply put: Wallet1 is going to put up for auction 1T, and Wallet2-3 will be bidding.
+As you can see, each wallet has the functions "bid", "close" and "start".
+Bid -> places a bid of x lovelaces
+Start -> starts the bidding procedure with getSlot (how long will the bidding last for), spMinBid (minimal lovelaces required)
+Close -> closes the bidding; gives the highest bidder its NFT/Token
+Note: "pay to wallet" is always there, don't worry about that now :)
+
+ 
+ 
+ 
+6 - Wallet1 is going to put the Token up for auction, we'll do this by pressing the "start" button at Wallet1.
+This will add an Action to the Action Sequence.
+Here we need to set the parameters:
+getSlot: 20 (the bidding will close on slot 20)
+spMinBid: 3 (atleast 3 lovelaces are required)
+spCurrency: 66 (the currencysymbol for the T token; will be explained in future lectures)
+spToken: T (the Token)
+
+Wallet 1
+7 - Next we need to add a wait action (1 slot).
+This will give all the actions time to be executed.
+ 
+
+ 
+ 
+8 - Now for this example Wallet2 will start the bidding with a Bid of 3 lovelaces.
+Press the "bid" button at Wallet2, and update the Action with the parameters:
+spCurrency: 66 (Same as above)
+spToken: T (the Token)
+bpBid: 3 (how much lovelaces)
+
+Wallet 2
+ 
+9 - Insert another wait action here (1 slot)
+10 - Now Wallet3 also wants to place a bid.
+Same as Wallet2, add a "bid" action, with all the same parameters as above; except for the bpBid parameter.
+This could be set to anything (min. 3), but for this example we'll set it to 5.
+
+Wallet 3
+ 
+Great. The whole bidding sequence is DONE.
+11 - To finish the bidding, we'll add yet another wait action; only this time we'll "wait until" slot 20.
+(remember the first action? At slot 20 the bidding will be closed!)
+After this the last function (close) still needs to be added, to finalize the bidding sequence.
+We will call this from Wallet1, so add the "close" action from Wallet1, with the correct parameters (you know what to do).
+
+
+12 - Last but not least, we'll add another wait action here (1 slot)
+Evaluation
+Great we're done with the whole setup!
+To execute everything on the simulated blockchain, press the green "Evaluate" button on the bottom of your screen.
+On the next screen you'll see the individual slots.
+
+Slot 0, Tx 0 -> the Genesis slot. This is there to setup everything.
+Wallet1 -> 1T and 10 lovelaces, Wallet2 -> 10 lovelaces, Wallet3 -> 10 lovelaces
+Slot 1, Tx 0 -> The start action, this is where Wallet1 transfers it's 1T (the Token) to the Contract.
+Slot 2, Tx 0 -> The bid of Wallet2 (3 lovelaces)
+Note: The contract now has 1T and 3 lovelaces
+Slot 3, Tx 0 -> The bid of Wallet3 (5 lovelaces)
+Note: The contract now has 1T and 5 lovelaces; Wallet2 gets it's 3 lovelaces back
+Slot 20, Tx 0 -> Here Wallet3 has won the bidding "war", and is granted its 1T! Also Wallet1 gets its 5 lovelaces :)
+Note: The contract now does not have anything at all :) everything is nicely given to it's rightful owners.
+13 - To check the final output of all wallets, scroll down to the "Final balances" section.
+As you can see, Wallet3 now has the 1T.
+
+
+
+
+
+
+
+Homework 
+
+
+The objective of the homework this week is to get familiar with running the environment and playing around inside of Plutus Playground. If you have been following the guide up to this point, we should now have the essentials both knowledge and dev environment wise to be ready to move on to lecture 2.
