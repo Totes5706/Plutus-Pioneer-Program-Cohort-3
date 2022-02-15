@@ -501,7 +501,7 @@ https://localhost:8009
 You will get a warning complaining about it being a risky website, ignore the message to click through anyway.
 
 You should now be able to successfully compile and run the auctions contract by using the two buttons in the top right corner: “Compile” and “Simulate”.<br/><br/><br/>
-The next part is taken from reddit (u/RikAlexander) which walks through plutus playground. Credit to him for this submission: <br/>
+### The next part is taken from reddit (u/RikAlexander) which walks through plutus playground. Credit to him for this submission: <br/>
 
 ### Simulation
 
