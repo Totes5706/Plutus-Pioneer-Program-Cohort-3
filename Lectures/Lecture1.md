@@ -151,12 +151,12 @@ So to recapitulate in extending the normal UTxO model, we replace public key add
 
 One thing I haven't mentioned yet is who is responsible for providing datum, redeemer and the validator, the script that validates whether a transaction can consume an input. And the rule in Plutus is that the spending transaction has to do that whereas the producing transaction only has to provide hashes.So that means if I produce an output that sits at a script address, then this producing transaction only has to include the hash of the script and the hash of the datum that belongs to this output. But optionally, it can include the datum and the script as well, fully, but that's only optional. And if a transaction wants to consume such a script output, then that transaction,the spending transaction has to include the datum and the redeemer and the script. So that's the rule, how it works in Plutus, which of course means that in order to be able to spend a given input, you need to know the datum because only the hash is publicly visible on the blockchain. Which is sometimes a problem and not what you want and that's where this possibility comes into to also include it in the producing transaction. Otherwise only people that know the datum by some other means not by looking at the blockchain would be able to ever spend such an output.<br/>
 
-So this is the UTxO model, the extended unspent transaction output model. And that is of course not tied to a specific programming language.I mean, what we have is Plutus, which is based on Haskell, but in principle, you could use the same concept, the same UTxO model with a completely different programming language. And we also plan to write compilers from other programming languages to Plutus script which issort of the assembly language and aligned Plutus.So there's an extended UTxO model is different from the specific programming language we use.In this course, we will use Plutus obviously, but the understanding the UTxO model is independently valid from understanding Plutus or learning Plutus syntax.
+So this is the UTxO model, the extended unspent transaction output model. And that is of course not tied to a specific programming language.I mean, what we have is Plutus, which is based on Haskell, but in principle, you could use the same concept, the same UTxO model with a completely different programming language. And we also plan to write compilers from other programming languages to Plutus script which issort of the assembly language and aligned Plutus.So there's an extended UTxO model is different from the specific programming language we use. In this course, we will use Plutus obviously, but the understanding the UTxO model is independently valid from understanding Plutus or learning Plutus syntax.
 
 ## The Auction Contract in the EUTxO Model
-Code is broken down into onchain and off chain code. On chain code just checks and validates, it just says yes or no. The off chain code actively creates that translation that will then pass validation. Both of the on chain and off chain parts are uniformly written in haskell. This is largely advantageous as code can be shared, and you only need to concern yourself with one programming language.
+Plutus code is broken down into on-chain and off-chain code. On-chain code just checks and validates, as in it just says yes or no. The off-chain code actively creates that translation that will then pass validation. Both of the on-chain and off-chain parts are uniformly written in haskell. This is largely advantageous as code can be shared, and you only need to concern yourself with one programming language.
 
-        Looking at the auction contract EnglishAuction.hs, we see the various data types are listed first in the contract:
+Looking at the auction contract EnglishAuction.hs, we see the various data types are listed first in the contract:
 
 ```haskell
 minLovelace :: Integer
@@ -202,7 +202,10 @@ instance Scripts.ValidatorTypes Auctioning where
   type instance RedeemerType Auctioning = AuctionAction
   type instance DatumType Auctioning = AuctionDatum
 ```
-Followed by the main on chain code (validation):
+
+Followed by the main on-chain code (validation):
+
+
 ```haskell
 {-# INLINABLE mkAuctionValidator #-}
 mkAuctionValidator :: AuctionDatum -> AuctionAction -> ScriptContext -> Bool
@@ -302,7 +305,9 @@ typedAuctionValidator = Scripts.mkTypedValidator @Auctioning
 where
   wrap = Scripts.wrapValidator @AuctionDatum @AuctionAction
 ```
-After that follows with the off chain code starting with the three endpoints start, bid, and close.
+
+After that follows with the off-chain code starting with the three endpoints start, bid, and close.
+
 ```haskell
 data StartParams = StartParams
   { spDeadline :: !POSIXTime
