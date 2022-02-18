@@ -381,59 +381,31 @@ You should now be able to successfully compile and run the gift contract by copy
 Our wallet setup should look like:<br/>
 
 ![Screenshot 2022-02-18 9 49 58 AM](https://user-images.githubusercontent.com/59018247/154706878-d148e873-28d3-44a0-b7f6-91002212f047.png)
+
 <br/>
 Genesis Slot 0 looks like:<br/>
 
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 11 38 PM](https://user-images.githubusercontent.com/59018247/154707925-7b82fbb3-5782-4d4a-90d3-524f676d3625.png)
 
 <br/>
 Slot 1, TX 0:<br/>
 
-
-
-
+![Screenshot 2022-02-17 4 12 07 PM](https://user-images.githubusercontent.com/59018247/154707978-fe5c81d6-bbbc-4f02-a15a-e50d4e17a6dc.png)
  
 <br/>
 Slot 1, TX 1:<br/>
 
-
-
-
-
-
+![Screenshot 2022-02-17 4 12 37 PM](https://user-images.githubusercontent.com/59018247/154708031-bd31ad20-1a0b-42ea-adde-0d9fdc2cc85b.png)
 
 <br/>
 Slot 2, TX 0:<br/>
 
-
-
-
-
-
+![Screenshot 2022-02-17 4 13 01 PM](https://user-images.githubusercontent.com/59018247/154708054-94460dac-1b76-4b70-882f-a80be6200564.png)
 
 <br/>
 Final Balances:<br/>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 14 07 PM](https://user-images.githubusercontent.com/59018247/154708099-31f7a939-0b37-4883-b1cc-eed6965d3ca1.png)
 
 <br/>
 We now look at the file Burn.hs where mkValidator looks like:
