@@ -318,104 +318,67 @@ Address {addressCredential = ScriptCredential 67f33146617a5e61936081db3b2117cbf5
 We can now test this in Plutus Playground.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 In order to get started with Plutus Playground, we need to have two terminals running, both of which are in the nix-shell.
 
 Let’s get started with terminal 1. Head to the plutus-apps directory and first run nix-shell:
 
-
-
+```haskell
 Terminal 1
 totinj@penguin:~/plutus-apps$ nix-shell
-
-
+```
 
 Next we head to plutus-playground-server directory and run: 
 
+```haskell
 Terminal 1
 [nix-shell:~/plutus-apps/plutus-playground-server]$ plutus-playground-server
-
-
-
+```
 
 If Successful, you will see the output:
 
+```haskell
 Terminal 1
 Interpreter Ready
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Let’s get started with terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
-
-
+```haskell
 Terminal 2
 totinj@penguin:~/plutus-apps$ nix-shell
-
-
+```
 
 Next we head to plutus-playground-client directory and run: 
 
+```haskell
 Terminal 2
 [nix-shell:~/plutus-apps/plutus-playground-client]$ npm run start
-
+```
 
 If Successful, you will see the output:
 
+```haskell
 Terminal 2
 [wdm]: Compiled successfully.
 
 or
 
 [wdm]: Compiled with warnings.
-
-
+```
 
 Keep both terminals open, and we should now be able to access Plutus Playground from the browser.
 
 Open a browser and head to the address:
 
+```haskell
 https://localhost:8009
-
+```
 
 You will get a warning complaining about it being a risky website, ignore the message to click through anyway.
 
 You should now be able to successfully compile and run the gift contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”
 Our wallet setup should look like:
+
 
 
 
@@ -484,43 +447,21 @@ Final Balances:
 
 We now look at the file Burn.hs where mkValidator looks like:
 
+```haskell
 mkValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 mkValidator _ _ _ = traceError "BURNT!"
-
+```
 
 Load the file and check for errors:
+
+```haskell
 Prelude PlutusTx week02.Gift > :l src/Week02/Burn.hs
 
 Output:
 Ok, one module loaded.
-
+```
 
 You should now be able to successfully compile and run the burn contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”: 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 Evaluating the wallets with the same configuration as gift.hs:
@@ -566,47 +507,37 @@ Final Balances:
 
 
 
-As expected, the grab did not work. No transactions can ever use those outputs as inputs. 
+As expected, the grab did not work. No transactions can ever use those outputs as inputs.
 
+```haskell
 Contract instance stopped with error: "WalletError (ValidationError (ScriptFailure (EvaluationError [\"BURNT!\"] \"CekEvaluationFailure\")))" ]
+```
 
-
-
-
-
-
-
-
-
-
-
-
-High Level Typed Validation Scripts
+## High Level Typed Validation Scripts
 
 
 
 We will now take a look at some examples of high level typed validation scripts. We can start by looking at Typed.hs:
 
-
+```haskell
 Prelude PlutusTx week02.Burn > :l src/Week02/Typed.hs
 
 Output:
 Ok, one module loaded.
-
+```
 
 
 We The mkValidator function inside Typed.hs looks like:
 
+```haskell
 mkValidator :: () -> Integer -> ScriptContext -> Bool
 mkValidator _ r _ = traceIfFalse "wrong redeemer" $ r == 42
-
-
-
-
+```
 This redeemer will check to see if the integer amount is 42, otherwise it will return false, outputting “wrong redeemer”.
 
 We then modified the compilation function:
 
+```haskell
 data Typed
 instance Scripts.ValidatorTypes Typed where
    type instance DatumType Typed = ()
@@ -618,21 +549,22 @@ typedValidator = Scripts.mkTypedValidator @Typed
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @() @Integer
-
-
+```
 
 We first declare DatumType as type unit () and RedeemerType as an Integer. We then add a wrap function to be able to translate the strong types from the low level version. It is then declared in the where, that the datum and redeemer is  of type () and Integer respectively.
 
 We can now look at a practical example in Plutus Playground. First let’s check to make sure there are no errors in the file isData.hs.
 
+```haskell
 Prelude PlutusTx week02.Typed > :l src/Week02/isData.hs
 
 Output:
 Ok, one module loaded.
-
-
+```
 
 Looking at the on-chain validating code:
+
+```haskell
 {-# INLINABLE mkValidator #-}
 mkValidator :: () -> MySillyRedeemer -> ScriptContext -> Bool
 mkValidator _ (MySillyRedeemer r) _ = traceIfFalse "wrong redeemer" $ r == 42
@@ -657,8 +589,7 @@ valHash = Scripts.validatorHash typedValidator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
-
+```
 
 You should now be able to successfully compile and run the isData contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”: 
 
@@ -673,6 +604,12 @@ Our first test case will use a grab value of 100. This should be expected to fai
 
 
 Results:
+
+
+
+
+
+
 
 
  As expected, the grab did not happen.
@@ -691,42 +628,55 @@ Results:
 
 
 
+
+
+
+
+
 As expected, the grab was a success and the money was transfered.
 
-Homework Part 1
+## Homework Part 1
 
+```haskell
 -- This should validate if and only if the two Booleans in the redeemer are equal!
 
 mkValidator :: () -> (Bool, Bool) -> ScriptContext -> Bool
 mkValidator _ _ _ = True -- FIX ME!
-
+```
 
 The goal of homework part 1 is to have the mkValidator pass only if the two booleans in the redeemer are equal.
 First, we need to pass the correct parameters into mkValidator. It accepts a unit type (), followed by two booleans we can call b and c respectively.
 
+```haskell
 mkValidator :: () -> (Bool, Bool) -> ScriptContext -> Bool
 mkValidator () (b, c) _ = traceIfFalse "wrong redeemer" $ b == c
-
+```
 
 Next, we check whether the b and c are equal in value; otherwise throw the message “wrong redeemer”.
 Then, we need to declare the data types for both unit and boolean parameters.
+
+```haskell
 data Typed
 instance Scripts.ValidatorTypes Typed where
    type instance DatumType Typed = ()
    type instance RedeemerType Typed = (Bool, Bool)
-
+```
 
 Next, we write the compilation code for a high level validation script, wrapping both the unit type and the boolean values.
+
+```haskell
 typedValidator :: Scripts.TypedValidator Typed
 typedValidator = Scripts.mkTypedValidator @Typed
    $$(PlutusTx.compile [|| mkValidator ||])
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @() @(Bool, Bool)
-
+```
 
 
 Lastly, we write the boiler plate code for the validator, valHash, and srcAddress.
+
+```haskell
 validator :: Validator
 validator = Scripts.validatorScript typedValidator
 
@@ -735,10 +685,12 @@ valHash = Scripts.validatorHash typedValidator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
+```
 
 
 The final on-chain code should look like:
+
+```haskell
 {-# INLINABLE mkValidator #-}
 -- This should validate if and only if the two Booleans in the redeemer are equal!
 mkValidator :: () -> (Bool, Bool) -> ScriptContext -> Bool
@@ -764,7 +716,7 @@ valHash = Scripts.validatorHash typedValidator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
+```
 
 Testing the code in Plutus Playground:
 
@@ -782,47 +734,55 @@ Testing the code in Plutus Playground:
 Results:
 
 
+
+
+
+
+
 As expected, validation passed when both booleans were equal in value.
 
-Homework Part 2
+## Homework Part 2
 
 
 The goal of homework part 2 is the same objective as part, with the exception of using custom data types for the redeemer:
 
+```haskell
 data MyRedeemer = MyRedeemer
    { flag1 :: Bool
    , flag2 :: Bool
    } deriving (Generic, FromJSON, ToJSON, ToSchema)
-
+```
 
 The logic is the same, except now we will be using MyRedeemer to pass both flags as booleans.
 
-
+```haskell
 mkValidator :: () -> MyRedeemer -> ScriptContext -> Bool
 mkValidator () (MyRedeemer b c) _ = traceIfFalse "wrong redeemer" $ b == c
-
+```
 
 We alter the code and change the data typed from boolean to now MyRedeemer:
 
+```haskell
 data Typed
 instance Scripts.ValidatorTypes Typed where
    type instance DatumType Typed = ()
    type instance RedeemerType Typed = MyRedeemer
-
+```
 
 Same change inside the compilation wrapper:
 
+```haskell
 typedValidator :: Scripts.TypedValidator Typed
 typedValidator = Scripts.mkTypedValidator @Typed
    $$(PlutusTx.compile [|| mkValidator ||])
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @() @MyRedeemer
-
-
+```
 
 The final on-chain code should look like:
 
+```haskell
 data MyRedeemer = MyRedeemer
    { flag1 :: Bool
    , flag2 :: Bool
@@ -855,13 +815,7 @@ valHash = Scripts.validatorHash typedValidator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
-
-
-
-
-
-
+```
 
 Testing the code in Plutus Playground:
 
@@ -870,17 +824,11 @@ Testing the code in Plutus Playground:
 
 
 
-
-
-
-
-
-
-
-
-
-
 Results:
+
+
+
+
 
 
 
