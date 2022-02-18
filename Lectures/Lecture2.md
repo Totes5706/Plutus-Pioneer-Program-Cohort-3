@@ -456,9 +456,8 @@ As expected, the grab did not work. No transactions can ever use those outputs a
 ```haskell
 Contract instance stopped with error: "WalletError (ValidationError (ScriptFailure (EvaluationError [\"BURNT!\"] \"CekEvaluationFailure\")))" ]
 ```
-
+<br/><br/>
 ## High Level Typed Validation Scripts
-
 
 
 We will now take a look at some examples of high level typed validation scripts. We can start by looking at Typed.hs:
@@ -539,43 +538,24 @@ You should now be able to successfully compile and run the isData contract by co
 
 Our first test case will use a grab value of 100. This should be expected to fail and the money should not be transfered.<br/>
 
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 49 26 PM](https://user-images.githubusercontent.com/59018247/154709233-12d4b818-b489-436f-98fa-7a6fe119f632.png)
 
 <br/>
 Results:<br/>
 
-
-
-
-
-
+![Screenshot 2022-02-17 4 51 26 PM](https://user-images.githubusercontent.com/59018247/154709551-cec0e32e-5dcb-4b2b-bc32-2b477933c3a1.png)
 
 <br/>
  As expected, the grab did not happen.
  
 Our second test case will use a value that is 42. This should be expected to pass validation.<br/>
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 54 54 PM](https://user-images.githubusercontent.com/59018247/154709587-76539d7b-afdc-4430-867a-da76df4f6107.png)
 
 <br/>
 Results:<br/>
 
-
-
-
-
-
+![Screenshot 2022-02-17 4 56 22 PM](https://user-images.githubusercontent.com/59018247/154709620-3f99f922-36d7-4a33-abf3-73812d9cf279.png)
 
 <br/>
 As expected, the grab was a success and the money was transfered.
@@ -665,23 +645,12 @@ scrAddress = scriptAddress validator
 
 Testing the code in Plutus Playground:<br/>
 
-
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-17 5 16 23 PM](https://user-images.githubusercontent.com/59018247/154709818-073df3c1-5fbc-4d22-9295-dccd7a95bc0d.png)
 
 <br/>
 Results:<br/>
 
-
-
-
-
+![Screenshot 2022-02-17 5 17 58 PM](https://user-images.githubusercontent.com/59018247/154710014-dbbdda57-53f7-4599-ac2d-9c2ef5522f79.png)
 
 <br/>
 As expected, validation passed when both booleans were equal in value.
@@ -764,17 +733,12 @@ scrAddress = scriptAddress validator
 
 Testing the code in Plutus Playground:<br/>
 
-
-
-
+![Screenshot 2022-02-17 5 34 57 PM](https://user-images.githubusercontent.com/59018247/154710339-65c5d8d1-cc63-4f59-bce7-963b9034ef8b.png)
 
 <br/>
 Results:<br/>
 
-
-
-
-
+![Screenshot 2022-02-17 5 37 22 PM](https://user-images.githubusercontent.com/59018247/154710370-40c74548-2d13-48f5-9417-68265cb9d98d.png)
 
 <br/>
 As expected, validation passed when both booleans were equal in value
