@@ -94,20 +94,9 @@ This lecture will be focused on the on-chain code of a plutus script. There are 
 These three pieces of data need to be represented by a Haskell data type. Looking at the low level implementation, the same data type will be used for all three pieces of data. In the next section, we will look at high level validation which will look at custom data types for the datum and redeemer. High level validation will come at a cost to performance.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 Looking at the data for a redeemer:
 
+```haskell
 data Data
 A generic "data" type.
 The main constructor Constr represents a datatype value in sum-of-products form: Constr i args represents a use of the ith constructor along with its arguments.
@@ -122,72 +111,85 @@ List [Data]
 I Integer
  
 B ByteString
- 
-
-
+``` 
 
 We can now use the repl to get some hands-on experience. First, let's import PlutusTx
 
+```haskell
 Prelude week02.Burn > import PlutusTx
-
+```
 
 Now we can get information about data using the command:
 
+```haskell
 Prelude PlutusTx week02.Burn > :i Data
 
 Output:
-
+type Data :: *
+data Data
+  = Constr Integer [Data]
+  | Map [(Data, Data)]
+  | List [Data]
+  | I Integer
+  | B bytestring
+```
 
 
 Example :
 
+```haskell
 Prelude PlutusTx week02.Burn > I 42
 
 Output:
 I 42
+```
 
-
-
+```haskell
 Prelude PlutusTx week02.Burn > :t I 42
 
 Output:
 I 42 :: Data
-
+```
 
 
 We can now use this extension (-XOverloadedStrings) in order to use literal strings for other string-like types. One example is the Byte string type. Execute:
 
+```haskell
 Prelude PlutusTx week02.Burn > :set -XOverloadedStrings
-
-
+```
 
 Example using the B constructor:
 
+```haskell
 Prelude PlutusTx week02.Burn > B "Haskell"
 
 Output:
 B "Haskell"
+```
 
-
+```haskell
 Prelude PlutusTx week02.Burn > :t B "Haskell"
 
 Output:
 B "Haskell" :: Data
+```
 
 Example using Map:
 
+```haskell
 Prelude PlutusTx week02.Burn > 
 :t Map [(I 42, B "Haskell"), (List [I 0], I 1000)]
 
 Output:
 Map [(I 42, B "Haskell"), (List [I 0], I 1000)] :: Data
-
+```
 
 
 With this knowledge, we can now create our first validator. We will be using the Gift.hs file included in the week02 folder.
 
 Looking at validation part of Gift.hs:
 
+```haskell
 {-# INLINABLE mkValidator #-}
 mkValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
 mkValidator _ _ _ = ()
@@ -200,137 +202,118 @@ valHash = Scripts.validatorHash validator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
+```
 
 This is the most basic validator function. The file is called a gift because if anyone sends funds to this script address, then anyone else can consume that output to use.
 
 
-
-
-
-
-
-
 We first look at mkValidatorScript:
 
+```haskell
 validator :: Validator
 validator = mkValidatorScript $$(PlutusTx.compile [|| mkValidator ||])
-
+```
 
 We have a haskell function that has the logic,  where the (||) Oxford brackets convert that to a syntactical representation of that function. The compiler takes that representation and turns it into a corresponding plutus core function. Then the ($$) takes that Plutus core and splices it into the source code. That result is what then turns into the validator.  
 
 Where mkValidatorScript is:
+
+```haskell
 mkValidatorScript :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ()) -> Validator
+```
 
 To make use of this we need to add a Pragma to out make validator function:
 
+```haskell
 {-# INLINABLE mkValidator #-}
-
-
-
-
-
+```
 
 Now we can load this file in the repl:
- 
+
+```haskell 
 Prelude PlutusTx week02.Burn > :l src/Week02/Gift.hs
 
 Output:
 Ok, one module loaded.
+```
 
+Make sure both PlutusTx and Ledger.Scripts are imported:
 
-Make sure both PlutusTx and Ledger.Scripts are imported”
-
-
+```haskell
 Prelude week02.Gift > import PlutusTx
-
-
+```
+```haskell
 Prelude PlutusTx week02.Burn > import Ledger.Scripts
-
+```
 
 Type validator:
 
+```haskell
 Prelude PlutusTx Ledger.Scripts week02.Gift > validator
 
 Output:
 Validator { <script> }
-
-
-
-
-
-
-
-
-
-
-
+```
 
 Where Validator and script are:
 
-
+```haskell
 newtype Validator
 Validator is a wrapper around Scripts which are used as validators in transaction outputs.
 Constructors
 Validator
  
 getValidator :: Script
+```
 
-
-
-
+```haskell
 newtype Script
 A script on the chain. This is an opaque type as far as the chain is concerned.
 Constructors
 Script
  
 unScript :: Program DeBruijn DefaultUni DefaultFun ()
-
-
-
-
-
-
-
-
-
+```
 
 We can now run unScript $ getValidator validator:
 
+```haskell
 Prelude PlutusTx Ledger.Scripts week02.Gift >
 unScript $ getValidator validator
 
 Output:
 Program () (Version () 1 0 0) (Apply () (Apply () (LamAbs () (DeBruijn {dbnIndex = 0}) (LamAbs () (DeBruijn {dbnIndex = 0}) (LamAbs () (DeBruijn {dbnIndex = 0}) (LamAbs () (DeBruijn {dbnIndex = 0}) (LamAbs () (DeBruijn {dbnIndex = 0}) (Var () (DeBruijn {dbnIndex = 5}))))))) (Delay () (LamAbs () (DeBruijn {dbnIndex = 0}) (Var () (DeBruijn {dbnIndex = 1}))))) (LamAbs () (DeBruijn {dbnIndex = 0}) (Var () (DeBruijn {dbnIndex = 1}))))
-
-
+```
 
 This is the plutus core script in this representation. We compiled our mkValidator function and turned it into Plutus Core.
 
 The other two important parts of the validator are the validatorHash and ScriptAddress functions.
 
+```haskell
 valHash :: Ledger.ValidatorHash
 valHash = Scripts.validatorHash validator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
+```
 
 Where valHash stores the hash of the validator and scrAddress stores the address of the script.
 
 Example:
 
+```haskell
 Prelude PlutusTx Ledger.Scripts week02.Gift > valHash
 
 Output:
 67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656
+```
 
-
+```haskell
 Prelude PlutusTx Ledger.Scripts week02.Gift > scrAddress
 
 Output:
 Address {addressCredential = ScriptCredential 67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656, addressStakingCredential = Nothing}
-
+```
 
 We can now test this in Plutus Playground.
 
