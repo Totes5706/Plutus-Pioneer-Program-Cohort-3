@@ -429,47 +429,28 @@ You should now be able to successfully compile and run the burn contract by copy
 
 Evaluating the wallets with the same configuration as gift.hs: <br/>
 
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-18 9 49 58 AM](https://user-images.githubusercontent.com/59018247/154706878-d148e873-28d3-44a0-b7f6-91002212f047.png)
 
 <br/>
 Genesis Slot 0 looks like:<br/>
 
-
-
+![Screenshot 2022-02-17 4 30 58 PM](https://user-images.githubusercontent.com/59018247/154708702-432431b5-68d3-47f5-b206-077d3cc267e2.png)
 
 <br/>
 Slot 1, TX 0:<br/>
 
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 31 46 PM](https://user-images.githubusercontent.com/59018247/154708737-0d4e40bd-eeff-4f59-827d-1921e1c67f5e.png)
 
 <br/>
 Slot 1, TX 1:<br/>
 
-
-
-
-
-
-
+![Screenshot 2022-02-17 4 32 16 PM](https://user-images.githubusercontent.com/59018247/154708796-637a153f-4d6f-4e9b-95e5-52c3bd6315ff.png)
 
 <br/>
 Final Balances:<br/>
 
-
-
-
+![Screenshot 2022-02-17 4 32 43 PM](https://user-images.githubusercontent.com/59018247/154708834-0bfad52f-5ad9-4d6f-a43f-554c0c397287.png)
+<br/><br/>
 As expected, the grab did not work. No transactions can ever use those outputs as inputs.
 
 ```haskell
