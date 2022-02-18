@@ -91,6 +91,7 @@ This lecture will be focused on the on-chain code of a plutus script. There are 
 	2. The redeemer coming from the input and validation
 	3. The context of the transaction being validated from its I/O
 
+
 These three pieces of data need to be represented by a Haskell data type. Looking at the low level implementation, the same data type will be used for all three pieces of data. In the next section, we will look at high level validation which will look at custom data types for the datum and redeemer. High level validation will come at a cost to performance.
 
 
