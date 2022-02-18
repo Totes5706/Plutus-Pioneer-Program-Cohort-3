@@ -379,7 +379,7 @@ You will get a warning complaining about it being a risky website, ignore the me
 You should now be able to successfully compile and run the gift contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”
 Our wallet setup should look like:
 
-![Gift.hs_Wallet_setup](https://imgur.com/a/C22jZ77)
+![Gift-Wallet-setup](https://imgur.com/a/C22jZ77)
 
 
 
