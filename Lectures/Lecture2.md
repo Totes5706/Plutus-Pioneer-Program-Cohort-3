@@ -21,91 +21,75 @@ Google Doc version can be found [HERE](https://docs.google.com/document/d/1wclIp
   - [Homework Part 1](#homework-part-1)
   - [Homework Part 2](#homework-part-2)
 
-Preparation for Lecture 2
+## Preparation for Lecture 2
+
 Before we can get started in lecture 2, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 2 contents. Execute: 
 
+```
 totinj@penguin:~/plutus-pioneer-program$ git pull
-
+```
 
 You can now navigate to the current week02 directory and open the cabal.project file:
 
+```
 totinj@penguin:~/plutus-pioneer-program/code/week02$ cat cabal.project
+```
 
-
+ Grab the plutus-apps tag inside the cabal.project file:
  
-
-
-Grab the plutus-apps tag inside the cabal.project file:
-
+```
 location: https://github.com/input-output-hk/plutus-apps.git
   tag:6aff97d596ac9d59460aab5c65627b1c8c0a1528
-
+```
 
 Head back to  to the plutus-apps directory and update it to the  current git tag:
 
+```
 totinj@penguin:~/plutus-apps$ git checkout main
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git pull
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git checkout 6aff97d596ac9d59460aab5c65627b1c8c0a1528
-
-
-
+```
 
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
+```
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head back to the week02 folder to start running the cabal commands:
+
+```
 [nix-shell:~/plutus-pioneer-program/code/week02]$ cabal update
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week02]$ cabal build
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week02]$ cabal repl
+```
 
 If successful,  you should now be ready to start the lecture:
 
+```haskell
 Ok, 9 modules loaded.
 Prelude week02.Burn > 
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Low Level Untyped Validation Scripts
+## Low Level Untyped Validation Scripts
 
 
 
 This lecture will be focused on the on-chain code of a plutus script. There are three pieces of data that a Plutus script recieves:
 
-
-
 	1. The datum sitting at the UTxO
-2. The redeemer coming from the input and validation
-3. The context of the transaction being validated from its I/O
+	2. The redeemer coming from the input and validation
+	3. The context of the transaction being validated from its I/O
 
 These three pieces of data need to be represented by a Haskell data type. Looking at the low level implementation, the same data type will be used for all three pieces of data. In the next section, we will look at high level validation which will look at custom data types for the datum and redeemer. High level validation will come at a cost to performance.
 
