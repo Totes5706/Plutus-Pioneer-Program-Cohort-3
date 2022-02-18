@@ -377,14 +377,12 @@ https://localhost:8009
 You will get a warning complaining about it being a risky website, ignore the message to click through anyway.
 
 You should now be able to successfully compile and run the gift contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”
-Our wallet setup should look like:
 
+Our wallet setup should look like:<br/>
 
 ![Screenshot 2022-02-18 9 49 58 AM](https://user-images.githubusercontent.com/59018247/154706878-d148e873-28d3-44a0-b7f6-91002212f047.png)
-
-
-
-Genesis Slot 0 looks like:
+<br/>
+Genesis Slot 0 looks like:<br/>
 
 
 
@@ -393,24 +391,15 @@ Genesis Slot 0 looks like:
 
 
 
-
-Slot 1, TX 0:
+<br/>
+Slot 1, TX 0:<br/>
 
 
 
 
  
-
-Slot 1, TX 1:
-
-
-
-
-
-
-
-
-Slot 2, TX 0:
+<br/>
+Slot 1, TX 1:<br/>
 
 
 
@@ -418,10 +407,17 @@ Slot 2, TX 0:
 
 
 
+<br/>
+Slot 2, TX 0:<br/>
 
-Final Balances:
 
 
+
+
+
+
+<br/>
+Final Balances:<br/>
 
 
 
@@ -438,6 +434,8 @@ Final Balances:
 
 
 
+
+<br/>
 We now look at the file Burn.hs where mkValidator looks like:
 
 ```haskell
@@ -457,7 +455,7 @@ Ok, one module loaded.
 You should now be able to successfully compile and run the burn contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”: 
 
 
-Evaluating the wallets with the same configuration as gift.hs:
+Evaluating the wallets with the same configuration as gift.hs: <br/>
 
 
 
@@ -468,24 +466,14 @@ Evaluating the wallets with the same configuration as gift.hs:
 
 
 
-
-Genesis Slot 0 looks like:
-
-
-
-
-
-Slot 1, TX 0:
+<br/>
+Genesis Slot 0 looks like:<br/>
 
 
 
 
-
-
-
-
-
-Slot 1, TX 1:
+<br/>
+Slot 1, TX 0:<br/>
 
 
 
@@ -494,8 +482,18 @@ Slot 1, TX 1:
 
 
 
+<br/>
+Slot 1, TX 1:<br/>
 
-Final Balances:
+
+
+
+
+
+
+
+<br/>
+Final Balances:<br/>
 
 
 
@@ -586,7 +584,7 @@ scrAddress = scriptAddress validator
 
 You should now be able to successfully compile and run the isData contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”: 
 
-Our first test case will use a grab value of 100. This should be expected to fail and the money should not be transfered.
+Our first test case will use a grab value of 100. This should be expected to fail and the money should not be transfered.<br/>
 
 
 
@@ -595,18 +593,19 @@ Our first test case will use a grab value of 100. This should be expected to fai
 
 
 
-
-Results:
-
-
+<br/>
+Results:<br/>
 
 
 
 
 
 
+
+<br/>
  As expected, the grab did not happen.
-Our second test case will use a value that is 42. This should be expected to pass validation.
+ 
+Our second test case will use a value that is 42. This should be expected to pass validation.<br/>
 
 
 
@@ -616,16 +615,16 @@ Our second test case will use a value that is 42. This should be expected to pas
 
 
 
-
-Results:
-
-
+<br/>
+Results:<br/>
 
 
 
 
 
 
+
+<br/>
 As expected, the grab was a success and the money was transfered.
 
 ## Homework Part 1
@@ -711,7 +710,7 @@ scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
 ```
 
-Testing the code in Plutus Playground:
+Testing the code in Plutus Playground:<br/>
 
 
 
@@ -723,15 +722,15 @@ Testing the code in Plutus Playground:
 
 
 
-
-Results:
-
-
+<br/>
+Results:<br/>
 
 
 
 
 
+
+<br/>
 As expected, validation passed when both booleans were equal in value.
 
 ## Homework Part 2
@@ -810,19 +809,19 @@ scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
 ```
 
-Testing the code in Plutus Playground:
+Testing the code in Plutus Playground:<br/>
+
+
+
+
+
+<br/>
+Results:<br/>
 
 
 
 
 
 
-Results:
-
-
-
-
-
-
-
+<br/>
 As expected, validation passed when both booleans were equal in value
