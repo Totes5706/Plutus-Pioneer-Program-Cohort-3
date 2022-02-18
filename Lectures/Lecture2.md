@@ -527,7 +527,7 @@ Ok, one module loaded.
 ```
 
 
-We The mkValidator function inside Typed.hs looks like:
+The mkValidator function inside Typed.hs looks like:
 
 ```haskell
 mkValidator :: () -> Integer -> ScriptContext -> Bool
