@@ -1158,7 +1158,7 @@ addr_test1vrqv87nzpwwd5q4x3ecx38ds8l3suheumc49dgvu3x9emmgvaw5kp
 We now need to generate some ADA to send to our first address. This can be done from the following page using the Cardano faucet. 
 
 ```
-[Cardano Testnet Faucet](https://testnets.cardano.org/en/testnets/cardano/tools/faucet/)
+https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
 ```
 
 ![Screenshot 2022-02-23 10 56 22 AM](https://user-images.githubusercontent.com/59018247/155427518-9a8eda85-1b36-4f33-8337-0441e619afe7.png)
