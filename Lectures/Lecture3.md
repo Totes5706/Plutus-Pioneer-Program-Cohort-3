@@ -156,14 +156,16 @@ plutus-playground-server -i 120s
 
 In this lecture, we will be exploring the script context. If we remember for lecture 2, script context is the third piece of on-chain data that defines the purpose for running:
 
+```haskell
 data ScriptContext
 Constructors
 ScriptContext
  
 scriptContextTxInfo :: TxInfo
 scriptContextPurpose ::ScriptPurpose
+```
 
-	
+```haskell
 data ScriptPurpose
 Purpose of the script that is currently running
 Constructors
@@ -174,15 +176,8 @@ Spending TxOutRef
 Rewarding StakingCredential
  
 Certifying DCert
- 
-
-
-
-
-
-
-
-
+```
+```haskell
 data TxInfo
 A pending transaction. This is the view as seen by validator scripts, so some details are stripped out.
 Constructors
@@ -206,11 +201,15 @@ txInfoSignatories :: [PubKeyHash]
 Signatures provided with the transaction, attested that they all signed the tx
 txInfoData :: [(DatumHash, Datum)]
 txInfoId :: TxId  Hash of the pending transaction (excluding witnesses)
+```
 
 If we look at cardano docs, we can see a simple example:
+
 Intuitive example
 For example, a kid wants to go on a Ferris wheel, but before getting on, they must be taller than the safety sign.
 We could express that idea in pseudo code, like:
+
+```haskell
 if isTallEnough(attraction=ferrisWheel,passenger=michael):
    getOnFerrisWheel()
 
@@ -225,48 +224,38 @@ def getOnFerrisWheel():
 
 ferrisWheel = {"minimumHeight":120}
 michael = {"height":135}
+```
 
 In this example the following applies:
-The datum is the information about this transaction: michael.height.
-The context is the state of the world, at that point meaning: ferrisWheel.minimumHeight.
-The reedemer, is the action to perform: getOnFerrisWheel()
-The validator script is the function that uses all that information isTallEnough
+The datum is the information about this transaction: ```michael.height```.
+The context is the state of the world, at that point meaning: ```ferrisWheel.minimumHeight```.
+The reedemer, is the action to perform: ```getOnFerrisWheel()```
+The validator script is the function that uses all that information ```isTallEnough```
 
-Handling Time
+## Handling Time
 
+In the Cardano eUTxO model, transactions can still fail. This is because a transaction can consume an input, that when that transaction arrives on the blockchain at the node for validation,it could have already been consumed by another person. But in that case, the transaction simply fails without having to pay fees. But what can never have or should never happen under normal circumstances, is that a validation script runs and then fails. The failure should happen before it is even submitted. It is a great feature, however it has many implications about how to express time.
 
+We want to be able to express validation logic that says that a certain transaction is only valid after a certain time has been reached or before a certain time has been reached. We saw an example of that in the very first example, the auction example, the bids are only allowed until the deadline has been reached. The close endpoint can only be called after the deadline has passed. 
 
+If you think about that, that seems to be a contradiction because time is obviously flowing. When you try to validate a transaction that you're constructing in your wallet, the time that happens in the wallet can of course be different from the time that the transaction arrives at a node for validation. It is not clear how to bring these two together to on the one hand handle time, but on the other hand guarantee that validation is deterministic in the sense that if  it succeeds in the wallet, it will also succeed in the node.
 
+Cardano solves this, by adding this POSIX time range field and TX info valid range field to a transaction. With this, we can declare a transaction is valid between a specified time range specified in the transaction. When a node is validating a transaction, one of these pre-checks before validation, is the node checks the current time and compares it to the time range specified in the transaction. If the current time does not fall into this time range, then validation fails immediately without ever running the validator scripts. That also means that if these pre-checks succeed, then we can assume that the current time does fall into this interval. This preserves the deterministic eUTxO properties.
 
-In the Cardano eUTxO model, transactions can still fail. This is because a transaction can consume an input, that when that transaction arrives on the blockchain at the node for validation,
-it could have already been consumed by another person. But in that case, the transaction simply fails without having to pay fees. But what can never have or should never happen under normal circumstances, is that a validation script runs and then fails. The failure should happen before it is even submitted. It is a great feature, however it has many implications about how to express time.
-
-We want to be able to express validation logic
-that says that a certain transaction is only valid after a certain time has been reached or before a certain time has been reached.
-We saw an example of that in the very first example, the auction example, the bids are only allowed until the deadline has been reached. The close endpoint can only be called after the deadline has passed. 
-
-If you think about that, that seems to be a contradiction because time is obviously flowing. When you try to validate a transaction that you're constructing in your wallet, the time that happens in the wallet can of course be different from the time that the
-transaction arrives at a node for validation. It is not clear how to bring these two together to on the one hand handle time, but on the other hand guarantee that validation is deterministic in the sense that if  it succeeds in the wallet, it will also succeed in the node.
-
-Cardano solves this, by adding this POSIX time range field and TX info valid range field to a transaction. With this, we can declare a transaction is valid between a specified time range specified in the transaction. When a node is validating a transaction, one of these pre-checks before validation, is the node checks the current time and compares it to the time range specified in the transaction.
-If the current time does not fall into this time range, then validation fails immediately without ever running the validator scripts. That also means that if these pre-checks succeed, then we can assume that the current time does fall into this interval. This preserves the deterministic eUTxO properties.
-
-By default, all transactions use the infinite time range.
-This starts at the beginning of time or at the Genesis block,
+By default, all transactions use the infinite time range. This starts at the beginning of time or at the Genesis block,
 and lasts for all eternity. These transactions will always be valid, no matter at what time they arrive at a node for validation.
 The only exceptions we have seen so far were those in the auction example, where the bid and the close couldn't use the infinite interval because we made sure that the bid happens before the deadline and the close after the deadline. However by default, all transactions including those that you send from Daedalus for example, will always use the infinite time range.
 
 There is one slight complication that Ouroboros, the consensus protocol powering Cardano, does not use POSIX time; it uses slots. Plutus uses real time, so we need to be able to convert back and forth between real time and slots. Right now, the slot length is one second. Knowing that, it is easy to go back and forth between real time and slot numbers. However, this could change in future through a parameter change via a hard fork.  And, of course, we can't know that in advance.
 
-We do not know right now what the slot length will be in 10 years, for example. This means that we must not have a definite upper bound. We know what the slot length will be in the next 36 hours because if there's a change in protocol parameters, then we
-know that at least 36 hours in advance.You can not specify arbitrary time ranges in the transaction interval. It must only be at most 36 hours in the future, or it can be indefinite.
+We do not know right now what the slot length will be in 10 years, for example. This means that we must not have a definite upper bound. We know what the slot length will be in the next 36 hours because if there's a change in protocol parameters, then we know that at least 36 hours in advance.You can not specify arbitrary time ranges in the transaction interval. It must only be at most 36 hours in the future, or it can be indefinite.
 
 So let's look at this POSIX time range type.
 
-
+```haskell
 type POSIXTimeRange = Interval POSIXTime
 An Interval of POSIXTimes.
-
+```
 
 
 
