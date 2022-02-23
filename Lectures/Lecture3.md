@@ -1110,7 +1110,7 @@ cardano-cli address key-gen --verification-key-file 02.vkey --signing-key-file 0
 
 Looking at 01.vkey:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 01.vkey
 
@@ -1124,14 +1124,14 @@ Output:
 
 We can now generate an address on the testnet for 01.vkey, and output it into the file 01.addr with the following command:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address build --payment-verification-key-file 01.vkey --testnet-magic 1097911063 --out-file 01.addr
 ```
 
 Looking at 01.addr:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 01.addr
 
@@ -1141,14 +1141,14 @@ addr_test1vpvlskugythmdnutq2745am2ss8sfmhz25dr7zgx8t5cjcqkw2m3l
 
 We can now generate an address on the testnet for 02.vkey, and output it into the file 02.addr with the following command:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address build --payment-verification-key-file 02.vkey --testnet-magic 1097911063 --out-file 02.addr
 ```
 
 Looking at 02.addr:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 02.addr
 
@@ -1166,20 +1166,14 @@ Important to note here, that your address for 01.addr will be different then add
 
 In order to query the blockchain in order to see if the funds arrived, we first need to run the command:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 export CARDANO_NODE_SOCKET_PATH=node.socket
-
-
-
-
-
-
-
-
-
+```
 
 Now we should be able to query the address. Important to note here, your local node must be in sync with the blockchain at this point or you will not be able to see the funds!
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query utxo --address $(cat 01.addr) --testnet-magic 1097911063
 
@@ -1187,10 +1181,11 @@ Output:
                            TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 a5f29c533d8da891f05e53e8b4cd0e7beb0674245464df8b98a15d38184c8baa     0        1000000000 lovelace + TxOutDatumNone
-
+```
 
 We will now send some money to our second address using the premade script send.sh:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat send.sh
 
@@ -1211,19 +1206,22 @@ cardano-cli transaction sign \
 cardano-cli transaction submit \
     --testnet-magic 1097911063 \
     --tx-file tx.signed
+```
 
 Important note, you need to change the tx-in hash, to the tx hash of the 01.addr where we sent the funds in the previous step! Also note it ends with #0 specifying the transaction index of 0.
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 ./send.sh
 
 Output:
 Estimated transaction fee: Lovelace 165721
 Transaction successfully submitted.
-
+```
 
 After waiting roughly 20 seconds, we can query the first address to see if the funds have been sent:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query utxo --address $(cat 01.addr) --testnet-magic 1097911063
 
@@ -1231,11 +1229,9 @@ Output:
                            TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 ea5f29c533d8da891f05e53e8b4cd0e7beb0674245464df8b98a15d38184c8baa     0        989834279 lovelace + TxOutDatumNone
+```
 
-
-
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query utxo --address $(cat 02.addr) --testnet-magic 1097911063
 
@@ -1243,25 +1239,26 @@ Output:
                            TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 eeaff45ffb4a1f06fc6e1a48fef36472d6a1323d5a90edda04d21f66dc847755     1        10000000 lovelace + TxOutDatumNone
-
+```
 
 In order to get started in Plutus using the Cardano-CLI, we need to serialize and write to disk various Plutus types. However, we first need to get the PaymentPubKeyHash of wallet 2:
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address key-hash --payment-verification-key-file 02.vkey --out-file 02.pkh
+```
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 02.pkh
 
 Output:
 c0c3fa620b9cda02a68e70689db03fe30e5f3cde2a56a19c898b9ded
+```
 
+Looking at Deploy.hs, we need to replace the beneficiary payment pub key hash with the one we generated above. Note, that your hash will be different then the one in this tutorial. We also replace the deadline with a time in the future. (you can use [Epoch Converter](https://www.epochconverter.com/) to find a timestamp in the future)
 
-Looking at Deploy.hs, we need to replace the beneficiary payment pub key hash with the one we generated above. Note, that your hash will be different then the one in this tutorial. We also replace the deadline with a time in the future. (you can use https://www.epochconverter.com/ to find a timestamp in the future)
-
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -1305,46 +1302,38 @@ writeVestingValidator = writeValidator "testnet/vesting.plutus" $ validator $ Ve
    { beneficiary = Ledger.PaymentPubKeyHash "c0c3fa620b9cda02a68e70689db03fe30e5f3cde2a56a19c898b9ded"
    , deadline    = 1645653114
    }
-
-
-
-
-
+```
 Open the cabal repl in the another terminal and run:
 
+```haskell
 Prelude week03.Deploy> writeUnit
+```
 
-
-
+```haskell
 Prelude week03.Deploy> writeVestingValidator
 
 Output:
 Right ()
-
-
+```
 
 We can now generate the address of the script:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address build --payment-script-file vesting.plutus --testnet-magic 1097911063 --out-file vesting.addr
+```
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat vesting.addr
 
 Output:
 addr_test1wzptv89prnw0tt307l09enlussrsc7n7nau4phc2kduth2gv4lsan
-
-
-
-
-
-
-
+```
 
 Looking at the give.sh script, we change the tx-in to our cat 1 address utxo that we generated earlier:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat give.sh
 
@@ -1367,22 +1356,20 @@ cardano-cli transaction sign \
 cardano-cli transaction submit \
     --testnet-magic 1097911063 \
     --tx-file tx.signed
+```
 
-
-
-
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 ./give.sh
 
 Output:
 Estimated transaction fee: Lovelace 167217
 Transaction successfully submitted.
-
+```
 
 We can query the script address:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query utxo --address $(cat vesting.addr) --testnet-magic 1097911063
 
@@ -1390,13 +1377,11 @@ Output:
                            TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 50d9ad6558a6963d72dc25b4f37f31db15a512c708bb735a8f67f30b878bd4e3     1        200000000 lovelace + TxOutDatumHash ScriptDataInAlonzoEra "923918e403bf43c34b4ef6b48eb2ee04babed17320d8d1b9ff9ad086e86f44ec"
-
-
-
-
+```
 
 We also need the current slot for the next script. We can run:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query tip --testnet-magic 1097911063cat vesting.addr
 
@@ -1409,13 +1394,11 @@ Output:
     "slot": 51272239,
     "block": 3343799
 }
-
-
-
-
+```
 
 Now we can look at the grab.sh script. We will alter the Txin hash to the hash of vesting.addr we queried above in the last step. We will change collateral to the hash of 02.addr from earlier. We will also alter signer-hash to the hash of 02.pkh. Finally, we need to alter invalid-before to reflect the current slot; which we queried in the last step:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat grab.sh
 
@@ -1443,25 +1426,26 @@ cardano-cli transaction sign \
 cardano-cli transaction submit \
     --testnet-magic 1097911063 \
     --tx-file tx.signed
+```
 
 
 
 
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 ./grab.sh
 
 Output:
 Estimated transaction fee: Lovelace 365397
 Transaction successfully submitted.
-
+```
 
 
 After waiting roughly 20 seconds, we can query the second address to finally see if the funds have been received from the gift:
 
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli query utxo --address $(cat 02.addr) --testnet-magic 1097911063
 
@@ -1470,27 +1454,32 @@ Output:
 ---------------------------------------------------------------------------
 61644770e875457981d69dc3f6344a358996ea848a03e4ec17c5017071ec468b     0        199634603 lovelace + TxOutDatumNone
 eeaff45ffb4a1f06fc6e1a48fef36472d6a1323d5a90edda04d21f66dc847755     1        10000000 lovelace + TxOutDatumNone
+```
 
 
 
 
 
 
+## Homework Part 1
 
-Homework Part 1
-
-
+```haskell
 -- This should validate if either beneficiary1 has signed the transaction and the current slot is before or at the deadline
 -- or if beneficiary2 has signed the transaction and the deadline has passed.
-
+```
 
 The first part of the homework, we need to write a validator function that will return true if the beneficiary1 signed the transaction and the current slot is before or at the deadline. It also must return true if the beneficiary2 signed the transaction and the deadline has passed.
+
 We first need to pass the datum (dat) and context (ctx) into the validator:
+
+```haskell
 mkValidator :: VestingDatum -> () -> ScriptContext -> Bool
 mkValidator dat () ctx
-
+```
 
 Then we need to write the logic that satisfies both conditions that were described above:
+
+```haskell
    | (unPaymentPubKeyHash (beneficiary1 dat) `elem` sigs) && (to       (deadline dat) `contains` range) = True
    | (unPaymentPubKeyHash (beneficiary2 dat) `elem` sigs) && (from (1 + deadline dat) `contains` range) = True
    | otherwise                                                                                          = False
@@ -1503,12 +1492,12 @@ Then we need to write the logic that satisfies both conditions that were describ
 
    range :: POSIXTimeRange
    range = txInfoValidRange info
-
-
-
-
+```
 We check both conditions, one where the beneficiary1 signs and it is before or at the deadline, and also where beneficiary2 signs and it is after the deadline. Otherwise all else returns false.
+
 The code should look like:
+
+```haskell
 {-# INLINABLE mkValidator #-}
 -- This should validate if either beneficiary1 has signed the transaction and the current slot is before or at the deadline
 -- or if beneficiary2 has signed the transaction and the deadline has passed.
@@ -1526,9 +1515,7 @@ mkValidator dat () ctx
 
    range :: POSIXTimeRange
    range = txInfoValidRange info
-
-
-
+```
 
 Testing in Plutus Playground we see:
 
