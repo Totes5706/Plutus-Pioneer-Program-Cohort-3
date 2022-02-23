@@ -1,23 +1,31 @@
-Plutus Pioneer Program - Cohort 3 - Lecture 3 - January 26, 2022
-
-
-Script Context and the Cardano Testnet
+Plutus Pioneer Program - Cohort 3 
+January 26, 2022
 
 Contributed By:
-Joe Totes
-Table of Contents
+[Joe Totes](https://github.com/Totes5706)
 
-Preparation for Lecture 3
-Plutus Playground Timeout
-Script Context
-Handling Time
-Vesting Contract
-Parameterized Contract
-Cardano Testnet
-Homework Part 1
-Homework Part 2
+Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture3](https://youtu.be/sLMhsqiWeGU)
 
-Preparation for Lecture 3
+Google Doc version can be found [HERE](https://docs.google.com/document/d/1MKEcgNl5QUugBhan39eOKM6zkBJ9_kLkQ6abjWp9pUY/edit#)
+
+# Lecture 3 : Script Context and the Cardano Testnet
+
+## Table of Contents
+- [Lecture 3 : Script Context and the Cardano Testnet](#lecture-3-script-context-and-the-cardano-testnet)
+  - [Table of Contents](#table-of-contents)
+  - [Preparation for Lecture 3](#preperation-for-lecture-3)
+  - [Plutus Playground Timeout](#plutus-playground-timeout)
+  - [Script Context](#script-context)
+  - [Handling Time](#handling-time)
+  - [Vesting Contract](#vesting-contract)
+  - [Parameterized Contract](#parameterized-contract)
+  - [Cardano Testnet](#cardano-testnet)
+  - [Homework Part 1](#homework-part-1)
+  - [Homework Part 2](#homework-part-2)
+
+
+## Preparation for Lecture 3
+
 Before we can get started in Lecture 3, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 3 contents. Execute: 
