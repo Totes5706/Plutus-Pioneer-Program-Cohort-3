@@ -678,26 +678,25 @@ In order to get started with Plutus Playground, we need to have two terminals ru
 
 Let’s get started with terminal 1. Head to the plutus-apps directory and first run nix-shell:
 
-
+```haskell
 Terminal 3
 totinj@penguin:~/plutus-apps$ nix-shell
+```
 
 
+Next we head to plutus-playground-server directory and run:
 
-Next we head to plutus-playground-server directory and run: 
-
+```haskell
 Terminal 3
 [nix-shell:~/plutus-apps/plutus-playground-server]$ plutus-playground-server
-
-
-
+```
 
 If Successful, you will see the output:
 
+```haskell
 Terminal 3
 Interpreter Ready
-
-
+```
 
 Let’s get started with terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
