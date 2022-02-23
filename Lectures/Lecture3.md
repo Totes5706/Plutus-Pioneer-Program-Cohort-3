@@ -227,10 +227,11 @@ michael = {"height":135}
 ```
 
 In this example the following applies:
-The datum is the information about this transaction: ```michael.height```.
-The context is the state of the world, at that point meaning: ```ferrisWheel.minimumHeight```.
-The reedemer, is the action to perform: ```getOnFerrisWheel()```
-The validator script is the function that uses all that information ```isTallEnough```
+
+ - The datum is the information about this transaction: ```michael.height```.
+ - The context is the state of the world, at that point meaning: ```ferrisWheel.minimumHeight```.
+ - The reedemer, is the action to perform: ```getOnFerrisWheel()```
+ - The validator script is the function that uses all that information ```isTallEnough```
 
 ## Handling Time
 
