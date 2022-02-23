@@ -1162,6 +1162,9 @@ We now need to generate some ADA to send to our first address. This can be done 
 [Cardano Testnet Faucet](https://testnets.cardano.org/en/testnets/cardano/tools/faucet/)
 ```
 
+![Screenshot 2022-02-23 10 56 22 AM](https://user-images.githubusercontent.com/59018247/155427518-9a8eda85-1b36-4f33-8337-0441e619afe7.png)
+
+
 Important to note here, that your address for 01.addr will be different then address generated in this tutorial! Make sure you send the testnet ADA to the address you generated in the CLI!
 
 In order to query the blockchain in order to see if the funds arrived, we first need to run the command:
@@ -1520,94 +1523,52 @@ mkValidator dat () ctx
 Testing in Plutus Playground we see:
 
 
-
-
-
-
-Looking at the wallet setup:
-
-
-
-
-
+![Screenshot 2022-02-23 4 23 29 PM](https://user-images.githubusercontent.com/59018247/155427775-f5cab26b-29ae-4ef1-bee3-5037a837e404.png)
 
 
 Slot 0, Tx 0
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 24 11 PM](https://user-images.githubusercontent.com/59018247/155427795-d854d097-f010-4450-9dc0-1b2777117389.png)
 
 Slot 1, Tx 0
 
-
-
-
-
-
+![Screenshot 2022-02-23 4 24 32 PM](https://user-images.githubusercontent.com/59018247/155427815-195f3fa7-1c1a-427b-9ad7-3cb915564b50.png)
 
 Slot 1, Tx 1
 
-
-
-
-
-
+![Screenshot 2022-02-23 4 24 55 PM](https://user-images.githubusercontent.com/59018247/155427828-04d2728a-751a-42a7-97f6-d45bd322fcf8.png)
 
 Slot 6, Tx 0
 
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 25 15 PM](https://user-images.githubusercontent.com/59018247/155427850-646fe543-5a6b-47dc-a9ef-1efdbbe1a904.png)
 
 Slot 7, Tx 0
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 25 39 PM](https://user-images.githubusercontent.com/59018247/155427867-654eeca7-0635-40f1-ab3c-67c82df9c30b.png)
 
 Final Balances:
 
+![Screenshot 2022-02-23 4 26 06 PM](https://user-images.githubusercontent.com/59018247/155427887-c7ecd668-96e8-4d72-ac9d-acb73a53b3c9.png)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Homework Part 2
+## Homework Part 2
 
 
 The second part of the homework, we need to write the validator function for the vesting contract in which we instead  pass pubkeyhash as the parameter, and POSIXTime as the datum.
-mkValidator :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
 
+```haskell
+mkValidator :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
+```
 
 We can start by checking if the beneficiary’s signature exists, and also the deadline has been reached. First we pass:
-mkValidator pkh s () ctx =
 
+```haskell
+mkValidator pkh s () ctx =
+```
 
 Now we grab the logic as described above:
+
+```haskell
    traceIfFalse "beneficiary's signature missing" checkSig      &&
    traceIfFalse "deadline not reached"            checkDeadline
  where
@@ -1619,26 +1580,32 @@ Now we grab the logic as described above:
 
    checkDeadline :: Bool
    checkDeadline = from s `contains` txInfoValidRange info
-
+```
 
 Implementing the compilation:
+
+```haskell
 typedValidator :: PaymentPubKeyHash -> Scripts.TypedValidator Vesting
 typedValidator p = Scripts.mkTypedValidator @Vesting
    ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode p)
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @POSIXTime @()
+```
 
 Finally the boilerplate code for validator and address. Here we need to add PaymentPubKeyHash:
 
+```haskell
 validator :: PaymentPubKeyHash -> Validator
 validator = Scripts.validatorScript . typedValidator
 
 scrAddress :: PaymentPubKeyHash -> Ledger.Address
 scrAddress = scriptAddress . validator
-
+```
 
 The code should look like:
+
+```haskell
 {-# INLINABLE mkValidator #-}
 mkValidator :: PaymentPubKeyHash -> POSIXTime -> () -> ScriptContext -> Bool
 mkValidator pkh s () ctx =
@@ -1671,64 +1638,42 @@ validator = Scripts.validatorScript . typedValidator
 
 scrAddress :: PaymentPubKeyHash -> Ledger.Address
 scrAddress = scriptAddress . validator
-
+```
 
 The Plutus Playground simulation should look like:
 
-
+![Screenshot 2022-02-23 4 30 53 PM](https://user-images.githubusercontent.com/59018247/155428012-76cd9313-34dd-4aa8-a89c-3783a5ac2e5b.png)
 
 Slot 0, Tx 0
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 32 08 PM](https://user-images.githubusercontent.com/59018247/155428065-c66c330c-50e0-409e-95c9-2a394a3193f5.png)
 
 
 Slot 1, Tx 0
 
-
-
-
-
-
+![Screenshot 2022-02-23 4 32 23 PM](https://user-images.githubusercontent.com/59018247/155428290-7b064448-ee5c-4ff2-a58a-f8fce0426e49.png)
 
 
 Slot 2, Tx 0
 
 
-
-
-
-
+![Screenshot 2022-02-23 4 32 44 PM](https://user-images.githubusercontent.com/59018247/155428488-be2b0531-788d-4159-b42f-31864aa69b49.png)
 
 
 Slot 12, Tx 0
 
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 33 11 PM](https://user-images.githubusercontent.com/59018247/155428632-557b71c2-c2fa-4548-aac3-f43e421266a0.png)
 
 
 Slot 22, Tx 0
 
 
-
-
-
-
-
-
+![Screenshot 2022-02-23 4 33 35 PM](https://user-images.githubusercontent.com/59018247/155428745-a511fe14-1da3-4dda-ae2b-06d1b51334b3.png)
 
 
 Final Balance:
 
+
+![Screenshot 2022-02-23 4 33 53 PM](https://user-images.githubusercontent.com/59018247/155429048-d5cb7872-387b-422a-8f10-a8cb72c59f11.png)
 
