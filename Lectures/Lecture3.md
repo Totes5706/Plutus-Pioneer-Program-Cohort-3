@@ -30,97 +30,104 @@ Before we can get started in Lecture 3, we first must get our development enviro
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 3 contents. Execute: 
 
+```
 totinj@penguin:~/plutus-pioneer-program$ git pull
-
+```
 
 You can now navigate to the current week03 directory and open the cabal.project file:
 
+```
 totinj@penguin:~/plutus-pioneer-program/code/week03$ cat cabal.project
+```
 
-
+ Grab the plutus-apps tag inside the cabal.project file:
  
-
-Grab the plutus-apps tag inside the cabal.project file:
-
+```
 location: https://github.com/input-output-hk/plutus-apps.git
   tag:4edc082309c882736e9dec0132a3c936fe63b4ea
-
+```
 
 Head back to  to the plutus-apps directory and update it to the  current git tag:
 
+```
 totinj@penguin:~/plutus-apps$ git checkout main
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git pull
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git checkout 4edc082309c882736e9dec0132a3c936fe63b4ea
-
-
-
+```
 
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
+```
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head back to the week03 folder to start running the cabal commands:
+
+```
 [nix-shell:~/plutus-pioneer-program/code/week03]$ cabal update
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week03]$ cabal build
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week03]$ cabal repl
+```
 
 If successful,  you should now see in the terminal:
 
+```haskell
 Ok, 7 modules loaded.
 Prelude week03.Deploy> 
-
-
+```
 
 This lecture will also explore the Cardano Testnet. In order to interact with it later, we need to sync the node first locally which may take 5+ hours. Let’s get it started in the background:
+
 Keep the cabal repl open on terminal 1, and open a new terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
-
-
+```
 Terminal 2
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 We can check the version of the Cardano Node and with the commands:
 
+```
+Terminal 2
 [nix-shell:~/plutus-apps]$ cardano-node --version
 
 Output:
 cardano-node 1.33.0 - linux-x86_64 - ghc-8.10
 git rev 0000000000000000000000000000000000000000
+```
 
-
+```
 Terminal 2
 [nix-shell:~/plutus-apps]$ cardano-cli --version
 
 Output:
 cardano-cli 1.33.0 - linux-x86_64 - ghc-8.10
 git rev 0000000000000000000000000000000000000000
+```
 
 
+Head to week03 subfolder in the plutus pioneer directory, then inside that the testnet folder. We will be running the start-node-test.sh script which will initialize download the testnet blockchain based off of the config files in this folder:
 
-Head to week03 subfolder in the plutus pioneer directory, then inside that the testnet folder. We will be running the start-node-test.sh script which will initialize the testnet based off of the config files in this folder
-
-
-
+```
 Terminal 2
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 ./start-node-testnet.sh
 
 Output:
 [penguin:cardano.node.ChainDB:Notice:34] [2022-02-22 14:23:14.33 UTC] Chain extended, new tip: 73912d4f092b24fcbb0b9f8f7e4668026ca91d6dba2b2758b62b704766e1faa7 at slot 51170578
-
+```
 
 Where start-node-test.sh looks like:
 
+```haskell
 cardano-node run \
  --topology testnet-topology.json \
  --database-path db \
@@ -128,40 +135,22 @@ cardano-node run \
  --host-addr 127.0.0.1 \
  --port 3001 \
  --config testnet-config.json
-
+```
 
 This process will take 5+ hours to sync. You will be 100% synced once you start seeing a new block every 20 seconds, rather than multiple blocks per second. Leave this terminal open and we can now get started.
 
 
 
-Plutus Playground Timeout
-
+## Plutus Playground Timeout
 
 
 If the plutus playground server experiences a timeout before completing, we can use this command instead to extend the runtime:
 
+```
 [nix-shell:~/plutus-apps/plutus-playground-server]$ 
 plutus-playground-server -i 120s
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Script Context
+```
+## Script Context
 
 
 
