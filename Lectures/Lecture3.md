@@ -258,12 +258,9 @@ type POSIXTimeRange = Interval POSIXTime
 An Interval of POSIXTimes.
 ```
 
-
-
-
-
 Where Interval is:
 
+```haskell
 data Interval a
 An interval of as.
 The interval may be either closed or open at either end, meaning that the endpoints may or may not be included in the interval.
@@ -273,26 +270,27 @@ Interval
  
 ivFrom :: LowerBound a 
 ivTo :: UpperBound a
-
-
+```
 
 Where Lower Bound is:
 
+```haskell
 data LowerBound a
 The lower bound of an interval.
 Constructors
 LowerBound (Extended a) Closure
- 
-
-
+```
 
 Where Closure is:
 
+```haskell
 type Closure = Bool
 Whether a bound is inclusive or not.
+```
 
 Where Extended is:
 
+```haskell
 data Extended a
 A set extended with a positive and negative infinity.
 Constructors
@@ -301,51 +299,100 @@ NegInf
 Finite a
  
 PosInf
- 
-
-
+``` 
 
 Some useful functions for defining bounds:
 
+```haskell
 after :: Ord a => a -> Interval a -> Bool
 Check if a value is later than the end of a Interval.
+```
+
+```haskell
 before :: Ord a => a -> Interval a -> Bool
 Check if a value is earlier than the beginning of an Interval.
+```
+
+```haskell
 isEmpty :: (Enum a, Ord a) => Interval a -> Bool
 Check if an Interval is empty.
+ ```
  
+ ```haskell
 contains :: Ord a => Interval a -> Interval a -> Bool
 a contains b is true if the Interval b is entirely contained in a. That is, a contains b if for every entry s, if member s b then member s a.
+```
+
+```haskell
 hull :: Ord a => Interval a -> Interval a -> Interval a
 'hull a b' is the smallest interval containing a and b.
+```
+
+```haskell
 intersection :: Ord a => Interval a -> Interval a -> Interval a
 'intersection a b' is the largest interval that is contained in a and in b, if it exists.
+```
+
+```haskell
 overlaps :: (Enum a, Ord a) => Interval a -> Interval a -> Bool
 Check whether two intervals overlap, that is, whether there is a value that is a member of both intervals.
+```
+
+```haskell
 member :: Ord a => a -> Interval a -> Bool
 Check whether a value is in an interval.
+```
+
+```haskell
 never :: Interval a
 An Interval that is empty.
+```
+
+```haskell
 always :: Interval a
 An Interval that covers every slot.
+```
+
+```haskell
 to :: a -> Interval a
 to a is an Interval that includes all values that are smaller than or equal to a.
+```
+
+```haskell
 from :: a -> Interval a
 from a is an Interval that includes all values that are greater than or equal to a.
+```
+
+```haskell
 singleton :: a -> Interval a
+```
+
+```haskell
 interval :: a -> a -> Interval a
 interval a b includes all values that are greater than or equal to a and smaller than or equal to b. Therefore it includes a and b.
-upperBound :: a -> UpperBound a
-lowerBound :: a -> LowerBound a
-strictLowerBound :: a -> LowerBound a
-strictUpperBound :: a -> UpperBound a
+```
 
+```haskell
+upperBound :: a -> UpperBound a
+```
+
+```haskell
+lowerBound :: a -> LowerBound a
+```
+
+```haskell
+strictLowerBound :: a -> LowerBound a
+```
+
+```haskell
+strictUpperBound :: a -> UpperBound a
+```
 
 We can now get some practice in the cabal repl. We will first import Plutus.V1.Ledger.Interval.
 
-
+```
 Prelude week03.Deploy> import Plutus.V1.Ledger.Interval
-
+```
 
 
 Example Interval:
