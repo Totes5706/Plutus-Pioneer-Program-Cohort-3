@@ -1091,19 +1091,19 @@ The `text-view` command contains the following subcommand:
  
 In order to test our contracts, we first need to generate key pairs on the testnet. We can start by opening a new terminal to run nix-shell, making sure not to close the node syncing in the other terminal:
 
-```haskell
+```
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 Head to week03 subfolder in the plutus pioneer directory, then inside that the testnet folder. We will first generate our public and private keys 01.vkey and 01.skey respectively with the command:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address key-gen --verification-key-file 01.vkey --signing-key-file 01.skey
 ```
 
 We will now generate our second public and private keys 02.vkey and 02.skey respectively with the command:
 
-```haskell
+```
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address key-gen --verification-key-file 02.vkey --signing-key-file 02.skey
 ```
