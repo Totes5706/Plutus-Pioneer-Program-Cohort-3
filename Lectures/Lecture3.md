@@ -390,202 +390,174 @@ strictUpperBound :: a -> UpperBound a
 
 We can now get some practice in the cabal repl. We will first import Plutus.V1.Ledger.Interval.
 
-```
+```haskell
 Prelude week03.Deploy> import Plutus.V1.Ledger.Interval
 ```
 
 
 Example Interval:
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 interval (10 :: Integer) 20
 
 Output:
 Interval {ivFrom = LowerBound (Finite 10) True, ivTo = UpperBound (Finite 20) True}
-
+```
 
 
 Example Member:
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 9 $ interval (10 :: Integer) 20
 
 Output:
 False
+```
 
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 10 $ interval (10 :: Integer) 20
 
 Output:
 True
+```
 
-
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 21 $ interval (10 :: Integer) 20
 
 Output:
 False
-
+```
 
 
 Example From:
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 10 $ from (30 :: Integer)
 
 Output:
 False
+```
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 30 $ from (30 :: Integer)
 
 Output:
 True
+```
 
-
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 31 $ from (30 :: Integer)
 
 Output:
 True
-
+```
 
 
 Example to:
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 10 $ to (30 :: Integer)
 
 Output:
 True
+```
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 30 $ to (30 :: Integer)
 
 Output:
 True
+```
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 member 31 $ to (30 :: Integer)
 
 Output:
 False
-
-
-
-
-
-
-
+```
 
 Example Intersection:
 
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 intersection (interval (10 :: Integer) 20) $ interval 18 30
 
 Output:
 Interval {ivFrom = LowerBound (Finite 18) True, ivTo = UpperBound (Finite 20) True}
-
-
+```
 
 Example Contains:
 
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 contains (to (100 :: Integer)) $ interval 30 80
 
 Output:
 True
+```
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 contains (to (100 :: Integer)) $ interval 30 100
 
 Output:
 True
+```
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 contains (to (100 :: Integer)) $ interval 30 101
 
 Output:
 False
+```
 
 Example Overlaps:
 
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 overlaps (to (100 :: Integer)) $ interval 30 101
 
 Output:
 True
+```
 
-
-
-
+```haskell
 Prelude Plutus.V1.Ledger.Interval week03.Deploy> 
 overlaps (to (100 :: Integer)) $ interval 101 110
 
 Output:
 False
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Vesting Contract
-
-
-
+## Vesting Contract
 
  We will now look at an example vesting contract. Imagine you want to make a gift of ADA to a child. You want the child to own the ADA, however you only want the child to have access to the ADA when he or she gets to a specified age. Using plutus, it is very easy to implement a vesting scheme that satisfies those conditions.
 
 We first look at the datum being passed with two pieces of information; the beneficiary and the deadline:
+
+```haskell
 data VestingDatum = VestingDatum
    { beneficiary :: PaymentPubKeyHash
    , deadline    :: POSIXTime
    } deriving Show
-
+```
 
 We then look at the validator function:
 
+```haskell
 {-# INLINABLE mkValidator #-}
 mkValidator :: VestingDatum -> () -> ScriptContext -> Bool
 mkValidator dat () ctx = traceIfFalse "beneficiary's signature missing" signedByBeneficiary &&
@@ -599,35 +571,34 @@ mkValidator dat () ctx = traceIfFalse "beneficiary's signature missing" signedBy
 
    deadlineReached :: Bool
    deadlineReached = contains (from $ deadline dat) $ txInfoValidRange info
-
+```
 
 We defined the datum as dat and context as ctx. We then check the correct beneficiary by creating the signedByBeneficiary function and the deadline by the deadlineReached function.
 
 
 Then encode the datum and redeemer:
 
+```haskell
 data Vesting
 instance Scripts.ValidatorTypes Vesting where
    type instance DatumType Vesting = VestingDatum
    type instance RedeemerType Vesting = ()
-
+```
 
 
 Now we need to handle the compilation:
 
+```haskell
 typedValidator :: Scripts.TypedValidator Vesting
 typedValidator = Scripts.mkTypedValidator @Vesting
    $$(PlutusTx.compile [|| mkValidator ||])
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @VestingDatum @()
-
-
-
-
-
+```
 Followed by the boilerplate code for the validator, hash, and address:
 
+```haskell
 validator :: Validator
 validator = Scripts.validatorScript typedValidator
 
@@ -636,14 +607,11 @@ valHash = Scripts.validatorHash typedValidator
 
 scrAddress :: Ledger.Address
 scrAddress = scriptAddress validator
-
-
-
-
-
+```
 
 Lastly, the off-chain code:
 
+```haskell
 data GiveParams = GiveParams
    { gpBeneficiary :: !PaymentPubKeyHash
    , gpDeadline    :: !POSIXTime
@@ -702,8 +670,7 @@ endpoints = awaitPromise (give' `select` grab') >> endpoints
 mkSchemaDefinitions ''VestingSchema
 
 mkKnownCurrencies []
-
-
+```
 
 We can now test this in Plutus Playground.
 
@@ -712,15 +679,14 @@ In order to get started with Plutus Playground, we need to have two terminals ru
 Let’s get started with terminal 1. Head to the plutus-apps directory and first run nix-shell:
 
 
-
-Terminal 1
+Terminal 3
 totinj@penguin:~/plutus-apps$ nix-shell
 
 
 
 Next we head to plutus-playground-server directory and run: 
 
-Terminal 1
+Terminal 3
 [nix-shell:~/plutus-apps/plutus-playground-server]$ plutus-playground-server
 
 
@@ -728,7 +694,7 @@ Terminal 1
 
 If Successful, you will see the output:
 
-Terminal 1
+Terminal 3
 Interpreter Ready
 
 
@@ -736,38 +702,37 @@ Interpreter Ready
 Let’s get started with terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
 
-
-Terminal 2
+```haskell
+Terminal 4
 totinj@penguin:~/plutus-apps$ nix-shell
-
-
+```
 
 Next we head to plutus-playground-client directory and run: 
 
-Terminal 2
+```haskell
+Terminal 4
 [nix-shell:~/plutus-apps/plutus-playground-client]$ npm run start
-
+```
 
 If Successful, you will see the output:
 
-Terminal 2
+```haskell
+Terminal 4
 [wdm]: Compiled successfully.
 
 or
 
 [wdm]: Compiled with warnings.
-
-
+```
 
 Keep both terminals open, and we should now be able to access Plutus Playground from the browser.
 
 
-
 Open a browser and head to the address:
 
+```
 https://localhost:8009
-
-
+```
 You will get a warning complaining about it being a risky website, ignore the message to click through anyway.
 
 You should now be able to successfully compile and run the gift contract by copy/pasting it into Plutus Playground and using the two buttons in the top right corner: “Compile” and “Simulate”
@@ -775,139 +740,100 @@ Our wallet setup should look like:
 
 Before we do our simulation, we need to find out the paymentpubkeyhash for wallets 2 and 3. We can do this in the repl:
 
-
+```haskell
 Prelude week03.Deploy> import Wallet.Emulator
+```
 
-
-
+```haskell
 Prelude Wallet.Emulator week03.Deploy> 
 mockWalletPaymentPubKeyHash $ knownWallet 2
 
 Output:
 80a4f45b56b88d1139da23bc4c3c75ec6d32943c087f250b86193ca7
+```
 
-
-
+```haskell
 Prelude Wallet.Emulator week03.Deploy> 
 mockWalletPaymentPubKeyHash $ knownWallet 3
 
 Output:
 2e0ad60c3207248cecd47dbde3d752e0aad141d6b8f81ac2c6eca27c
-
+```
 
 
 
 We can copy/paste those hashes into the sim for wallets 2 and 3.
+
 We also need to convert the slots to POSIXTime, which we can also do in the repl:
 
-
+```haskell
 Prelude week03.Deploy> import Ledger.TimeSlot
+```
 
-
-
+```haskell
 Prelude Ledger.TimeSlot week03.Deploy> import Data.Default
+```
 
-
-
+```haskell
 Prelude Ledger.TimeSlot Data.Default week03.Deploy>
 slotToBeginPOSIXTime def 10
 
 Output:
 POSIXTime {getPOSIXTime = 1596059101000}
+```
 
-
-
+```haskell
 Prelude Ledger.TimeSlot Data.Default week03.Deploy>
 slotToBeginPOSIXTime def 20
 
 Output:
 POSIXTime {getPOSIXTime = 1596059111000}
+```
 
+The wallets should look like:
 
+![Screenshot 2022-02-22 3 10 38 PM](https://user-images.githubusercontent.com/59018247/155421121-238f98c6-5db4-4998-a8b9-c5480f2af862.png)
 
-
-
-
-
-
-
-
-
-
-
-
-
- The wallets should look like:
 
 Genesis Slot 0 looks like:
 
-
-
+![Screenshot 2022-02-22 3 12 52 PM](https://user-images.githubusercontent.com/59018247/155421184-0cf78d3a-8231-4e87-93ba-cc309e5194b0.png)
 
 
 Slot 1, TX 0:
 
-
-
-
-
+![Screenshot 2022-02-22 3 13 29 PM](https://user-images.githubusercontent.com/59018247/155421261-3de95d30-3273-480e-9e7c-2dd195f8a017.png)
 
 Slot 2, TX 0:
 
-
-
-
-
+![Screenshot 2022-02-22 3 13 52 PM](https://user-images.githubusercontent.com/59018247/155421299-074999f6-79d2-40f0-85e7-378771261b8c.png)
 
 Slot 3, TX 0:
 
-
-
+![Screenshot 2022-02-22 3 14 15 PM](https://user-images.githubusercontent.com/59018247/155421319-53290473-87f2-450b-8c32-12625866edf6.png)
 
 
 Slot 12, TX 0:
 
-
-
-
-
-
-
+![Screenshot 2022-02-22 3 14 57 PM](https://user-images.githubusercontent.com/59018247/155421344-87dfb48b-63c0-434c-a79d-d299b4ef82af.png)
 
 
 Slot 12, TX 1:
 
 
-
-
-
-
+![Screenshot 2022-02-22 3 15 24 PM](https://user-images.githubusercontent.com/59018247/155421386-60aa58a0-4dd7-46a6-98eb-a16904ceb596.png)
 
 
 Final Balances:
 
+![Screenshot 2022-02-22 3 16 04 PM](https://user-images.githubusercontent.com/59018247/155421404-913f1e1d-ca78-4e9a-8bea-aa3cef0cebe7.png)
 
 
+## Parameterized Contract
 
+We will now look at a similar example of the vesting contract, except we will be passing a parameter instead of a datum. We can first look at mkValidator, where the datum is now type unit ():
 
-
-
-
-
-
-
-
-
-
-
-
-Parameterized Contract
-
-
-
-
-We will now look at a similar example of the vesting contract, except we will be passing a parameter instead of a datum. We can first look at mkValidator, where the datum is now typ unit ():
-
+```haskell
 mkValidator :: VestingParam -> () -> () -> ScriptContext -> Bool
 mkValidator p () () ctx = traceIfFalse "beneficiary's signature missing" signedByBeneficiary &&
                          traceIfFalse "deadline not reached" deadlineReached
@@ -920,26 +846,31 @@ mkValidator p () () ctx = traceIfFalse "beneficiary's signature missing" signedB
 
    deadlineReached :: Bool
    deadlineReached = contains (from $ deadline p) $ txInfoValidRange info
-
+```
 
 Then encode the datum to type unit:
 
+```haskell
 data Vesting
 instance Scripts.ValidatorTypes Vesting where
    type instance DatumType Vesting = ()
    type instance RedeemerType Vesting = ()
-
+```
 
 Modifying the compilation:
+
+```haskell
 typedValidator :: VestingParam -> Scripts.TypedValidator Vesting
 typedValidator p = Scripts.mkTypedValidator @Vesting
    ($$(PlutusTx.compile [|| mkValidator ||]) `PlutusTx.applyCode` PlutusTx.liftCode p)
    $$(PlutusTx.compile [|| wrap ||])
  where
    wrap = Scripts.wrapValidator @() @()
+```
 
 Followed by the boilerplate code for the validator, hash, and address:
 
+```haskell
 validator :: VestingParam -> Validator
 validator = Scripts.validatorScript . typedValidator
 
@@ -948,9 +879,11 @@ valHash = Scripts.validatorHash . typedValidator
 
 scrAddress :: VestingParam -> Ledger.Address
 scrAddress = scriptAddress . validator
-
+```
 
 Followed by the off-chain code:
+
+```haskell
 data GiveParams = GiveParams
    { gpBeneficiary :: !PaymentPubKeyHash
    , gpDeadline    :: !POSIXTime
@@ -1009,109 +942,45 @@ endpoints = awaitPromise (give' `select` grab') >> endpoints
 mkSchemaDefinitions ''VestingSchema
 
 mkKnownCurrencies []
-
+```
 
 We can now test this in Plutus Playground.
 
-
-
-
-
-
-
-
-
-
-
 Looking at the wallet setup:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 9 55 52 AM](https://user-images.githubusercontent.com/59018247/155421747-ccde3f2a-05b9-47fe-9d1f-c387f99351e8.png)
 
 Genesis Slot 0 looks like:
 
 
-
-
+![Screenshot 2022-02-23 10 11 03 AM](https://user-images.githubusercontent.com/59018247/155421766-dd3a400d-41e2-4955-812c-9f9772a1d041.png)
 
 
 Slot 1, TX 0:
 
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 10 11 35 AM](https://user-images.githubusercontent.com/59018247/155421778-14f47cf5-f705-4e09-b83c-25d14aa746ec.png)
 
 Slot 3, TX 0:
 
-
-
-
-
-
+![Screenshot 2022-02-23 10 11 58 AM](https://user-images.githubusercontent.com/59018247/155421793-d5afe021-3b3d-4460-a5c8-90b930ca8185.png)
 
 
 Slot 12, TX 0:
 
-
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 10 12 25 AM](https://user-images.githubusercontent.com/59018247/155421815-dfa9d563-98aa-4153-bdf3-0373e56bca2a.png)
 
 
 Slot 12, TX 1:
 
-
-
-
-
-
-
-
-
-
+![Screenshot 2022-02-23 10 12 48 AM](https://user-images.githubusercontent.com/59018247/155421839-6462a381-5f75-41d3-b4c3-c4e5151001fa.png)
 
 
 Final Balances:
 
+![Screenshot 2022-02-23 10 13 15 AM](https://user-images.githubusercontent.com/59018247/155421860-7749eb55-993a-4e96-ae4a-4d9061cb14bd.png)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Cardano Testnet
+## Cardano Testnet
 
 
 
