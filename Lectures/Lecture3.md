@@ -1091,23 +1091,26 @@ The `text-view` command contains the following subcommand:
  
 In order to test our contracts, we first need to generate key pairs on the testnet. We can start by opening a new terminal to run nix-shell, making sure not to close the node syncing in the other terminal:
 
+```haskell
 totinj@penguin:~/plutus-apps$ nix-shell
-
-
-
+```
 Head to week03 subfolder in the plutus pioneer directory, then inside that the testnet folder. We will first generate our public and private keys 01.vkey and 01.skey respectively with the command:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address key-gen --verification-key-file 01.vkey --signing-key-file 01.skey
-
-
-
+```
 
 We will now generate our second public and private keys 02.vkey and 02.skey respectively with the command:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address key-gen --verification-key-file 02.vkey --signing-key-file 02.skey
-
+```
 
 Looking at 01.vkey:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 01.vkey
 
@@ -1117,40 +1120,47 @@ Output:
     "description": "Payment Verification Key",
     "cborHex": "58201dd3552d73e7fef875031da2b2deeacc8cc9d1d70751850408d51a4061dd3e96"
 }
-
+```
 
 We can now generate an address on the testnet for 01.vkey, and output it into the file 01.addr with the following command:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address build --payment-verification-key-file 01.vkey --testnet-magic 1097911063 --out-file 01.addr
-
+```
 
 Looking at 01.addr:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 01.addr
 
 Output:
 addr_test1vpvlskugythmdnutq2745am2ss8sfmhz25dr7zgx8t5cjcqkw2m3l
-
-
+```
 
 We can now generate an address on the testnet for 02.vkey, and output it into the file 02.addr with the following command:
 
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cardano-cli address build --payment-verification-key-file 02.vkey --testnet-magic 1097911063 --out-file 02.addr
-
+```
 
 Looking at 02.addr:
+
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week03/testnet]$ 
 cat 02.addr
 
 Output:
 addr_test1vrqv87nzpwwd5q4x3ecx38ds8l3suheumc49dgvu3x9emmgvaw5kp
-
+```
 
 We now need to generate some ADA to send to our first address. This can be done from the following page using the Cardano faucet. 
 
-https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
-
+```
+[Cardano Testnet Faucet](https://testnets.cardano.org/en/testnets/cardano/tools/faucet/)
+```
 
 Important to note here, that your address for 01.addr will be different then address generated in this tutorial! Make sure you send the testnet ADA to the address you generated in the CLI!
 
