@@ -125,6 +125,7 @@ Output:
 
 Where start-testnet-node.sh looks like:
 
+```
 #!/bin/bash
 
 cardano-node run \
@@ -133,10 +134,9 @@ cardano-node run \
     --database-path testnet/db \
     --socket-path testnet/node.sock \
     --port 3003
-
+```
 
 This process will take 5+ hours to sync. You will be 100% synced once you start seeing a new block every 20 seconds, rather than multiple blocks per second. Leave this terminal open and we can now get started with prepping for the PAB.
-
 
 
 ### Wallet Backend Preparation
@@ -144,61 +144,59 @@ This process will take 5+ hours to sync. You will be 100% synced once you start 
 
 Keep the node running on terminal 2, and open a new terminal 3. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 3
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head to the week06 subfolder in the plutus pioneer directory, then inside that the testnet folder. 
 
 First, set the environment variables:
 
+```
 Terminal 3
 [nix-shell:~/plutus-pioneer-program/code/week06]$ . env.sh
-
-
+```
 
 We will now start up start-testnet-wallet.sh:
 
+```
 Terminal 3
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./start-testnet-wallet.sh
-
-
-
+```
 
 Where start-testnet-wallet.sh looks like:
 
-
-
+```
 #!/bin/bash
 
 cardano-wallet serve \
     --testnet testnet/testnet-byron-genesis.json \
     --node-socket $CARDANO_NODE_SOCKET_PATH
-
+```
 
 Wallet Creation:
 
 Keep the wallet running on terminal 3, and open a new terminal 4. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 4
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head to week06 subfolder in the plutus pioneer directory. First, set the environment variables:
 
+```
 Terminal 4
 [nix-shell:~/plutus-pioneer-program/code/week06]$ . env.sh
-
-
-
+```
 
 We will be running the create-wallet.sh script which will generate our wallet:
 
+```
 Terminal 4
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./create-wallet.sh YoroiWallet mysecretpassphrase testnet/restore-wallet.json
@@ -206,14 +204,11 @@ Terminal 4
 Output:
 creating wallet with name YoroiWallet passphrase mysecretpassphrase
 saved restoration file to testnet/restore-wallet.json
-
-
-
+```
 
 Where create-wallet.sh looks like:
 
-
-
+```
 #!/bin/bash
 
 name=$1
@@ -238,10 +233,11 @@ cat > $file <<- EOM
 }
 EOM
 echo "saved restoration file to $file"
-
+```
 
 Looking at the wallet contents in the testnet folder:
 
+```
 Terminal 4
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 cat restore-wallet.son
@@ -253,11 +249,9 @@ Output:
 }
 
 saved restoration file to testnet/restore-wallet.json
-
-
-
-
+```
 Install Yoroi nightly to import the wallet seed phrase into:
+
 https://chrome.google.com/webstore/detail/yoroi-nightly/poonlenmfdfbjfeeballhiibknlknepo?hl=en&authuser=0
 
 Restore Wallet:
@@ -295,18 +289,17 @@ https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
 
 Load the wallet in the wallet backend:
 
+```
 Terminal 4
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./load-wallet.sh
 
 Output:
 {"balance":{"total":{"quantity":0,"unit":"lovelace"},"available":{"quantity":0,"unit":"lovelace"},"reward":{"quantity":0,"unit":"lovelace"}},"name":"YoroiWallet","id":"e698500d71c055b01c67ea06d3d3f0e08dcc6c3c","tip":{"height":{"quantity":0,"unit":"block"},"epoch_number":0,"time":"2019-07-24T20:20:16Z","absolute_slot_number":0,"slot_number":0},"passphrase":{"last_updated_at":"2022-03-02T18:56:56.341514606Z"},"address_pool_gap":20,"state":{"status":"syncing","progress":{"quantity":0,"unit":"percent"}},"delegation":{"next":[],"active":{"status":"not_delegating"}},"assets":{"total":[],"available":[]}}
-
-
-
-
+```
 
 Update env.sh replacing the wallet ID from the last step, and the address with the new Yoroi receive address:
+
 
 
 
@@ -315,38 +308,46 @@ Update env.sh replacing the wallet ID from the last step, and the address with t
 
 Keep the wallet running on terminal 4, and open a new terminal 5. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 5
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head to week06 subfolder in the plutus pioneer directory. We will now sync the plutus-chain-index which will take a long time to sync:
+
+```
 Terminal 5
 [nix-shell:~/plutus-pioneer-program/code/week06]$ ./start-testnet-chain-index.sh
-
+```
 
 ### Launching the PAB
 
 Keep the chain index syncing on terminal 5, and open a new terminal 6. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 6
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head to week06 subfolder in the plutus pioneer directory. We need to first create the initial config for the PAB:
+
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06]$ ./migrate-pab.sh
-
+```
 
 We will now launch the PAB:
+
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06]$ ./start-testnet-pab.sh
-
+```
 
 Keep this running as well and we can start the lecture! If your node is almost fully synced, you can edit testnet/pab-config.yml to bootstrap the PAB to your current node position:
+
+```
 developmentOptions:
   pabRollbackHistory: 1
   pabResumeFrom:
@@ -355,13 +356,12 @@ developmentOptions:
       , "pointBlockId" : "b986b7fd42c6587030ff8af2b6867fcecf138eb6b08bd14989930573125f14d0"
       , "pointSlot" : {"getSlot" : 51463348}
       }
-
+```
 
 Keep By replacing the blockid and slot with your current nodes position, it will bootstrap the PAB in line with your node.
 
+
 We can also view the swagger ui for the PAB at:
-
-
 
 http://localhost:9083/swagger/swagger-ui
 
@@ -377,10 +377,9 @@ We will be using the example of minting native tokens, and how to do so with and
 ## The Minting Policy
 
 
-
 Let's first look at the on-chain code, in the token folder for Onchain.hs.
 
-
+```haskell
 module Week06.Token.OnChain
     ( tokenPolicy
     , tokenCurSymbol
@@ -420,21 +419,24 @@ tokenPolicy oref tn amt = mkMintingPolicyScript $
 
 tokenCurSymbol :: TxOutRef -> TokenName -> Integer -> CurrencySymbol
 tokenCurSymbol oref tn = scriptCurrencySymbol . tokenPolicy oref tn
-
+```
 This is very similar to the NFT example that was presented in the previous lecture 5. The trick to mint a true NFT; a native token of which there can only ever be one coin, is to insist on a specific UTxO being spent by the minting transaction.
 As was explained in the last lecture, UTxOs are unique and can only exist once. When they are spent, there can never be the same UTxO again. This in turn means there can only be a single minting transaction.
 In the case of NFTs, if you insist on the amount being minted to equal one, then you are guaranteed to have an NFT. In that transaction only one coin is minted, so only one coin in total can ever exist. That is how you can do NFTs in Plutus.
 This example is made a little more general from the example in the last lecture, as you can now mint an arbitrary amount. 
+
 So, looking at the three parameters for this minting policy:
+
+```haskell
 mkTokenPolicy :: TxOutRef -> TokenName -> Integer -> () -> ScriptContext -> Bool
+```
 
-
-First, the TxOutRef, the reference to the UTxO that is to be consumed, spent by the minting transaction. 
-Second, the TokenName.
-Third, the integer which is the amount of coins you want to mint.
-Forth, we don't need a redeemer, so that is type unit 
-Fifth, the usual script context
-Last, the result is a bool
+1) First, the TxOutRef, the reference to the UTxO that is to be consumed, spent by the minting transaction. 
+2) Second, the TokenName.
+3) Third, the integer which is the amount of coins you want to mint.
+4) Forth, we don't need a redeemer, so that is type unit 
+5) Fifth, the usual script context
+6) Last, the result is a bool
 
 We then must check two conditions, namely that the specified UTxO has been spent and that the right amount has been minted.
 mkTokenPolicy oref tn amt () ctx = traceIfFalse "UTxO not consumed"   hasUTxO         &&
