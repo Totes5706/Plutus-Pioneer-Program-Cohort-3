@@ -69,6 +69,12 @@ You should now be up to date and can run nix-shell in this directory. Run nix-sh
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
+**To avoid future errors with the chain index, let’s install the dependencies:
+
+```
+[nix-shell:~/plutus-apps]$ cabal install plutus-pab-examples plutus-chain-index
+```
+
 Head back to the week06 folder to start running the cabal commands:
 
 ```
@@ -105,13 +111,6 @@ Terminal 2
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
-To avoid future errors with the chain index, let’s install the dependencies:
-
-```
-Terminal 2
-
-[nix-shell:~/plutus-apps]$ cabal install plutus-pab-examples plutus-chain-index
-```
 Head to week06 subfolder in the plutus pioneer directory. We will be running the start-node-test.sh script which will initialize the testnet based off of the config files in this folder
 
 ```
