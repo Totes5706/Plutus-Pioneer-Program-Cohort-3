@@ -273,7 +273,8 @@ Select 24 word seed phrase:
 Input the seed phrase and enter a spending password to restore the wallet:
 
 
-![Screenshot 2022-03-02 1 52 06 PM](https://user-images.githubusercontent.com/59018247/156475789-e56ce006-9aca-409a-a922-c59db26fee4c.png)
+![Screenshot 2022-03-02 1 51 06 PM](https://user-images.githubusercontent.com/59018247/156476698-4bf638ee-cbc8-4082-89b7-b255d1e82013.png)
+
 
 
 Use the receive address in the wallet to get funded from the Cardano Faucet:
@@ -365,7 +366,7 @@ developmentOptions:
       }
 ```
 
-Keep By replacing the blockid and slot with your current nodes position, it will bootstrap the PAB in line with your node.
+By replacing the blockid and slot with your current nodes position, it will bootstrap the PAB in line with your node.
 
 
 We can also view the swagger ui for the PAB at:
