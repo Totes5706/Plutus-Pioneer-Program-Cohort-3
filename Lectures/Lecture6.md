@@ -34,21 +34,22 @@ Before we can get started in lecture 6, we first must get our development enviro
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 6 contents. Execute: 
 
+```bash
 totinj@penguin:~/plutus-pioneer-program$ git pull
-
+```
 
 You can now navigate to the current week06 directory and open the cabal.project file:
 
+```haskell
 totinj@penguin:~/plutus-pioneer-program/code/week06$ cat cabal.project
-
-
- 
+```
 
 Grab the plutus-apps tag inside the cabal.project file:
 
+```haskell
 location: https://github.com/input-output-hk/plutus-apps.git
   tag:6e3f6a59d64f6d4cd9d38bf263972adaf4f7b244
-
+```
 
 Head back to  to the plutus-apps directory and update it to the  current git tag:
 
