@@ -720,41 +720,36 @@ In our case we are dealing with strings for a list of characters, this condition
 
 The underscore then because that will be the hash character and that is then everything behind the hash character.
 
-Okay, so now we have these two pieces. Now we have to turn the x into a TxId and the y into an index and an integer. We can then use fromString applied to x to get the transaction id. In order to turn the y into an integer, we can use read
+Okay, so now we have these two pieces. Now we have to turn the x into a ```TxId``` and the y into an index and an integer. We can then use ```fromString``` applied to x to get the transaction id. In order to turn the y into an integer, we can use read
 
 We can actually try it out in the repl. Load Utils.hs:
 
-
+```haskell
 Prelude Week06.Monitor> :l src/Week06/Utils.hs
 
 Output:
 Ok, one module loaded.
+```
 
 
+If we take ```TxHash``` and ```TxId``` from the address we queried, we get:
 
-If we take TxHash and TxId from the address we queried, we get:
-
+```haskell
 Prelude Week06.Utils> unsafeReadTxOutRef "907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d#0"
 
 Output:
 TxOutRef {txOutRefId = 907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d, txOutRefIdx = 0}
+```
+
+
+Then it works and we get something of type ```txOutRef```.
 
 
 
-Then it works and we get something of type txoutref.
+Using this output, we can write a tool that allows us to serialize the correct minting policy. We can now look at token-policy.hs:
 
 
-
-
-
-
-
-
-
- Using this output, we can write a tool that allows us to serialize the correct minting policy. We can now look at token-policy.hs:
-
-
-
+```haskell
 module Main
     ( main
     ) where
@@ -776,53 +771,49 @@ main = do
     case e of
         Left err -> throwIO $ userError $ show err
         Right () -> return ()
-
+```
 
 
 
 First, get the four command line arguments.
 
+```haskell
  [file, oref', amt', tn'] <- getArgs
-
+```
 
  It is  done by the standard Haskell function getArgs. 
 
-- The first one is the file where I want to write the serialize minting policy too. 
-- Second one is the UTxO reference that we have been talking about now.
-- Third being the amount of tokens to mint
-- Fourth being the token name.
+1) The first one is the file where I want to write the serialize minting policy too. 
+2) Second one is the UTxO reference that we have been talking about now.
+3) Third being the amount of tokens to mint
+4) Fourth being the token name.
 
 
+```haskell
 
   let oref = unsafeReadTxOutRef oref'
         amt  = read amt'
         tn   = fromString tn'
         p    = tokenPolicy oref tn amt
     e <- writeMintingPolicy file p
+```
 
+- For the oref, the reference to the UTxO we use the unsafeReadTxOutRef that we just ran.
+- The amount we can simply use read.
+- The token name we can use ```fromString``` because token name also implements the ```sString``` class, similar to ```TxId```. 
 
-
-
-	- So for the oref, the reference to the UTxO we use the unsafereadtxoutref that we just ran.
-         - The amount we can simply use read.
-         - The token name we can use fromString because token name also implements the isString class, similar to TxId. 
-
-Once we have these three pieces, we can apply the token policy function and call it p. We then can use the writeMintingPolicy function to write the serialized version of this minting policy a file.
+Once we have these three pieces, we can apply the token policy function and call it p. We then can use the ```writeMintingPolicy``` function to write the serialized version of this minting policy a file.
 
 We can try this out in nix-shell:
 
-
+```haskell
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 cabal exec token-policy -- policy.plutus 907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d#0 123456 PPP
-
+```
 
 Now if we look at this policy.plutus file, we do get the serialized version of a Plutus script. So that's the first part that we need.
 
-
-
-
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 cat policy.plutus 
 
@@ -832,14 +823,12 @@ Output:
     "description": "",
     "cborHex": "590a1c590a19010000333323322332233322233322232323233223232323233223232333222323332223233333333222222223232333322223232332232333222323232332233223232333332222233223322332233223322332233222223355048222323253353050330053333573466e1cd55ce9baa00448000811c8c98d4c118cd5ce0240238228221999ab9a3370e6aae754009200023300d32323232323232323232323333573466e1cd55cea805240004666666666603666a052464646666ae68cdc39aab9d5002480008cc084c0e4d5d0a80118171aba135744a004464c6a60ac66ae7016015c1541504d55cf280089baa00135742a01466a0520546ae854024ccd540c1d728179aba150083335503075ca05e6ae85401ccd40a40fcd5d0a80319a81499aa8280243ad35742a00a6464646666ae68cdc39aab9d5002480008cd408cc8c8c8cccd5cd19b8735573aa0049000119a81599a820bad35742a004608c6ae84d5d1280111931a982d19ab9c05c05b059058135573ca00226ea8004d5d0a8011919191999ab9a3370e6aae7540092000233502933504175a6ae854008c118d5d09aba25002232635305a3357380b80b60b20b026aae7940044dd50009aba135744a004464c6a60ac66ae7016015c1541504d55cf280089baa00135742a00866a052eb8d5d0a80199a81499aa8283ae200135742a00460706ae84d5d1280111931a982919ab9c054053051050135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135573ca00226ea8004d5d0a8011919191999ab9a3370ea002900311810181b9aba135573ca00646666ae68cdc3a801240084603e60826ae84d55cf280211999ab9a3370ea00690011180f98179aba135573ca00a46666ae68cdc3a80224000460446eb8d5d09aab9e5006232635304d33573809e09c09809609409209026aae7540044dd50009aba135744a004464c6a608c66ae7012011c11411041184c98d4c114cd5ce2490350543500046044135573ca00226ea800488c8d4c10c00ccc11ccc1192401115554784f206e6f7420636f6e73756d656400335504b33553048120013233504b2233353500a0032200200200135350080012200133500822533530500021052100104f2332253353051333573466e3cd4c0a800888008d4c0a80048800814c1484ccd5cd19b8735302a0022200135302a00122001053052105235300e001220020073235300c001222222222200a5001330464911377726f6e6720616d6f756e74206d696e74656400533535051323304d50540013235300c00122222222220075001104f22135355505800222253353505600413304c333573466e3c008028154150ccd5cd19b870010090550542210561353008001220021221233001003002120012212330010030022001222222222212333333333300100b00a00900800700600500400300220012212330010030022001122123300100300212001122123300100300212001122123300100300212001212222300400521222230030052122223002005212222300100520011232230023758002640026aa07e446666aae7c004940f48cd40f0c010d5d080118019aba200202d23232323333573466e1cd55cea801a4000466600e6464646666ae68cdc39aab9d5002480008cc034c0acd5d0a80119a8080139aba135744a004464c6a606266ae700cc0c80c00bc4d55cf280089baa00135742a006666aa016eb94028d5d0a80119a8063ae357426ae8940088c98d4c0b4cd5ce01781701601589aba25001135573ca00226ea800488848ccc00401000c00880048848cc00400c00880044cd54005d73ad112232230023756002640026aa07244646666aae7c008940e08cd40dccd540e8c018d55cea80118029aab9e500230043574400605026ae84004488c8c8cccd5cd19b875001480008d4020c014d5d09aab9e500323333573466e1d4009200225008232635302733573805205004c04a04826aae7540044dd5000890911801001889100089000919191999ab9a3370e6aae7540092000233006300735742a0046eb4d5d09aba25002232635302133573804604404003e26aae7940044dd500091091980080180110009191999ab9a3370e6aae75400520002375c6ae84d55cf280111931a980e99ab9c01f01e01c01b1375400224464646666ae68cdc3a800a40084a00e46666ae68cdc3a8012400446a014600c6ae84d55cf280211999ab9a3370ea00690001280511931a981019ab9c02202101f01e01d01c135573aa00226ea8004484888c00c0104488800844888004480048c8cccd5cd19b8750014800880908cccd5cd19b8750024800080908c98d4c060cd5ce00d00c80b80b00a89aab9d3754002464646464646666ae68cdc3a800a4018401646666ae68cdc3a80124014401a46666ae68cdc3a801a40104660166eb8d5d0a8029bad357426ae8940148cccd5cd19b875004480188cc034dd71aba15007375c6ae84d5d1280391999ab9a3370ea00a9002119809180a1aba15009375c6ae84d5d1280491999ab9a3370ea00c90011180a180a9aba135573ca01646666ae68cdc3a803a400046026602c6ae84d55cf280611931a981019ab9c02202101f01e01d01c01b01a019018135573aa00826aae79400c4d55cf280109aab9e500113754002424444444600e01044244444446600c012010424444444600a010244444440082444444400644244444446600401201044244444446600201201040024646464646666ae68cdc3a800a400446660106eb4d5d0a8021bad35742a0066eb4d5d09aba2500323333573466e1d400920002300a300b357426aae7940188c98d4c044cd5ce00980900800780709aab9d5003135744a00226aae7940044dd5000909118010019110911998008028020019000919191999ab9a3370ea0029001118031bae357426aae79400c8cccd5cd19b875002480008c020dd71aba135573ca008464c6a601666ae700340300280240204d55cea80089baa001212230020032122300100320011122232323333573466e1cd55cea80124000466aa034600c6ae854008c014d5d09aba25002232635300833573801401200e00c26aae7940044dd5000a4c2400240029210350543100225335300a001100c133573800401644a66a601200420022014640026aa0204422444a66a6a01c00226a6a00c00644002442666a6a01000a440046008004666aa600e2400200a00800224424660020060042400222446004002640026aa018444a66a6a01000220044426a6aa01a004446600e66601000400c002006640026aa0164444a66a6a01000220044426a6aa01a00444a66a6012666ae68cdc3800a4000016014266601000e00c006266601000e66a01a666aaa02400e00400200c0062440042440024002224400424424466002008006240022244246600200600422400222244424666002008006004222400222464600200244660066004004002664466004910120907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d00480008848cc00400c00880052201035050500048202243c1"
 }
-
-
-
+```
 
 In order to use the Cardano-CLI to mint tokens of this type, we need the policy script in serialized form. This was the hardest part. We should be able to do the minting using the CLI. We will now look at the script called mint-token-cli.sh. 
 
 
-
+```
 #!/bin/bash
 
 oref=$1
@@ -893,7 +882,7 @@ cardano-cli transaction sign \
 cardano-cli transaction submit \
     $MAGIC \
     --tx-file $signedFile
-
+```
 
 
 
@@ -901,83 +890,76 @@ cardano-cli transaction submit \
 
 It expects five command line parameters:
 
+```
 oref=$1
 amt=$2
 tn=$3
 addrFile=$4
 skeyFile=$5
+```
 
-
-
-
-        - The first is the UTxO reference that we also now just use to compute the minting policy.
-        - Second is the amount 
-        - Third is the token name.
-        - Fourth is the name of the file containing the address, our own address which is used as a change address. 
-          -Fifth is the name of the file containing the signing key, because we need to sign the transaction.
+1) The first is the UTxO reference that we also now just use to compute the minting policy.
+2) Second is the amount 
+3) Third is the token name.
+4) Fourth is the name of the file containing the address, our own address which is used as a change address. 
+5) Fifth is the name of the file containing the signing key, because we need to sign the transaction.
 
 Then we log these parameters:
 
-
-
+```
 echo "oref: $oref"
 echo "amt: $amt"
 echo "tn: $tn"
 echo "address file: $addrFile"
 echo "signing key file: $skeyFile"
-
-
+```
 
 We then need to query the protocol parameters. It takes the magic and it takes an out file parameter to specify where to write these protocol parameters. Then, we write them to testnet/protocol-parameters.json:
 
+```
 ppFile=testnet/protocol-parameters.json
 cardano-cli query protocol-parameters $MAGIC --out-file $ppFile
-
-
-
+```
 
 We then need the token policy. The filename used is testnet/token.plutus and then these three parameters we have from the parameters to this script.
 
 
-
+```
 policyFile=testnet/token.plutus
 cabal exec token-policy $policyFile $oref $amt $tn
-
+```
 
 
 Now, we need the policy id which is basically the hash of the policy. 
 
+```
 pid=$(cardano-cli transaction policyid --script-file $policyFile)
+```
 
-
-
-We now have our policy file, we wrote that in this step, so now we can use this Cardano-CLI command to get the actual policy id and I assign it to this variable pid. 
+We now have our policy file, we wrote that in this step, so now we can use this Cardano-CLI command to get the actual policy id and I assign it to this variable ```pid```. 
 
 Now, there is one further complication. We want to mint the token in this example with the token name PPP. However, the Cardano-CLI does not understand these plain text token names. It looks for all the token names that are represented in hexadecimal. We need to convert this PPP to the correct hexadecimal representation
 
 In Utils.hs:
 
+```haskell
 unsafeTokenNameToHex :: TokenName -> String
 unsafeTokenNameToHex = BS8.unpack . serialiseToRawBytesHex . fromJust . deserialiseFromRawBytes AsAssetName . getByteString . unTokenName
   where
     getByteString (BuiltinByteString bs) = bs
-
+```
 
 We first have to unwrap the token name, so the token name is just a new type wrapper around a BuiltinByteString. 
 
 Then we use a function from the Cardano API which is in the Haskell library that provides all the functionality that the Cardano-CLI uses to deserialize that into a so-called asset name. The asset name is the Cardano API type that corresponds to the Plutus token name type; in the Cardano API it's called asset name. Deserialize then returns a maybe type. 
 
-Then use another function from the Cardano API serializeToRawBytesHex to turn this into a hexadecimal byte string.
+Then use another function from the Cardano API ```serializeToRawBytesHex``` to turn this into a hexadecimal byte string.
 
 Finally, we turn the byte string into a string because we just want a string. 
 
-
-
-
-
 We can look at token-name.hs:
 
-
+```haskell
 module Main
     ( main
     ) where
@@ -991,62 +973,48 @@ main = do
     [tn'] <- getArgs
     let tn = fromString tn'
     putStrLn $ unsafeTokenNameToHex tn
+```
 
 
-
-This function  just expects one argument, the token name. It then passes this token name prime, the string into an actual token name. Then it uses the function we just looked at, unsafeTokenNameToHex to produce the corresponding hexadecimal string.
+This function  just expects one argument, the token name. It then passes this token name prime, the string into an actual token name. Then it uses the function we just looked at, ```unsafeTokenNameToHe```x to produce the corresponding hexadecimal string.
 
 
 We can test this out  as well:
 
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 less mint-token-cli.sh
+```
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 cabal exec token-name -- PPP 
 
 Output:
 505050
-
+```
 
 We can say cabal exec token-name and it takes the token name. If  we use PPP as an example, then we see the corresponding token name that the Cardano-CLI understands is 505050.
 
-
 Going back to our script:
 
-
+```
 tnHex=$(cabal exec token-name -- $tn)
 addr=$(cat $addrFile)
 v="$amt $pid.$tnHex"
+```
 
-
-- We use this tool token-name to do just this to convert the token name that the user provides here as an argument and assign the result to variable tnHex.
+- We use this tool token-name to do just this to convert the token name that the user provides here as an argument and assign the result to variable ```tnHex```.
 
 - Then address, we just read from the provided file name for the address. 
 
-- The v is the value that we want to mint.
+- The ```v``` is the value that we want to mint.
 
 And the representation that the cardano-cli uses for these things is, first the amount, then is a space and then, you specify the asset class by first giving the policy id then a dot and then the tokenname and that must be this hexadecimal token-name. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 And now comes the transaction build command of the Cardano-CLI:
 
+```
 cardano-cli transaction build \
     $MAGIC \
     --tx-in $oref \
@@ -1068,92 +1036,89 @@ cardano-cli transaction sign \
 cardano-cli transaction submit \
     $MAGIC \
     --tx-file $signedFile
+```
 
 
 
-
-
+```
 cardano-cli transaction build \ 
     $MAGIC \
     --tx-in $oref \
 
+```
 
 
+It takes the magic, then inputs can be specified with tx-in. In this case, because it's just a public key input, we do not have to give a redeemer. So that's just our ```oref```.
 
-It takes the magic, then inputs can be specified with tx-in. In this case, because it's just a public key input, we do not have to give a redeemer. So that's just our oref.
-
+```
  --tx-in-collateral $oref \
-
+```
 
 Now collateral. If people could for free send invalid transactions and keep the nodes occupied by running failing scripts, then that would slow down the network. Therefore there is a collateral mechanism, which says that every transaction which contains scripts, needs to specify a collateral where collateral must be a pub key input. It must only contain ADA, so no other native tokens. Under normal conditions, nothing will happen. If you just use the normal tools; the cardano node or the PAB for example, then the second phase will never fail and the collateral is ignored. However, if you do something fishy to circumvent these protections and the second phase of validation fails, then the collateral is forfeit. In which case you lose the collateral. In our case, because we have a minting policy that mustrun, we need to specify collateral.
 We can simply use the same oref, the same UTxO that we also use as input. Because that fulfills the criteria, it is a public key input and it only contains ADA. 
 
-
+```
 --tx-out "$addr + 1500000 lovelace + $v" \
-
+```
 
 We then specify an output. Normally that wouldn't be necessary, because the balancing would take care of that and just create a change output. However, change outputs only work in this version of the CLI for ADA, not formative tokens, so we explicitly create one. The address is the address we specified earlier, so our own address. This is followed by the value we want to mint, but there's also this thing of min ADA so each UTxO has to contain a minimal amount of ADA on top of any native tokens. 
 
-
+```
   --mint "$v" \
   --mint-script-file $policyFile \
   --mint-redeemer-file testnet/unit.json \
+```
 
+- The mint argument says how much the transaction should mint and that's exactly this ```vv value. 
+- Mint expects the script file. 
+- Mint also expects a redeemer file. The redeemer, recall for this minting policy was just type unit. Therefore, we need unit represented as json.
 
-     - The mint argument says how much the transaction should mint and that's exactly this v value. 
-     - Mint expects the script file. 
-     - Mint also expects a redeemer file. The redeemer, recall for this minting policy was just type unit. Therefore, we need unit represented as json.
-
+```
   --change-address $addr \
   --protocol-params-file $ppFile \
   --out-file $unsignedFile \
+```
 
-
-     -  We must specify the change address, which is again our address
-     -  Now, we need the protocol parameters, which we retrieved earlier .
-     - Lastly, we must say where to write the transaction to so this is an unsaved transaction. It will be balanced, but it won't be signed yet.
+- We must specify the change address, which is again our address
+- Now, we need the protocol parameters, which we retrieved earlier .
+- Lastly, we must say where to write the transaction to so this is an unsaved transaction. It will be balanced, but it won't be signed yet.
 
 
 We then need to sign and submit the transaction.
 
-
+```
 cardano-cli transaction sign \
     --tx-body-file $unsignedFile \
     --signing-key-file $skeyFile \
     $MAGIC \
     --out-file $signedFile
+```
 
-
-      - In order to sign, we have to specify where to find the unsigned one that we just created in the previous step. 
-
-      - We must specify a file containing the signing key.
-      - Lastly, the network magic and a file where to write the sign file to.
+- In order to sign, we have to specify where to find the unsigned one that we just created in the previous step. 
+- We must specify a file containing the signing key.
+- Lastly, the network magic and a file where to write the sign file to.
 
 
 And then finally submission:
 
 
-
+```
 cardano-cli transaction submit \
     $MAGIC \
     --tx-file $signedFile
+```
 
 
-
-     - We need the network magic and the signed file.
-
-
-
-
+- We need the network magic and the signed file.
 
 
 We can now finally run the commands to mint out tokens in the CLI:
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ . env.sh
+```
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./query-key1.sh
 
@@ -1161,10 +1126,9 @@ Output:
  TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d     0        1000000000 lovelace + TxOutDatumNone
+```
 
-
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./mint-token-cli.sh 907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d#0 123456 PPP testnet/01.addr testnet/01.skey
 
@@ -1180,9 +1144,9 @@ minted value: 123456 f0b752731b134cf2654347ccb7c1b050a16e0883cbe0b63235ea2f7f.50
 address: addr_test1vpnfx9ge24t3fmncskfaseuxcuvxhh0gh9dp3enr0qgk8xshq22j0
 Estimated transaction fee: Lovelace 343733
 Transaction successfully submitted.
+```
 
-
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./query-key1.sh
 
@@ -1191,7 +1155,7 @@ Output:
 ---------------------------------------------------------------------------
 17ef5d0453991d380ec0b30d7678031f6cb3ef366950982d597d6c76ebbf6085     0        998156267 lovelace + TxOutDatumNone
 17ef5d0453991d380ec0b30d7678031f6cb3ef366950982d597d6c76ebbf6085     1        1500000 lovelace + 123456 f0b752731b134cf2654347ccb7c1b050a16e0883cbe0b63235ea2f7f.505050 + TxOutDatumNone
-
+```
 
 
 ## Deployment Scenarios
@@ -1217,13 +1181,13 @@ We see that there are various deployment scenarios for the PAB. The one we will 
 
 
 
-- The way that works is that on the server, which in this case is our local machine, we run a node. 
+1) The way that works is that on the server, which in this case is our local machine, we run a node. 
 
-- Then in addition, we'll have to run a Cardano wallet backend. Which is the same backend that, for example, Daedalus wallet also uses.
+2) Then in addition, we'll have to run a Cardano wallet backend. Which is the same backend that, for example, Daedalus wallet also uses.
 
-- Third, we have to run a so-called chain index. 
+3) Third, we have to run a so-called chain index. 
 
-- Finally we have to run the PAB itself.
+4) Finally we have to run the PAB itself.
 
 So the chain index is something like a lightweight version of db sync where db sync is a way to save the whole blockchain, all the information contained in the blockchain in an SQL database. The chain index is somewhat similar and it will allow us to do things like look up the datum belonging to a given datum hash.
 
@@ -1242,12 +1206,6 @@ Alternatively, the user could run all these things himself. Running a node, a wa
 
 So the really interesting scenario that unfortunately isn't supported yet, is the browser wallet scenario, where on the server side we only have the PAB, the chain index and the node, but not the wallet.
 
-
-
-
-
-
-
 The PAB would create transactions, but it has no way to sign them itself, because it doesn't have access to a wallet. So instead it would expose the unsigned transactions on an endpoint. Then, from the browser or some other user interface, it could pick up this unsigned transaction and have it signed in the browser, using a browser wallet and then submit it. But at this point and time,  this scenario is not fully supported. You can already do this with unbalanced transactions. For this to work properly, we have to wait until the PAB can balance and then only expose the balance transaction for signature.
 
 Anyway, so we are concentrating now on this scenario, the hosted scenario.But in order to have anything for the PAB to do, we first need off chain code written in the contract monad, that the PAB can then execute, so let's look at that next.
@@ -1259,8 +1217,9 @@ Anyway, so we are concentrating now on this scenario, the hosted scenario.But in
 
 
 
-Before we look at the actual contract, let's look at another helper function that is defined in Utils.hs called getCredentials.
+Before we look at the actual contract, let's look at another helper function that is defined in Utils.hs called ```getCredentials```.
 
+```haskell
 getCredentials :: Plutus.Address -> Maybe (Plutus.PaymentPubKeyHash, Maybe Plutus.StakePubKeyHash)
 getCredentials (Plutus.Address x y) = case x of
     ScriptCredential _   -> Nothing
@@ -1274,10 +1233,11 @@ getCredentials (Plutus.Address x y) = case x of
             Just (StakingHash h)           -> case h of
                 ScriptCredential _    -> Nothing
                 PubKeyCredential pkh' -> Just (ppkh, Just $ Plutus.StakePubKeyHash pkh')
-
+```
 
 It takes a Plutus address, and if we look at the definition of a Plutus address then we see that this is a record type with two fields.
 
+```haskell
 data Address
 Address with two kinds of credentials, normal and staking.
 Constructors
@@ -1285,17 +1245,14 @@ Address
  
 addressCredential :: Credential
 addressStakingCredential :: Maybe StakingCredential
-
-
-
+```
 
 - The first address credential, which is the payment credential.
 - The second address staking credential, which is the optional staking credential.
 
 So for credential, there are two cases.
 
-
-
+```haskell
 data Credential
 Credential required to unlock a transaction output
 Constructors
@@ -1303,11 +1260,7 @@ PubKeyCredential PubKeyHash
 The transaction that spends this output must be signed by the private key
 ScriptCredential ValidatorHash
 The transaction that spends this output must include the validator script and be accepted by the validator.
-
-
-
-
-
+```
 
 - The first is a pub key credential, which is given by a pub key hash.
 - The second one is a script credential, which is given by a validator hash.
@@ -1315,14 +1268,9 @@ The transaction that spends this output must include the validator script and be
 These are the two cases of addresses, the ones that existed before Alonzo; just corresponding to pub keys. Also now, with the dawn of Plutus also those in which spending is controlled by a validator.
 
 
-
-
-
-
-
 The staking credential, there are also two cases:
 
-
+```haskell
 data StakingCredential
 Staking credential used to assign rewards
 Constructors
@@ -1330,33 +1278,15 @@ Constructors
 StakingHash Credential
  
 StakingPtr Integer Integer Integer
-
-
-
-
+```
 
 - It can be a credential. In other words, a pub key hash or a validator script.
 - Otherwise, it can be a pointer. There are these indirect staking credentials that point to a specific position on the blockchain.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Going back to Utils.hs, the helper function getCredentials is supposed to try to extract the public key hashes contained in the address. 
 
+```haskell
 getCredentials :: Plutus.Address -> Maybe (Plutus.PaymentPubKeyHash, Maybe Plutus.StakePubKeyHash)
 getCredentials (Plutus.Address x y) = case x of
     ScriptCredential _   -> Nothing
@@ -1376,31 +1306,34 @@ getCredentials (Plutus.Address x y) = case x of
 
   ScriptCredential _    -> Nothing
    PubKeyCredential pkh' -> Just (ppkh, Just $ Plutus.StakePubKeyHash pkh')
-
+```
 
 - The result will also be nothing if it's a script address. 
 - If it is not a script address, if it's a pub key address, then it will be a Just with the corresponding payment pub key hash. Also, optionally a staking pub key hash.
 
-
+```haskell
  Just (Plutus.StakingPtr _ _ _) -> Nothing
-
+```
 
 - If it's a pointer then the overall result will be nothing again.
 
+```haskell
 Just (StakingHash h)           -> case h of
                 ScriptCredential _    -> Nothing
                 PubKeyCredential pkh' -> Just (ppkh, Just $ Plutus.StakePubKeyHash pkh')
+```
 
 
-
-- If it is staking hash, then again two cases:
+- If it is staking hash, then again two cases
 - If it is a script again the overall result will be nothing 
 - If it is a pub key then we return the corresponding stake pub key hash.
+
 So, if any script is involved anywhere or if such a pointer is involved, then we return nothing. Otherwise we give the pub key hash and optionally, the stake hash.
 
 
 We can now look at the module Token Offchain.hs.
 
+```haskell
 data TokenParams = TokenParams
     { tpToken   :: !TokenName
     , tpAmount  :: !Integer
@@ -1461,22 +1394,17 @@ mintToken tp = do
             void $ adjustAndSubmitWith @Void lookups constraints
             Contract.logInfo @String $ printf "minted %s" (show val)
             return cs
-
-
-
-
-
-
+```
 
 This is where we define the minting of tokens in the contract monad. So first we define a type for the parameters.
 
-
+```haskell
 data TokenParams = TokenParams
     { tpToken   :: !TokenName
     , tpAmount  :: !Integer
     , tpAddress :: !Address
     } deriving (Prelude.Eq, Prelude.Ord, Generic, FromJSON, ToJSON, ToSchema, Show)
-
+```
 
 
 This is very similar to what we also used in the Cardano-CLI. We need:
@@ -1484,10 +1412,12 @@ This is very similar to what we also used in the Cardano-CLI. We need:
 - The token name of the token to be minted
 - The amount that will to be minted
 - The address. 
+
 This is not the change address, it is instead the address where the tokens are supposed to be sent after the minting. We do that because now, we will be dealing with hd wallets. There are now infinitely many addresses that belong to a wallet, and we want to specify which one we want to use. It could also be external, and we could send the newly minted tokens to somebody else. We want to have control and specify that explicitly.
 
 Looking at the main function:
 
+```haskell
 mintToken :: TokenParams -> Contract w s Text CurrencySymbol
 mintToken tp = do
     Contract.logDebug @String $ printf "started minting: %s" $ show tp
@@ -1515,96 +1445,93 @@ mintToken tp = do
             void $ adjustAndSubmitWith @Void lookups constraints
             Contract.logInfo @String $ printf "minted %s" (show val)
             return cs
+```
 
-
-
-
-
-
+```haskell
 mintToken :: TokenParams -> Contract w s Text CurrencySymbol
+```
 
-
-- The mintToken function takes these token parameters and is a contract, an expression in the contract monad.
+- The ```mintToken``` function takes these token parameters and is a contract, an expression in the contract monad.
 - It will return the currency symbol.
 
+```haskell
 mintToken tp = do
     Contract.logDebug @String $ printf "started minting: %s" $ show tp
     let addr = tpAddress tp
-
+```
 
 - We first log that we are starting to mint 
 - Second, we  look up the address where we are supposed to send the minted token to.
 
-Then we use the getCredentials function that we just looked at:
+Then we use the ```getCredentials``` function that we just looked at:
 
+```haskell
  case getCredentials addr of
         Nothing      -> Contract.throwError $ pack $ printf "expected pubkey address, but got %s" $ show addr
-
-
-
+```
 
 - If that returns nothing, that means there is a script somewhere in this address; it will stop with an error.
 - If it is not nothing, we do have a payment pub key hash and have an optional staking pub key hash.
 
-Then we use a function called getUnspentOutput
+Then we use a function called ```getUnspentOutput```
 
+```haskell
 Just (x, my) -> do
             oref <- getUnspentOutput
             o    <- fromJust <$> Contract.txOutFromRef oref
             Contract.logDebug @String $ printf "picked UTxO at %s with value %s" (show oref) (show $ _ciTxOutValue o)
+```
+
+It does what it says, it looks for an unspent output in the wallet that is basically running this contract. We get a reference to this output. Then there is another function provided by the library called ```txOutFromRef```. 
+
+Given such a reference, it gives us the actual output.This output could also fail, so it actually results in a maybe, but we know that the output is there because we just got this ```oref``` from this ```getUnspentOutput```. We can be sure that there is an actual output there.
 
 
-
-
-
-It does what it says, it looks for an unspent output in the wallet that is basically running this contract. We get a reference to this output. Then there is another function provided by the library called txOutFromRef. 
-
-Given such a reference, it gives us the actual output.This output could also fail, so it actually results in a maybe, but we know that the output is there because we just got this oref from this getUnspentOutput. We can be sure that there is an actual output there.
-
-
+```haskell
 o    <- fromJust <$> Contract.txOutFromRef oref
+```
 
+So, using ```fromJust``` from data.maybe, and fmapping that over this contract, we get the actual output.
 
-So, using fromJust from data.maybe, and fmapping that over this contract, we get the actual output.
+We then log some information that we found in this unspent output, also looking up its value; so this output has a field ```ciTxOutValue```.
 
-We then log some information that we found in this unspent output, also looking up its value; so this output has a field ciTxOutValue.
-
+```haskell
 Contract.logDebug @String $ printf "picked UTxO at %s with value %s" (show oref) (show $ _ciTxOutValue o)
-
-
+```
 
  Followed by a couple of helper definitions:
 
-
-
+```haskell
 let tn          = tpToken tp
                 amt         = tpAmount tp
                 cs          = tokenCurSymbol oref tn amt
                 val         = Value.singleton cs tn amt
+```
 
-
-- We first look up the token name from my parameters,
-- Second, we look up the amount.
-- Third, we compute the currency symbol. This comes from the on-chain part we looked at in the beginning. There we had a function tokenPolicy to get the policy and also a function tokenCurSymbol to get the currency symbol. Then we have this oref that we need as the first parameter and the token name and the amount. 
-- So now we can finally compute the value that we want to mint. We can use the value singleton function; which takes the currency symbol that we now have, the token name, and the amount. Then it creates a value consisting of that. 
+1) We first look up the token name from my parameters.
+2) Second, we look up the amount.
+3) Third, we compute the currency symbol. This comes from the on-chain part we looked at in the beginning. There we had a function ```tokenPolicy``` to get the policy and also a function ```tokenCurSymbol``` to get the currency symbol. Then we have this oref that we need as the first parameter and the token name and the amount. 
+4) So now we can finally compute the value that we want to mint. We can use the value singleton function; which takes the currency symbol that we now have, the token name, and the amount. Then it creates a value consisting of that. 
 
 Now, I want to have a constraint that says we want to pay this value to the given address:
 
 
-
+```haskell
  c           = case my of
                     Nothing -> Constraints.mustPayToPubKey x val
                     Just y  -> Constraints.mustPayToPubKeyAddress x y val
-
+```
 
 
 For the two cases whether staking information is present or not, there are two different constraints in the libraries.
 
-- One is called mustPayToPubKey and it just takes a payment pub key. It will pay to the address where the staking information is non-existent.
--  The second if you want staking information, then you need a different constraint. This is called mustPayToPubKey address. This takes the two pub key hashes; one for the payment and one for the staking information.
+
+- One is called ```mustPayToPubKey``` and it just takes a payment pub key. It will pay to the address where the staking information is non-existent.
+-  The second if you want staking information, then you need a different constraint. This is called ```mustPayToPubKeyAddress```. This takes the two pub key hashes; one for the payment and one for the staking information.
 
 
 For lookups, we must specify the minting policy.
+
 
  lookups     = Constraints.mintingPolicy (tokenPolicy oref tn amt) <>
                               Constraints.unspentOutputs (Map.singleton oref o)
