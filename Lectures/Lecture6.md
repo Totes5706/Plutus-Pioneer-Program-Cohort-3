@@ -439,25 +439,23 @@ mkTokenPolicy :: TxOutRef -> TokenName -> Integer -> () -> ScriptContext -> Bool
 6) Last, the result is a bool
 
 We then must check two conditions, namely that the specified UTxO has been spent and that the right amount has been minted.
+
+```haskell
 mkTokenPolicy oref tn amt () ctx = traceIfFalse "UTxO not consumed"   hasUTxO         &&
                                    traceIfFalse "wrong amount minted" checkMintedAmount
-
-
-
-
-
-
+```
 This is very similar as previously shown last week, so this hasUTxO is the same as in the last lecture. The checkMintedAmount is now slightly different:
+
+```haskell
 checkMintedAmount :: Bool
     checkMintedAmount = case flattenValue (txInfoMint info) of
         [(_, tn', amt')] -> tn' == tn && amt' == amt
         _                -> False
-
-
-
-
+```
 This is because in the last lecture we checked that this minted amount is one (for NFTs) and now we check that it equals the second parameter to the contract.
 Then we have the usual boilerplate to turn this Haskell code into an actual Plutus minting policy:
+
+```haskell
 tokenPolicy :: TxOutRef -> TokenName -> Integer -> Scripts.MintingPolicy
 tokenPolicy oref tn amt = mkMintingPolicyScript $
     $$(PlutusTx.compile [|| \oref' tn' amt' -> Scripts.wrapMintingPolicy $ mkTokenPolicy oref' tn' amt' ||])
@@ -467,13 +465,15 @@ tokenPolicy oref tn amt = mkMintingPolicyScript $
     PlutusTx.liftCode tn
     `PlutusTx.applyCode`
     PlutusTx.liftCode amt
-
+```
 
 We have to lift the three parameters into Plutus and apply them to this compiled Plutus code to get our minting policy.
 And once we have that, we can also compute the corresponding currency symbol.
+
+```haskell
 tokenCurSymbol :: TxOutRef -> TokenName -> Integer -> CurrencySymbol
 tokenCurSymbol oref tn = scriptCurrencySymbol . tokenPolicy oref tn
-
+```
 
 So that's all, that's our on-chain code.
 
@@ -481,19 +481,18 @@ So that's all, that's our on-chain code.
 ## Minting with the CLI
 
 
-
 We will now look at how you can use the Cardano-CLI; the Cardano command line interface, to mint tokens using the previous section's minting policy.
 
 If you recall from lecture three, one of the things we need is the serialized script. In the case of lecture three, that was a Plutus validator. Now we have this minting policy:
 
+```haskell
 newtype MintingPolicy
 MintingPolicy is a wrapper around Scripts which are used as validators for minting constraints.
 Constructors
 MintingPolicy
  
 getMintingPolicy :: Script
-
-
+```
 
 If we check in the haddock documentation, minting policy is a new type wrapper around the script. If you recall, validator was also just a new typewrapper around the script, however a different type of wrapper.
 
@@ -502,12 +501,9 @@ The representation is called script, which means serialization is very similar. 
 In the src folder there is a Haskell module called utils.hs that contains many utility functions that we will need later.
 
 
-
-
-
-
 Including one in particular, writeMintingPolicy:
 
+```haskell
 module Week06.Utils
     ( tryReadAddress, unsafeReadAddress
     , tryReadWalletId, unsafeReadWalletId
@@ -519,33 +515,30 @@ module Week06.Utils
     , writeMintingPolicy
     , unsafeTokenNameToHex
     ) where
+```
 
+This is very similar to what was done in lecture three, for write validator. The exception now is it handles minting policies, so the code is almost identical. 
 
+Instead of a validator, it takes a minting policy:
 
-
-
-This is very similar to what was done in lecture three, for write validator. The exception now is it handles minting policies, so the code is almost identical. Instead of a validator, it takes a minting policy:
-
-
-
+```haskell
 writeMintingPolicy :: FilePath -> Plutus.MintingPolicy -> IO (Either (FileError ()) ())
 writeMintingPolicy file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file Nothing . PlutusScriptSerialised . SBS.toShort . LBS.toStrict . serialise . Plutus.getMintingPolicy
-
-
+```
 
 In this composition pipeline of functions, the very first step is getMintingPolicy. Instead of unwrapping the validator to get to the script, we unwrap the minting policy to get to a script. As soon as  we have our minting policy, we can then use this function to serialize it to disk. 
 
 So now recall we need three parameters. We need :
 
-	- A reference to that UTxO that we want to consume.
-- The token name 
-- The amount
+1) A reference to that UTxO that we want to consume
+2) The token name 
+3) The amount
 
-Using these three pieces of information we can use the function that we defined in the on-chain code TokenPolicy to calculate the policy, and then we can apply the function writeMintingPolicy to serialize and write it to our hard drive.
+Using these three pieces of information we can use the function that we defined in the on-chain code ```TokenPolicy``` to calculate the policy, and then we can apply the function ```writeMintingPolicy``` to serialize and write it to our hard drive.
 
-Now, in principle this is simple and straightforward.However in practice, we must somehow get those three parameters; especially the UTxO reference . Let's have a brief look at the haddock documentation for this type TxOutRef:
+Now, in principle this is simple and straightforward. However in practice, we must somehow get those three parameters; especially the UTxO reference. Let's have a brief look at the haddock documentation for this type ```TxOutRef```:
 
-
+```haskell
 data TxOutRefSource#
 A reference to a transaction output. This is a pair of a transaction reference, and an index indicating which of the outputs of that transaction we are referring to.
 Constructors
@@ -553,88 +546,82 @@ TxOutRef
  
 txOutRefId :: TxId
 txOutRefIdx :: Integer Index into the referenced transaction's outputs
+```
 
-
-
-The record type with two fields TxId; transaction id and an integer. A UTxO is specified by a reference to the transaction that created it in the first place, which is the TxId. 
+The record type with two fields TxId; transaction id and an integer. A UTxO is specified by a reference to the transaction that created it in the first place, which is the ```TxId```. 
 
 Then an index, so each transaction has one or more outputs. Each transaction are numbered so they are ordered. This order of outputs of a transaction matters. The order of inputs does not matter, so that's unspecified. The outputs must be ordered, so they have well-defined indices.
 
 By specifying this combination of producing transaction and index, we can specify which UTxO we are referring to. 
 
 
+If we look at ```TxID```:
 
-
-
-
-
-
-If we look at TxID:
-
-
+```haskell
 newtype TxId
 A transaction ID, using a SHA256 hash as the transaction id.
 Constructors
 TxId
  
 getTxId :: BuiltinByteString
-
-
-
+```
 
 This is a new type wrapper around a BuiltinByteString where BuiltinByteString is just a byte string; a new type wrapper around a byte string.
 
-
+```haskell
 data BuiltinByteString
 An opaque type representing Plutus Core ByteStrings.
+```
 
+We can see that ```TxId``` implements ```isString```:
 
-We can see that TxId implements isString:
-
+```haskell
 Instances
 	 
  IsString TxId
-
+```
 
 In Haskell normally a string literal just represents a Haskell string, which is a list of characters. However, there are other string-like types in Haskell; for example text. This offers a more efficient implementation of textual data than string or byte string offers
 
 And if we want to use string literals for those, then there is this language extension that we have often used called overloaded strings. This enables us to use string literals to also specify instances of different types, not just string.
 
-Under the hood, the way it works is, with this class isString. isString has a method called fromString that goes from string to the typing question. So in particular whenever we see that some type has a string instance, then we could use a string literal in combination with the overloaded string extension to construct a value of this type. Programmatically we can use the fromString function to turn a string into this type.
+Under the hood, the way it works is, with this class ```isString```. ```isString``` has a method called ```fromString``` that goes from string to the typing question. So in particular whenever we see that some type has a string instance, then we could use a string literal in combination with the overloaded string extension to construct a value of this type. Programmatically we can use the ```fromString``` function to turn a string into this type.
 
-The reason why this is important is because we must get our txoutref from somewhere. Now that we're using the Cardano CLI, we must retrieve it from the CLI since the CLI is a command line tool and works with strings in the console. We can query the UTxO sitting at the address, but then we just get a text output . We see the transaction id in this index and now we must take that text and convert it into an actual value of type txoutref. 
+The reason why this is important is because we must get our txoutref from somewhere. Now that we're using the Cardano CLI, we must retrieve it from the CLI since the CLI is a command line tool and works with strings in the console. We can query the UTxO sitting at the address, but then we just get a text output . We see the transaction id in this index and now we must take that text and convert it into an actual value of type ```txOutRef```. 
 
 Now let's switch to the console. Keep the node running on terminal 2 (hopefully it is fully synced at this point), and open a new terminal. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 6
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head to the week06 subfolder in the plutus pioneer directory, then inside that the testnet folder. We first need to create a new vkey, skey pair:
 
+```
 Terminal 6
 
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 cardano-cli address key-gen --verification-key-file 01.vkey --signing-key-file 01.skey
+```
 
 Followed by the address of the vkey:
 
-
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 cardano-cli address build --payment-verification-key-file 01.vkey --testnet-magic 1097911063 --out-file 01.addr
+```
 
-
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 cat 01.addr
 
 Output:
 addr_test1vpnfx9ge24t3fmncskfaseuxcuvxhh0gh9dp3enr0qgk8xshq22j0
-
-
+```
 
 We now need to generate some ADA to send to our first address. This can be done from the following page using the Cardano faucet. 
 
@@ -657,7 +644,7 @@ Important to note here, that your address for 01.addr will be different then add
 
 Head to back up to the week06 subfolder in the plutus pioneer directory. Now we can query the address using the script query-key1.sh where query-key1.sh is:
 
-
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 cat query-key1.sh
@@ -668,11 +655,10 @@ Output:
 cardano-cli query utxo \
    $MAGIC \
    --address $(cat testnet/01.addr)
-
-
-
-
+```
 env.sh also is:
+
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 . env.sh
@@ -684,16 +670,18 @@ export CARDANO_NODE_SOCKET_PATH=testnet/node.sock
 export MAGIC='--testnet-magic 1097911063'
 export ADDRESS=addr_test1qzj356wpdmhdchvmc355xx6wel7cqvepyrlam84aygkvx9d04w7v8cu4fshxvv5ukfw05nyzh07zy427mf2eqkcd27aqax2r7e
 export WALLETID=7cc75497535877261173ab585f5abb431f7ba484
-
-
-
+```
 
 Execute env.sh:
+
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ . env.sh
-
+```
 
 Execute query-key1.sh:
+
+```
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
 ./query-key1.sh
@@ -702,22 +690,16 @@ Output:
                            TxHash                                 TxIx        Amount
 ---------------------------------------------------------------------------
 907591ea9aed646a647dfbcc216087c17adcc7f136ac2651c482dd5321c4f01d     0        1000000000 lovelace + TxOutDatumNone
+```
+
+As we can see, I have a single UTxO sitting at the address given by this key pair. Where the ```TxId``` is called ```TxHash```, and the index is ```TxIx```. The way this is normally represented in the Cardano-CLI is to take these two parts and separate them with a hash. 
 
 
+The corresponding UTxO would be this thing and then hash and then the index which is zero in this case. In order to turn this into a value of type ```txOutRef```, we need to create a function .
 
+Looking back on utils.hs, we can look closer at the function ```unsafeReadTxOutRef```:
 
-
-
-As we can see, I have a single UTxO sitting at the address given by this key pair. Where the TxId is called TxHash, and the index is TxIx. The way this is normally represented in the Cardano-CLI is to take these two parts and separate them with a hash. 
-
-
-The corresponding UTxO would be this thing and then hash and then the index which is zero in this case. In order to turn this into a value of type txoutref, we need to create a function .
-
-Looking back on utils.hs, we can look closer at the function UnsafeReadTxOutRef:
-
-
-
-
+```haskell
 unsafeReadTxOutRef :: String -> Plutus.TxOutRef
 unsafeReadTxOutRef s =
   let
@@ -727,8 +709,7 @@ unsafeReadTxOutRef s =
         { Plutus.txOutRefId  = fromString x
         , Plutus.txOutRefIdx = read y
         }
-
-
+```
 
 
 The unsafe part is used because something can go wrong and then you would get an error, so it's not a total function. However,  if you provide sensible input it should be fine to run. 
