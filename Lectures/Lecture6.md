@@ -91,7 +91,7 @@ Prelude Week06.Monitor>
 
 This lecture will also explore the Cardano Testnet CLI and PAB. In order to interact with it later, we need to sync the node, wallet, chain index, and PAB backend . Let’s get it started in the background:
 
-### Node Sync
+### Syncing the Node
 
 Keep the cabal repl open on terminal 1, and open a new terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
@@ -142,7 +142,7 @@ This process will take 5+ hours to sync. You will be 100% synced once you start 
 
 
 
-### Wallet Backend Preparation:
+### Wallet Backend Preparation
 
 
 Keep the node running on terminal 2, and open a new terminal 3. Head to the plutus-apps directory and first run nix-shell:
