@@ -63,24 +63,27 @@ totinj@penguin:~/plutus-apps$ git pull
 totinj@penguin:~/plutus-apps$ git checkout 6e3f6a59d64f6d4cd9d38bf263972adaf4f7b244
 ```
 
-
-
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
+```
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head back to the week06 folder to start running the cabal commands:
+
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ cabal update
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ cabal build
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ cabal repl
+```
 
 If successful,  you should now see in the terminal:
 
+```haskell
 Build profile: -w ghc-8.10.4.20210212 -O1
 In order, the following will be built (use -v for more details):
  - plutus-pioneer-program-week06-0.1.0.0 (lib) (ephemeral targets)
@@ -88,45 +91,37 @@ Preprocessing library for plutus-pioneer-program-week06-0.1.0.0..
 GHCi, version 8.10.4.20210212: https://www.haskell.org/ghc/  :? for help
 Ok, six modules loaded.
 Prelude Week06.Monitor> 
-
-
-
-This lecture will also explore the Cardano Testnet CLI and PAB. In order to interact with it later, we need to sync the node, wallet, chain index, and PAB backend . Let’s get it started in the background:
+```
+This lecture will also explore the Cardano Testnet CLI and PAB. In order to interact with it later, we need to sync the node, wallet, chain index, and PAB backend. 
+Let’s get it started in the background:
 
 ### Syncing the Node
 
 Keep the cabal repl open on terminal 1, and open a new terminal 2. Head to the plutus-apps directory and first run nix-shell:
 
-
+```
 Terminal 2
 
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 To avoid future errors with the chain index, let’s install the dependencies:
+
+```
 Terminal 2
 
 [nix-shell:~/plutus-apps]$ cabal install plutus-pab-examples plutus-chain-index
-
-
-
-
-
-
-
-
-
+```
 Head to week06 subfolder in the plutus pioneer directory. We will be running the start-node-test.sh script which will initialize the testnet based off of the config files in this folder
 
-
-
+```
 Terminal 2
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./start-testnet-node.sh
 
 Output:
 [penguin:cardano.node.ChainDB:Notice:34] [2022-02-22 14:23:14.33 UTC] Chain extended, new tip: 73912d4f092b24fcbb0b9f8f7e4668026ca91d6dba2b2758b62b704766e1faa7 at slot 51170578
-
+```
 
 Where start-testnet-node.sh looks like:
 
