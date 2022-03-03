@@ -1069,7 +1069,7 @@ We then specify an output. Normally that wouldn't be necessary, because the bala
   --mint-redeemer-file testnet/unit.json \
 ```
 
-- The mint argument says how much the transaction should mint and that's exactly this ```vv value. 
+- The mint argument says how much the transaction should mint and that's exactly this ```v``` value. 
 - Mint expects the script file. 
 - Mint also expects a redeemer file. The redeemer, recall for this minting policy was just type unit. Therefore, we need unit represented as json.
 
@@ -1532,35 +1532,27 @@ For the two cases whether staking information is present or not, there are two d
 
 For lookups, we must specify the minting policy.
 
-
+```haskell
  lookups     = Constraints.mintingPolicy (tokenPolicy oref tn amt) <>
                               Constraints.unspentOutputs (Map.singleton oref o)
+```
 
-
-So for that, we can use the tokenPolicy function from the on-chain part that we looked at earlier. We must specify, as before, the unspent outputs. So, we only need the one, so we can use map singleton. Creating a map with just one key and one value and use the oref and the o as value. 
-
-
-
-
-
+So for that, we can use the tokenPolicy function from the on-chain part that we looked at earlier. We must specify, as before, the unspent outputs. So, we only need the one, so we can use map singleton. Creating a map with just one key and one value and use the ```oref``` and the ```o``` as value. 
 
 And then we can define our constraints:
 
+```haskell
 constraints = Constraints.mustMintValue val          <>
               Constraints.mustSpendPubKeyOutput oref <>
               c
-
-
-
-
-So the last one here is the c, which says we want to pay the value to the provided address. Then we have a constraint to do the minting, so we want to mint this value. Therefore, we have a constraint that we need to spend this oref.
+```
+So the last one here is the c, which says we want to pay the value to the provided address. Then we have a constraint to do the minting, so we want to mint this value. Therefore, we have a constraint that we need to spend this ```oref```.
 
 This is important because the minting policy will check that this given oref’s actually spent by the transaction. 
 
-Now, we want to submit this. We defined a new helper function adjustAndSubmitWith so we can get more extensive logging:
+Now, we want to submit this. We defined a new helper function ```adjustAndSubmitWith``` so we can get more extensive logging:
 
-
-
+```haskell
 adjustAndSubmitWith lookups constraints = do
     unbalanced <- adjustUnbalancedTx <$> mkTxConstraints lookups constraints
     Contract.logDebug @String $ printf "unbalanced: %s" $ show unbalanced
@@ -1569,23 +1561,23 @@ adjustAndSubmitWith lookups constraints = do
     signed <- submitBalancedTx unsigned
     Contract.logDebug @String $ printf "signed: %s" $ show signed
     return signed
+```
 
-
-
-We can use something called adjustUnbalancedTx. This gets an unbalanced transaction, which we can make with the function mkTxConstraints, which takes lookups and constraints.
+We can use something called ```adjustUnbalancedTx```. This gets an unbalanced transaction, which we can make with the function ```mkTxConstraints```, which takes lookups and constraints.
 
 This will add the min ADA to all the outputs, so we still have an unbalanced transaction; however it at least fulfills this min ADA requirement. We then log the information for the unbalanced transaction.
 
-Now we can balance it, using a new function balanceTx. We call the result unsigned, because now it's balanced, but unsigned. We also log the unsigned output.
+Now we can balance it, using a new function ```balanceTx```. We call the result unsigned, because now it's balanced, but unsigned. We also log the unsigned output.
 
 Finally, there is the function submitBalancedTx. This takes a balanced unsigned transaction, signs it and submits it.This result we then call signed and log the output.
 
-So we use adjustAndSubmitWith to actually adjust and balance and sign and submit the transaction:
+So we use ```adjustAndSubmitWith``` to actually adjust and balance and sign and submit the transaction:
 
+```haskell
  void $ adjustAndSubmitWith @Void lookups constraints
             Contract.logInfo @String $ printf "minted %s" (show val)
             return cs
-
+```
 
 We then log the information, and return.
 
@@ -1593,6 +1585,7 @@ So in particular, note that this contract only submits this one transaction and 
 
 We can test this using a simple emulator trace in the file Trace.hs.
 
+```haskell
 testToken :: IO ()
 testToken = runEmulatorTraceIO tokenTrace
 
@@ -1604,25 +1597,25 @@ tokenTrace = do
         , tpAmount  = 100_000
         , tpAddress = mockWalletAddress w1
         }
+```
 
-
-- For this wallet one, mintToken, we need to specify the w and the s parameters. In order to use it here in the emulator monad we must specify two specific types. So we choose type unit for the writer monad part, because we are not writing any information. We also use empty for the schema, so there are no endpoints.
-- For the parameters, we just make up:
-- A token name, so USDT in this case. 
+1) For this wallet one, mintToken, we need to specify the w and the s parameters. In order to use it here in the emulator monad we must specify two specific types. So we choose type unit for the writer monad part, because we are not writing any information. We also use empty for the schema, so there are no endpoints.
+2) For the parameters, we just make up:
+3) A token name, so USDT in this case. 
 	- An amount of 100,000.
 	- An address where we use wallet one's address.
 
 
 Using the repl:
 
-
+```haskell
 Prelude Week06.Monitor> :l src/Week06/Trace.hs
 
 Output:
 Ok, four modules loaded.
+```
 
-
-
+```haskell
 Prelude Week06.Trace> testToken
 
 Output:
@@ -1630,7 +1623,7 @@ Output:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491: 
     {, ""}: 99996869
     {7aa78d513a7ecbffa84ff774c425bdbfa3207e469dde3ebaae7a97b9, "USDT"}: 100000
-
+```
 
 
 We see that indeed, we do end up with one wallet that now has 100000 USDTs.
@@ -1646,6 +1639,7 @@ If you followed the guide up till now, hopefully the node, wallet backend, chain
 
 We will first look at minting script using curl located at mint-token-curl.sh:
 
+```
 #!/bin/bash
 
 amt=$1
@@ -1684,7 +1678,7 @@ curl -X 'POST' \
         "tag": "Mint"
     }
 }'
-
+```
 
 
 
@@ -1692,8 +1686,8 @@ Now we want to use this script to mint tokens by activating this contract.
 
 So the idea is, I give both the:
 
-- amount  
-- token name
+- Amount  
+- Token Name
 
 Then do the appropriate curl. So one thing we need for this, is an address, the address where the freshly minted tokens should be sent to and also the change. We updated the environment variable env.sh file with the appropriate address in the “preparation for lecture 6” to handle this.
 
@@ -1701,11 +1695,14 @@ So we know where we get the address. In order to give this json expression for t
 
 We must give it in this Plutus form where the payment path and the staking path are separated. We saw earlier that we can extract the payment pubkeyhash and the stakekeyhash from an address. We use these functions called payment key hash and stake key hash.
 
+```
 pkh=$(cabal exec payment-key-hash -- $ADDRESS)
 skh=$(cabal exec stake-key-hash -- $ADDRESS)
-
+```
 
 We have our address and then I use the payment key hash tool with the address as parameter to get thepayment path and then the stake key hash tool with the address as parameter to get the staking path. 
+
+```
  "caWallet": {"getWalletId": "'"$WALLETID"'"},
     "caID": {
         "contents": {
@@ -1728,29 +1725,19 @@ We have our address and then I use the payment key hash tool with the address as
         "tag": "Mint"
     }
 }'
-
+```
 
 Here, we must put the wallet id, the token name, the payment path, the staking path of the address, and finally the amount.
 
 So if we execute this, then that should work and we should be able to mint tokens for our wallet. 
 
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./mint-token-curl.sh 123456 PPP
 
 Output:
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 So now we have achieved with the PAB what we achieved earlier with the CLI, minting tokens. There are pros and cons for both methods of course. 
@@ -1759,29 +1746,9 @@ So now we have achieved with the PAB what we achieved earlier with the CLI, mint
 
 - Using the contract monad and the PAB that was taken care of automatically, so we had to specify less. In the script here, all we had to do was give the amount and the token name. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 We will also look at a third way using haskell instead of curl to mint tokens utilizing the PAB. We will now look at mint-token.hs :
 
+```haskell
 {-# LANGUAGE OverloadedStrings  #-}
 
 module Main
@@ -1824,121 +1791,104 @@ mintToken wid tp = do
     if c == 200
         then return $ responseBody v
         else throwIO $ userError $ printf "ERROR: %d\n" c
-
+```
 
 
 Here we are  using a Haskell library from hackage called Req, which is a simple http client library:
 
-
-
+```haskell
 import Network.HTTP.Req
-
+```
 
 So basically, instead of using curl, we can use Haskell using this request. For example in this script:
 
+```haskell
  v <- runReq defaultHttpConfig $ req
         POST
         (http "127.0.0.1" /: "api"  /: "contract" /: "activate")
         (ReqBodyJson $ contractActivationArgs wid $ Mint tp)
         jsonResponse
         (port 9080)
-
+```
 
 If we use Haskell, it is much easier to write the same function.
 
+```haskell
  [amt', tn', wid', addr'] <- getArgs
-
+```
 
 The way this function works is it takes four parameters:
 
- - The amount 
- - The token name 
- - The wallet id  
- - The address.
+ 1) The amount 
+ 2) The token name 
+ 3) The wallet id  
+ 4) The address.
 
-
+```haskell
 let wid = unsafeReadWalletId wid'
+```
 
+Then we have to pass them into the appropriate types. This is also in this Utils.hs module, so they have something called ```unsafeReadWalletId```. This converts the string into an actual wallet id.  
 
-
-
-Then we have to pass them  into the appropriate types. This is also in this Utils.hs module, so they have something called unsafeReadWalletId. This converts the string into an actual wallet id.  
-
-
-
-
-
+```haskell
 let wid = unsafeReadWalletId wid'
         tp  = TokenParams
                 { tpToken   = fromString tn'
                 , tpAmount  = read amt'
                 , tpAddress = unsafeReadAddress addr'
                 }
+```
 
+We then have ```unsafeReadAddress``` that takes an address and converts it into an actual address. We simply define our ```tp```, the token parameters with token amount and address.
 
-
-
-
-
-We then have unsafeReadAddress that takes an address and converts it into an actual address. We simply define our tp, the token parameters with token amount and address.
-
-
-
+```haskell
 mintToken :: WalletId -> TokenParams -> IO ContractInstanceId
+```
 
+Then we call this ```mintToken``` function. That will take the valid id token parameters. 
 
-Then we call this mintToken function. That will take the valid id token parameters. 
-
-
+```haskell
  v <- runReq defaultHttpConfig $ req
         POST
         (http "127.0.0.1" /: "api"  /: "contract" /: "activate")
         (ReqBodyJson $ contractActivationArgs wid $ Mint tp)
         jsonResponse
         (port 9080)
-
-
+```
 
 Then we can do our http request, so this comes from the req module. We specify the path, which is also quite nice the syntax here. Then we give the request body by simply using another helper function, that's also in this Utils.hs module.
 
-
-
+```haskell
 contractActivationArgs :: WalletId -> a -> ContractActivationArgs a
 contractActivationArgs wid a = ContractActivationArgs
     { caID = a
     , caWallet = Just $ Wallet {getWalletId = wid}
     }
+```
 
-
-
-
-So given a wallet id and something of type a, we get a so-called ContractActivationArgs a, which is exactly  what this endpoint expects.
+So given a wallet id and something of type ```a```, we get a so-called ```ContractActivationArgs a```, which is exactly  what this endpoint expects.
 
 This is just a record type that has two fields.
 
-- First is this caID field
-- Second is the caWaller field
+1) First is this ```caID``` field
+2) Second is the ```caWallet``` field
 
 Given the wallet id, we can make a wallet out of that and specify that there as well. 
 
+```haskell
  (ReqBodyJson $ contractActivationArgs wid $ Mint tp)
         jsonResponse
         (port 9080)
+```
 
+We use that helper function here, to construct the json request body. We will be expecting a response on port 9080. This response is then defined as ```v```. 
 
-
-
-
-We use that helper function here, to construct the json request body. We will be expecting a response on port 9080. This response is then defined as v. 
-
-
-
+```haskell
  let c = responseStatusCode v
     if c == 200
         then return $ responseBody v
         else throwIO $ userError $ printf "ERROR: %d\n" c
-
-
+```
 
 We can extract the status code:
 
@@ -1947,9 +1897,9 @@ We can extract the status code:
 
 If it is 200, we return the response body, which will now be of the appropriate type, so of type contract instance id. 
 
-
 We can now look a a shell script called mint-token-haskell.sh that will make use of mint-token as we have just seen:
 
+```
 #!/bin/bash
 
 amt=$1
@@ -1957,7 +1907,7 @@ tn=$2
 echo "minting $1 coins of token $2"
 
 cabal run mint-token -- $1 $2 $WALLETID $ADDRESS
-
+```
 
 
 This script takes as command line parameters of:
@@ -1971,26 +1921,16 @@ It fills in the wallet id and the address from these environment variables.
 Looking in the terminal to run the script:
 
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./mint-token-haskell.sh 1000000 Gold
 
 Output:
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 We will now look at one more contract, the monitor.hs contract:
 
+```haskell
 main :: IO ()
 main = do
     [wid', addr'] <- getArgs
@@ -2040,26 +1980,25 @@ observedValue :: ContractInstanceClientState TokenContracts -> Maybe Value
 observedValue cic = do
     Last mv <- parseMaybe parseJSON $ observableState $ cicCurrentState cic
     mv
+```
 
-
+```haskell
 [wid', addr'] <- getArgs
-
+```
 
 We expect two command line arguments, just the wallet id and the address.
 
-
-
- let wid  = unsafeReadWalletId wid'
+```haskell
+let wid  = unsafeReadWalletId wid'
         addr = unsafeReadAddress addr'
     printf "monitoring address %s on wallet %s\n" (show addr) $ show wid
     cid <- startMonitor wid addr
     printf "started monitor-process with contract id %s\n\n" $ cidToString cid
     go cid mempty
-
-
-
+```
 And as before, we pass them from strings into the appropriate types. We then call the start monitor function, which is very similar to the mint token function that we saw in the other Haskell application, so we just do this activation request.
 
+```haskell
 startMonitor :: WalletId -> Address -> IO ContractInstanceId
 startMonitor wid addr = do
     v <- runReq defaultHttpConfig $ req
@@ -2072,29 +2011,27 @@ startMonitor wid addr = do
     when (c /= 200) $
         throwIO $ userError $ printf "ERROR: %d\n" c
     return $ responseBody v
-
-
-
-
-Post to the same endpoint as before, and activate the endpoint. Now our request body of course is different. Therefore, we use this helper function contractActivationArgs again with the wallet id. However, now the argument is not mint token parameters, but monitor address instead. 
+```
+Post to the same endpoint as before, and activate the endpoint. Now our request body of course is different. Therefore, we use this helper function ```contractActivationArgs``` again with the wallet id. However, now the argument is not mint token parameters, but monitor address instead. 
 
 We can expect a json response and it's again port 9080. We can check whether the status is 200 and we return this response body of the response, which is the contract instance id.
 
 We can now look at the script monitor.sh to execute monitor.hs:
 
+```
 #!/bin/bash
 cabal exec monitor -- $WALLETID $ADDRESS
-
+```
 
 Looking in the terminal to run the script:
 
 
-
+```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
 ./monitor.sh
 
 Output:
-
+```
 
 
 
