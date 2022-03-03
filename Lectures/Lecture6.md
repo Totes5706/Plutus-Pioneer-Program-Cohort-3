@@ -16,7 +16,7 @@ Google Doc version can be found [HERE](https://docs.google.com/document/d/15XIo3
   - [Table of Contents](#table-of-contents)
   - [Preparation for Lecture 6](#preparation-for-lecture-6)
     - [Syncing the Node](#syncing-the-node)
-    - [Wallet Backend Preparation](#wallet-backend-preperation))
+    - [Wallet Backend Preparation](#wallet-backend-preperation)
     - [Syncing the Chain Index](#syncing-the-chain-index)
     - [Launching the PAB](#launching-the-pab)
   - [Introduction](#introduction)
@@ -369,14 +369,7 @@ We can also view the swagger ui for the PAB at:
 http://localhost:9083/swagger/swagger-ui
 
 
-
-
-
-
-
-
-
-Introduction
+## Introduction
 
 
 Welcome to the 6th lecture of the Plutus Pioneer Program. In this lecture we will get a complete overview of the Cardano testnet with and without the Plutus Application Backend (PAB). We will start with writing on-chain code, followed by off-chain code, and finally showing how to interact with that code on the Cardano testnet. 
@@ -384,20 +377,7 @@ In this iteration of the PPP, we have Plutus available on Cardano. Therefore, we
 We will be using the example of minting native tokens, and how to do so with and without the PAB backend.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-The Minting Policy
+## The Minting Policy
 
 
 
@@ -499,7 +479,7 @@ tokenCurSymbol oref tn = scriptCurrencySymbol . tokenPolicy oref tn
 So that's all, that's our on-chain code.
 
 
-Minting with the CLI
+## Minting with the CLI
 
 
 
@@ -1234,36 +1214,7 @@ Output:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Deployment Scenarios
+## Deployment Scenarios
 
 
 
@@ -1323,24 +1274,7 @@ Anyway, so we are concentrating now on this scenario, the hosted scenario.But in
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-The Contracts
+## The Contracts
 
 
 
@@ -1796,13 +1730,7 @@ We see that indeed, we do end up with one wallet that now has 100000 USDTs.
 
 
 
-
-
-
-
-
-
-Minting with the PAB
+## Minting with the PAB
 
 
 
@@ -2263,25 +2191,7 @@ Output:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Homework 
+## Homework 
 
 
 The objective of the homework this week is to get familiar with running the PAB environment and playing around with the CLI. If you have been following the guide up to this point, we should now have the essentials to mint tokens on the Cardano testnet with and without the PAB.
