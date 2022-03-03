@@ -1182,10 +1182,7 @@ https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/pab.html
 We see that there are various deployment scenarios for the PAB. The one we will be looking at today, because it is already supported, is the hosted scenario or WBE.
 
 
-
-
-
-
+![hosted-pab-wbe](https://user-images.githubusercontent.com/59018247/156476316-729a53b4-ade4-40b8-842a-465c11b0d76a.png)
 
 
 
@@ -1213,6 +1210,13 @@ Alternatively, the user could run all these things himself. Running a node, a wa
 
 
 So the really interesting scenario that unfortunately isn't supported yet, is the browser wallet scenario, where on the server side we only have the PAB, the chain index and the node, but not the wallet.
+
+
+
+![hosted-pab-browser-wallet](https://user-images.githubusercontent.com/59018247/156476432-cd4b3a44-bbd3-4808-a6fd-cc221307e60b.png)
+
+
+
 
 The PAB would create transactions, but it has no way to sign them itself, because it doesn't have access to a wallet. So instead it would expose the unsigned transactions on an endpoint. Then, from the browser or some other user interface, it could pick up this unsigned transaction and have it signed in the browser, using a browser wallet and then submit it. But at this point and time,  this scenario is not fully supported. You can already do this with unbalanced transactions. For this to work properly, we have to wait until the PAB can balance and then only expose the balance transaction for signature.
 
