@@ -69,7 +69,7 @@ You should now be up to date and can run nix-shell in this directory. Run nix-sh
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
-**To avoid future errors with the chain index, let’s install the dependencies:
+**To avoid future errors with the chain index, let’s install the dependencies:**
 
 ```
 [nix-shell:~/plutus-apps]$ cabal install plutus-pab-examples plutus-chain-index
