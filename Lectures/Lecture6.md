@@ -255,26 +255,31 @@ https://chrome.google.com/webstore/detail/yoroi-nightly/poonlenmfdfbjfeeballhiib
 
 Restore Wallet:
 
- 
+ ![Screenshot 2022-03-02 1 46 12 PM](https://user-images.githubusercontent.com/59018247/156475710-c6829df6-0a94-4454-96ce-e2e046931002.png)
+
 
 Select the Cardano Testnet:
 
+![Screenshot 2022-03-02 1 46 45 PM](https://user-images.githubusercontent.com/59018247/156475734-a11a13c2-96af-446d-818d-8735df45c6c9.png)
 
 
 
 Select 24 word seed phrase:
 
+![Screenshot 2022-03-02 1 47 28 PM](https://user-images.githubusercontent.com/59018247/156475755-7493778f-d932-4242-87c3-8c86ba9b7b6f.png)
 
 
 
 Input the seed phrase and enter a spending password to restore the wallet:
 
 
+![Screenshot 2022-03-02 1 52 06 PM](https://user-images.githubusercontent.com/59018247/156475789-e56ce006-9aca-409a-a922-c59db26fee4c.png)
 
 
 Use the receive address in the wallet to get funded from the Cardano Faucet:
 
 
+![Screenshot 2022-03-02 1 52 06 PM](https://user-images.githubusercontent.com/59018247/156475957-04d80929-b1ba-4664-9541-90d9fb2df990.png)
 
 
 
@@ -283,6 +288,8 @@ We now need to generate some ADA to send to our Yoroi address. This can be done 
 https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
 
 
+
+![Screenshot 2022-03-02 1 53 12 PM](https://user-images.githubusercontent.com/59018247/156475990-0a2fd12a-bcab-47b2-a94b-fe78c4aaca8d.png)
 
 
 
@@ -300,6 +307,7 @@ Output:
 Update env.sh replacing the wallet ID from the last step, and the address with the new Yoroi receive address:
 
 
+![Screenshot 2022-03-02 2 01 14 PM](https://user-images.githubusercontent.com/59018247/156476050-e6816b70-4515-4480-81c9-2bb0e8cc07e9.png)
 
 
 
