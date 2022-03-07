@@ -235,7 +235,7 @@ firstGame fp = do
     m <- mapError' $ getOnChainState client
     case m of
         Nothing             -> throwError "game output not found"
-        Just (o, _) -> case tyTxOutData $ ocsTxOut o of
+        Just ((o, _), _) -> case tyTxOutData o of
 
             GameDatum _ Nothing -> do
                 logInfo @String "second player did not play"
