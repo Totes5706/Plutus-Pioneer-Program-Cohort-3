@@ -149,7 +149,7 @@ check bsRock' bsPaper' bsScissors' (GameDatum bs (Just _)) (Reveal nonce c) _ =
 check _ _ _ _ _ _ = True
 
 {-# INLINABLE gameStateMachine #-}
-gameStateMachine :: Game -> BuiltinByteString -> BuiltinByteString -> StateMachine GameDatum GameRedeemer
+gameStateMachine :: Game -> BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> StateMachine GameDatum GameRedeemer
 gameStateMachine game bsRock' bsPaper' bsScissors' = StateMachine
     { smTransition  = transition game
     , smFinal       = final
@@ -158,7 +158,7 @@ gameStateMachine game bsRock' bsPaper' bsScissors' = StateMachine
     }
 
 {-# INLINABLE mkGameValidator #-}
-mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
+mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsRock' bsPaper' bsScissors' = mkValidator $ gameStateMachine game bsRock' bsPaper' bsScissors'
 
 type Gaming = StateMachine GameDatum GameRedeemer
