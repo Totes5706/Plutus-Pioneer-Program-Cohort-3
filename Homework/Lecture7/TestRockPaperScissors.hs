@@ -27,12 +27,12 @@ import           Week07.RockPaperScissors
 
 test :: IO ()
 test = do
-    test' Rock     Rock
-    test' Rock     Paper
-    test' Rock     Scissors
-    test' Paper    Rock
-    test' Paper    Paper
-    test' Paper    Scissors
+    test' Rock Rock
+    test' Rock Paper
+    test' Rock Scissors
+    test' Paper Rock
+    test' Paper Paper
+    test' Paper Scissors
     test' Scissors Rock
     test' Scissors Paper
     test' Scissors Scissors
