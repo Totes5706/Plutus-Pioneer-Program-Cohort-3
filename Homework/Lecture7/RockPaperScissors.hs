@@ -273,7 +273,7 @@ secondGame sp = do
     m <- mapError' $ getOnChainState client
     case m of
         Nothing          -> logInfo @String "no running game found"
-        Just (o, _) -> case tyTxOutData $ ocsTxOut o o
+        Just (o, _) -> case tyTxOutData $ ocsTxOut o of
             GameDatum _ Nothing -> do
                 logInfo @String "running game found"
                 void $ mapError' $ runStep client $ Play $ spChoice sp
