@@ -142,7 +142,7 @@ check :: BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> 
 check bsRock' bsPaper' bsScissors' (GameDatum bs (Just _)) (Reveal nonce c) _ =
     sha2_256 (nonce `appendByteString` toBS c) == bs
   where
-    toBS :: GameChoice -> ByteString
+    toBS :: GameChoice -> BuiltinByteString
     toBS Rock     = bsRock'
     toBS Paper    = bsPaper'
     toBS Scissors = bsScissors'
