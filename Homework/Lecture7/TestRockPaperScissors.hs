@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 
-module Week07.TestStateMachine
+module Week07.TestRockPaperScissors
     ( test
     , test'
     , GameChoice (..)
@@ -23,7 +23,7 @@ import           PlutusTx.Prelude
 import           Prelude                    (IO, Show (..))
 import           Wallet.Emulator.Wallet
 
-import           Week07.StateMachine
+import           Week07.RockPaperScissors
 
 test :: IO ()
 test = do
