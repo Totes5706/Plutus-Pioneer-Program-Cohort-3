@@ -27,10 +27,15 @@ import           Week07.StateMachine
 
 test :: IO ()
 test = do
-    test' Zero Zero
-    test' Zero One
-    test' One Zero
-    test' One One
+    test' Rock     Rock
+    test' Rock     Paper
+    test' Rock     Scissors
+    test' Paper    Rock
+    test' Paper    Paper
+    test' Paper    Scissors
+    test' Scissors Rock
+    test' Scissors Paper
+    test' Scissors Scissors
 
 test' :: GameChoice -> GameChoice -> IO ()
 test' c1 c2 = runEmulatorTraceIO $ myTrace c1 c2
