@@ -138,7 +138,7 @@ final Finished = True
 final _        = False
 
 {-# INLINABLE check #-}
-check :: BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
+check :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 check bsRock' bsPaper' bsScissors' (GameDatum bs (Just _)) (Reveal nonce c) _ =
     sha2_256 (nonce `appendByteString` toBS c) == bs
   where
