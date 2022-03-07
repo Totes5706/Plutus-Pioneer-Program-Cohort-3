@@ -96,7 +96,7 @@ gameDatum :: TxOut -> (DatumHash -> Maybe Datum) -> Maybe GameDatum
 gameDatum o f = do
     dh      <- txOutDatum o
     Datum d <- f dh
-    PlutusTx.fromData d
+    PlutusTx.fromBuiltinData d
 
 {-# INLINABLE transition #-}
 transition :: Game -> State GameDatum -> GameRedeemer -> Maybe (TxConstraints Void Void, State GameDatum)
