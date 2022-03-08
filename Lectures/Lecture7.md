@@ -28,51 +28,56 @@ Before we can get started in lecture 7, we first must get our development enviro
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 7 contents. Execute: 
 
+```
 totinj@penguin:~/plutus-pioneer-program$ git pull
-
+```
 
 You can now navigate to the current week07 directory and open the cabal.project file:
 
+```
 totinj@penguin:~/plutus-pioneer-program/code/week07$ cat cabal.project
-
-
- 
+```
 
 Grab the plutus-apps tag inside the cabal.project file:
 
+```
 location: https://github.com/input-output-hk/plutus-apps.git
   tag:13836ecf59649ca522471417b07fb095556eb981
-
+```
 
 Head back to  to the plutus-apps directory and update it to the  current git tag:
 
+```
 totinj@penguin:~/plutus-apps$ git checkout main
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git pull
-
-
+```
+```
 totinj@penguin:~/plutus-apps$ git checkout 13836ecf59649ca522471417b07fb095556eb981
-
-
-
+```
 
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
+```
 totinj@penguin:~/plutus-apps$ nix-shell
-
+```
 
 Head back to the week07 folder to start running the cabal commands:
+
+```
 [nix-shell:~/plutus-pioneer-program/code/week07]$ cabal update
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week07]$ cabal build
-
-
+```
+```
 [nix-shell:~/plutus-pioneer-program/code/week07]$ cabal repl
+```
 
 If successful,  you should now see in the terminal:
 
+```haskell
 Build profile: -w ghc-8.10.4.20210212 -O1
 In order, the following will be built (use -v for more details):
  - plutus-pioneer-program-week07-0.1.0.0 (lib) (ephemeral targets)
@@ -84,13 +89,9 @@ GHCi, version 8.10.4.20210212: https://www.haskell.org/ghc/  :? for help
 [4 of 4] Compiling Week07.TestStateMachine ( src/Week07/TestStateMachine.hs, /home/totinj/plutus-pioneer-program/code/week07/dist-newstyle/build/x86_64-linux/ghc-8.10.4.20210212/plutus-pioneer-program-week07-0.1.0.0/build/Week07/TestStateMachine.o )
 Ok, four modules loaded.
 Prelude Week07.EvenOdd>
-
-
+```
 
 We can now begin with the lecture.
-
-
-
 
 ## Introduction
 
@@ -102,26 +103,17 @@ However, it should also be mentioned that at the moment, there is a certain over
 The Plutus team is continuously working on improving performance and optimizing both the compiler and the interpreter. We can expect state machines to be really useful in the near future. They will make writing on-chain and off-chain code much easier.
 
 
-
-
-
-
-
-
-
-
-
-
 ## Commit Schemes
 
 
 
 Looking at an example for today, we want to implement a game played between Alice and Bob. It is a bit like rock paper scissors, but even simpler as there are only two options.
 
-
+![7 1](https://user-images.githubusercontent.com/59018247/157315544-93d78210-e44e-4e63-98da-a3a014557419.jpg)
 
 Alice and Bob both have two options, they can either play 0 or 1. So, at the same time, they raise their hand and there is one gesture for 0 and one for 1. Depending on what they play, one of them wins. 
 
+![7 2](https://user-images.githubusercontent.com/59018247/157315578-ae0c8c94-efa2-418c-beb0-ce29e5caf70e.jpg)
 
 - If they both use the same gesture, both choose 0 or both choose 1, then Alice wins. 
 
@@ -129,40 +121,21 @@ Alice and Bob both have two options, they can either play 0 or 1. So, at the sam
 
 Now, let's imagine that Alice and Bob can not meet in person, but they still want to play the game. They decide to play it via email, but how could that work? 
 
-
-
-
+![7 3](https://user-images.githubusercontent.com/59018247/157315602-2e282649-eb40-4101-a0bc-f3651f933bec.jpg)
 
 Alice can send an email with her choice, let's say 0 to Bob. However, this of course gives a very unfair advantage to Bob. Bob now opens Alice's mail and sees she picked 0. Therefore he can simply reply by sending 1 and he wins. Alice can also instead pick 1. However , Bob can simply choose 0.
 
-
-
-
-
-
+![7 4](https://user-images.githubusercontent.com/59018247/157315640-854dab7b-5978-44c7-87bc-f27b385d1e5c.jpg)
 
 In this case Bob would always win, at least if he is unfair. So, what can we do about that to make it fair? There is a very clever trick that is often used in cryptographic protocols called commit schemes. The idea is that Alice does not reveal her choice to Bob, but she commits to her choice so that she later can not change her mind. 
 
 One possible way to make this work is by using hash functions. Hash functions in other words, are one way functions. It is difficult given a hash to reconstruct the original document or the original byte string that was hashed to this hash. 
 
-
-
-
-
-
-
-
+![7 5](https://user-images.githubusercontent.com/59018247/157315672-d91bb891-fedc-431f-9a1f-40f68c454eb5.jpg)
 
 Looking at the game, instead of sending her choice to Bob, she instead sends the hash of her choice to Bob. In this example she would send the hash of 0 to Bob which is just a cryptic byte string. So now Bob sees this cryptic byte string and he has no idea whether Alice picked, 0 or 1. Let’s say that he chooses to pick 0. There would be no need for him to use a hash, so he can just send the 0 in plain text. 
 
-
-
-
-
-
-
-
-
+![7 6](https://user-images.githubusercontent.com/59018247/157315749-478e41dc-21a7-4b5a-a6f2-118399264dec.jpg)
 
 In this case Alice would have won, however Bob still has no proof that Alice has won. There is then one additional step, that Alice has to send another message to Bob  with her actual choice. Bob can then check whether the hash of Alice's claim choice is indeed the hash he received earlier. And if it is, then he knows that:
 
@@ -174,22 +147,7 @@ In this case Alice would have won, however Bob still has no proof that Alice has
 
 This sounds promising, but there is one big problem with this method. In this game, there are only two choices, 0 and 1. So there are only two possible hashes, which may look very cryptic to Bob the first time they play. However, sooner or later he will notice that he always sees one of these two hashes and then he knows which choice Alice made. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![7 7](https://user-images.githubusercontent.com/59018247/157315783-1ff391e2-f6cd-4dd1-9495-cf725c9ca7f5.jpg)
 
 Instead of sending the hash of 0, she can first concatenate 0 with some arbitrary byte string that she picks. So the way this would work is first Alice picks a nonce, some arbitrary text. She sends the hash of the nonce and her choice, let’s say 0 for example to Bob. This would be some other cryptic byte string. This time however, it is not always the same byte string. Bob receives that and then it proceeds as before. He would send his choice, for example 0. In the third message, Alice has to not only reveal her original choice, but she has to send the nonce as well. So in this case, she would send the nonce and 0. Bob would then check that the hash of Alice's claimed nonce concatenated with 0 is indeed the hash he originally received. 
 
@@ -197,11 +155,9 @@ Instead of sending the hash of 0, she can first concatenate 0 with some arbitrar
 
 - If it is not, then he knows she tried to cheat him.
 
-
-
-
-
 This works very nicely and this is what we will try to implement in Plutus on Cardano. First we will use what we have seen so far. Second, we will see how by using state machines, the code can be much clearer and much shorter. Now, what will this look like?
+
+![7 8](https://user-images.githubusercontent.com/59018247/157315848-9d8d8ce3-41af-4a33-b338-174f405e75c7.jpg)
 
 -  First Alice opens the game by posting the hash of her nonce combined with the choice she makes to play, so we have the hash.
 
