@@ -192,7 +192,7 @@ Let's look at the implementation for this game. We will first look at the file E
 The data type game is used as a parameter for the contract.
 
 
-
+```haskell
 data Game = Game
     { gFirst          :: !PaymentPubKeyHash
     , gSecond         :: !PaymentPubKeyHash
@@ -201,8 +201,7 @@ data Game = Game
     , gRevealDeadline :: !POSIXTime
     , gToken          :: !AssetClass
     } deriving (Show, Generic, FromJSON, ToJSON, Prelude.Eq, Prelude.Ord)
-
-
+```
 
 - gFirst and gSecond are the two players identified by their public key hashes.
 
