@@ -69,12 +69,6 @@ You should now be up to date and can run nix-shell in this directory. Run nix-sh
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
-**To avoid future errors with the chain index, let’s install the dependencies:**
-
-```
-[nix-shell:~/plutus-apps]$ cabal install plutus-pab-examples plutus-chain-index
-```
-
 Head back to the week06 folder to start running the cabal commands:
 
 ```
@@ -239,19 +233,17 @@ Looking at the wallet contents in the testnet folder:
 ```
 Terminal 4
 [nix-shell:~/plutus-pioneer-program/code/week06/testnet]$ 
-cat restore-wallet.son
+cat restore-wallet.json
 
 Output:
 { "name": "YoroiWallet"
 , "mnemonic_sentence": ["pudding", "observe", "army", "rigid", "wise", "toward", "smart", "waste", "bomb", "alpha", "source", "ugly", "blouse", "trial", "job", "scheme", "easily", "baby", "scheme", "whip", "bike", "rain", "enhance", "leaf"]
 , "passphrase": "mysecretpassphrase"
 }
-
-saved restoration file to testnet/restore-wallet.json
 ```
 Install Yoroi nightly to import the wallet seed phrase into:
 
-https://chrome.google.com/webstore/detail/yoroi-nightly/poonlenmfdfbjfeeballhiibknlknepo?hl=en&authuser=0
+[Yoroi Nightly Download - Google Chrome](https://chrome.google.com/webstore/detail/yoroi-nightly/poonlenmfdfbjfeeballhiibknlknepo?hl=en&authuser=0)
 
 Restore Wallet:
 
@@ -286,8 +278,10 @@ Use the receive address in the wallet to get funded from the Cardano Faucet:
 
 We now need to generate some ADA to send to our Yoroi address. This can be done from the following page using the Cardano faucet. 
 
-https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
 
+```
+https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
+```
 
 
 ![Screenshot 2022-03-02 1 53 12 PM](https://user-images.githubusercontent.com/59018247/156475990-0a2fd12a-bcab-47b2-a94b-fe78c4aaca8d.png)
@@ -320,6 +314,11 @@ Keep the wallet running on terminal 4, and open a new terminal 5. Head to the pl
 Terminal 5
 
 totinj@penguin:~/plutus-apps$ nix-shell
+```
+**To avoid future errors with the chain index, let’s install the dependencies:**
+
+```
+[nix-shell:~/plutus-apps]$ cabal install plutus-chain-index
 ```
 
 Head to week06 subfolder in the plutus pioneer directory. We will now sync the plutus-chain-index which will take a long time to sync:
@@ -371,7 +370,7 @@ By replacing the blockid and slot with your current nodes position, it will boot
 
 We can also view the swagger ui for the PAB at:
 
-http://localhost:9083/swagger/swagger-ui
+[Swagger UI - Browser Graphical Interface](http://localhost:9083/swagger/swagger-ui)
 
 
 ## Introduction
@@ -633,8 +632,9 @@ addr_test1vpnfx9ge24t3fmncskfaseuxcuvxhh0gh9dp3enr0qgk8xshq22j0
 
 We now need to generate some ADA to send to our first address. This can be done from the following page using the Cardano faucet. 
 
+```
 https://testnets.cardano.org/en/testnets/cardano/tools/faucet/
-
+```
 
 Important to note here, that your address for 01.addr will be different then address generated in this tutorial! Make sure you send the testnet ADA to the address you generated in the CLI!
 
@@ -1744,6 +1744,12 @@ Here, we must put the wallet id, the token name, the payment path, the staking p
 
 So if we execute this, then that should work and we should be able to mint tokens for our wallet. 
 
+First, set the environment variables:
+
+```
+Terminal 3
+[nix-shell:~/plutus-pioneer-program/code/week06]$ . env.sh
+```
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
@@ -1933,6 +1939,12 @@ It fills in the wallet id and the address from these environment variables.
 
 Looking in the terminal to run the script:
 
+First, set the environment variables:
+
+```
+Terminal 3
+[nix-shell:~/plutus-pioneer-program/code/week06]$ . env.sh
+```
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
@@ -2038,6 +2050,12 @@ cabal exec monitor -- $WALLETID $ADDRESS
 
 Looking in the terminal to run the script:
 
+First, set the environment variables:
+
+```
+Terminal 3
+[nix-shell:~/plutus-pioneer-program/code/week06]$ . env.sh
+```
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week06]$ 
