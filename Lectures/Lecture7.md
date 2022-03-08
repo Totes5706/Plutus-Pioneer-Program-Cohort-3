@@ -1,21 +1,29 @@
-Plutus Pioneer Program - Cohort 3 - Lecture 7 - March 2, 2022
-
-
-State Machines
+Plutus Pioneer Program - Cohort 3 
+March 2, 2022
 
 Contributed By:
-Joe Totes
-Table of Contents
-
-Preparation for Lecture 7
-Introduction
-Commit Schemes
-Implementation without State Machines
-State Machines
-Homework
+[Joe Totes](https://github.com/Totes5706)
 
 
-Preparation for Lecture 7
+Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture7](https://youtu.be/CLOHdIGgy90)
+
+Google Doc version can be found [HERE](https://docs.google.com/document/d/1gqetrtmtsdAg0-kOYF94qlN10UG74syDLgSIzRBGg8Q/edit#)
+
+# Lecture 7: State Machines
+
+## Table of Contents
+
+- [Lecture 7: State Machines](#lecture-7-state-machines)
+  - [Table of Contents](#table-of-contents)
+  - [Preparation for Lecture 7](#preparation-for-lecture-7)
+  - [Introduction](#introduction)
+  - [Commit Schemes](#commit-schemes)
+  - [Implementation without State Machines](#implementation-without-state-machines)
+  - [State Machines](#state-machines)
+  - [Homework](#homework)
+
+## Preparation for Lecture 7
+
 Before we can get started in lecture 7, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 7 contents. Execute: 
@@ -84,7 +92,7 @@ We can now begin with the lecture.
 
 
 
-Introduction
+## Introduction
 
 
 In today's lecture, we are introduced to state machines. State machines can be very useful to write shorter and more concise contracts both on-chain and off-chain. There is support for state machines in the Plutus libraries that is higher level and builds on top of the lower level mechanisms we have seen so far. 
@@ -104,7 +112,7 @@ The Plutus team is continuously working on improving performance and optimizing 
 
 
 
-Commit Schemes
+## Commit Schemes
 
 
 
@@ -219,7 +227,7 @@ These are basically all the things that can happen. The different stages of the 
 So let's implement this in Plutus now. First, just using the techniques we already know about.
 
 
-Implementation without State Machines
+## Implementation without State Machines
 
 
 
@@ -466,7 +474,7 @@ Info:
 
 
 
-ownInput:
+**ownInput:**
 
  ownInput :: TxOut
     ownInput = case findOwnInput ctx of
@@ -479,11 +487,13 @@ ownInput:
 - ownInput uses a function findOwnInput
 - We first check whether we get nothing. That would be the case if we are not validating, so we trace an error. If we are validating we get this txin info i,  and then we extract the txOut from that. 
 
-### findOwnInput
+**findOwnInput**
 
 findOwnInput :: ScriptContext -> Maybe TxInInfo
 Find the input currently being validated.
- ### TxInInfo 
+
+**TxInInfo**
+
 data TxInInfo
 An input of a pending transaction.
 Constructors
@@ -495,7 +505,7 @@ txInInfoResolved :: TxOut
 
 
 
-ownOutput:
+**ownOutput:**
 
 ownOutput :: TxOut
     ownOutput = case getContinuingOutputs ctx of
@@ -510,7 +520,7 @@ getContinuingOutputs :: ScriptContext -> [TxOut]
 - If that contains exactly one element that is the output we are interested in
 - Otherwise we trace an error 
 
-outputDatum:
+**outputDatum:**
 
  outputDatum :: GameDatum
     outputDatum = case gameDatum $ txOutDatumHash ownOutput >>= flip findDatum info of
@@ -525,6 +535,8 @@ outputDatum:
 - given our ownOutput we now have the datum hash of that output 
 - we insist that the datum is actually included and there's a function findDatum 
 
+**findDatum:**
+
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
 Find the data corresponding to a data hash, if there is one
 
@@ -533,7 +545,7 @@ Find the data corresponding to a data hash, if there is one
 - the bind is then used and  if all goes well we get maybe datum and then I use my helper function to turn that into a gameDatum 
 - all of this can fail, but if it does, we trace an error and otherwise we return this gameDatum 
 
-checkNonce:
+**checkNonce:**
 
    checkNonce :: BuiltinByteString -> BuiltinByteString -> GameChoice -> Bool
     checkNonce bs nonce cSecond = sha2_256 (nonce `appendByteString` cFirst) == bs
@@ -570,9 +582,9 @@ We now have this state token NFT that identifies the correct UTxO and the questi
 
 There is a function called valuePaidTo and gets the context or the info from the context and unPaymentPubKeyHash. It then adds up all the values that go to that pub key hash in some output of the transaction. In other words, this just means that the first player gets the token. 
 
-** Side Note ** 
+**Side Note** 
 
-If we recall that an address has two parts, a payment part and the staking part. The staking part could benefit a malicious player in this case. The staking rewards occurred by the UTxO could be paid to somebody else, so a malicious player could in this step here pay back the NFT to you. However,  they can use an address where the payment part belongs to you but the staking rewards go to himself. The same is true for the winnings of the game, so one of the players wins. We will make sure that the winnings go to the winner but what could also happen is that the loser basically does pay the winnings to the winner, but instead uses an address where the payment part belongs to the winner but the staking part belongs to himself. He would indeed pay the winner the winnings but as long as the winner leaves it at this address, he himself the loser would still receive the staking rewards for this. 
+*If we recall that an address has two parts, a payment part and the staking part. The staking part could benefit a malicious player in this case. The staking rewards occurred by the UTxO could be paid to somebody else, so a malicious player could in this step here pay back the NFT to you. However,  they can use an address where the payment part belongs to you but the staking rewards go to himself. The same is true for the winnings of the game, so one of the players wins. We will make sure that the winnings go to the winner but what could also happen is that the loser basically does pay the winnings to the winner, but instead uses an address where the payment part belongs to the winner but the staking part belongs to himself. He would indeed pay the winner the winnings but as long as the winner leaves it at this address, he himself the loser would still receive the staking rewards for this.* 
 
 
 So now we can look at the conditions:
@@ -1172,7 +1184,7 @@ We see the second player (one without NFT) won, as expected.
 
 
 
-State Machines
+## State Machines
 
 
 
@@ -1196,7 +1208,7 @@ All the nodes in this diagram correspond to states. Therefore, the errors, the e
  
 Looking at the state machine documentation:
  
-### StateMachineClient
+**StateMachineClient**
 
 data StateMachineClient s i
 Client-side definition of a state machine.
@@ -1213,7 +1225,8 @@ In many cases it is enough to define the transition function t :: (state, Value)
 
 
 
-### StateMachine
+**StateMachine**
+
 data StateMachine s i
 Specification of a state machine, consisting of a transition function that determines the next state from the current state and an input, and a checking function that checks the validity of the transition in the context of the current transaction.
 Constructors
@@ -1227,7 +1240,9 @@ smCheck :: s -> i -> ScriptContext -> Bool
 The condition checking function. Can be used to perform checks on the pending transaction that aren't covered by the constraints. smCheck is always run in addition to checking the constraints, so the default implementation always returns true.
 smThreadToken :: Maybe ThreadToken
 The ThreadToken that identifies the contract instance. Make one with getThreadToken and pass it on to mkStateMachine. Initialising the machine will then mint a thread token value.
-### State
+
+**State**
+
 data State s
 Constructors
 State
@@ -1236,7 +1251,7 @@ stateData :: s
 stateValue :: Value
 
 
-### ThreadToken
+**ThreadToken**
 
 data ThreadToken
 Constructors
@@ -1538,12 +1553,12 @@ m <- mapError' $ getOnChainState client
 - We then use getOnchainState. 
 
 
-### getonChainState
+**getonChainState**
 
 getOnChainState :: (AsSMContractError e, FromData state, ToData state) => StateMachineClient state i -> Contract w schema e (Maybe (OnChainState state i, Map TxOutRef ChainIndexTxOut))
 Get the current on-chain state of the state machine instance. Return Nothing if there is no state on chain. Throws an SMContractError if the number of outputs at the machine address is greater than one.
 
-### onChainState
+**onChainState**
 
 data OnChainState s i
 Typed representation of the on-chain state of a state machine instance
@@ -1556,7 +1571,9 @@ ocsTxOutRef :: TypedScriptTxOutRef (StateMachine s i)
 Typed UTXO
 ocsTx :: ChainIndexTx
 Transaction that produced the output
-### TypedScriptTxOut
+
+**TypedScriptTxOut**
+
 data TypedScriptTxOut a
 A TxOut tagged by a phantom type: and the connection type of the output.
 Constructors
@@ -1588,7 +1605,7 @@ GameDatum _ Nothing -> do
 - As before we have the two cases that the second player has or has not moved. 
 - The important function here is runStep.
 
-### runStep
+**runStep**
 
 runStep
 :: forall w e state schema input. (AsSMContractError e, FromData state, ToData state, ToData input)
@@ -1611,7 +1628,7 @@ Running this file along with TestStateMachine.hs should yield exactly the same r
 
 
 
-Homework 
+## Homework 
 
 
 The objective of the homework this week is to modify StateMachine.hs, and instead of a binary type game replace it with rock paper scissors (so now 3 options)
