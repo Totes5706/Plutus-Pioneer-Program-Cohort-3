@@ -213,9 +213,11 @@ data Game = Game
 
 - gToken is a record type of type asset class. This is an important and common technique that is used in a context like this. 
 
+
 So, often we have a situation where we have state in some form. In our case it is the game and as we saw in the diagram earlier, there are a couple of states:
 
- - The first player opens, the state would be the hash of the nonce concatenated with the choice of the first player.
+
+- The first player opens, the state would be the hash of the nonce concatenated with the choice of the first player.
 
 - If the second player replies, the state would be extended by also including the choice of the second player.
 
@@ -240,34 +242,28 @@ There is an additional reason for using an NFT, then just linking old and new st
 This is the reason why we use an NFT as the stake token and not an arbitrary native token. An NFT by definition is unique and only exists once. Anyone can produce a UTxO that contains this datum, but only one of these UTxOs can actually contain the NFT as part of its value. There can be at most one UTxO sitting at the address with the correct datum and containing the NFT that corresponds to the gToken field given as part of the datum.
 
 
-Then the type GameChoice:
+**GameChoice:**
 
-
-
+```haskell
 data GameChoice = Zero | One
 
 deriving (Show, Generic, FromJSON, ToJSON, ToSchema, Prelude.Eq, Prelude.Ord)
-
+```
 
 - These are two moves the players can make, zero or one.
 
 - We derive equality in the normal Haskell sense and an ord instance; unfortunately for the Plutus equivalence of eq and ord, that's not possible.
 
 
-
-
-
-
 We need eq, for Plutus eq, so we do that by hand in the usual way:
 
-
+```haskell
 instance Eq GameChoice where
     {-# INLINABLE (==) #-}
     Zero == Zero = True
     One  == One  = True
     _    == _    = False
-
-
+```
 
 - Zero equals zero 
 - One equals one  
@@ -277,17 +273,14 @@ For this to work with template Haskell, we have to put this inlineable pragma he
 
 The GameDatum is what we will use as state for the contract:
 
-
-
+```haskell
 data GameDatum = GameDatum BuiltinByteString (Maybe GameChoice)
     deriving Show
 
 instance Eq GameDatum where
     {-# INLINABLE (==) #-}
     GameDatum bs mc == GameDatum bs' mc' = (bs == bs') && (mc == mc')
-
-
-
+```
 - BuiltinByteString is the hash that the first player submits 
 - Maybe GameChoice is the move by the second player 
 
@@ -295,15 +288,10 @@ We also need Plutus equality for GameDatum. The obvious one is that two are equa
 
 Looking at the redeemer:
 
-
-
+```haskell
 data GameRedeemer = Play GameChoice | Reveal BuiltinByteString | ClaimFirst | ClaimSecond
     deriving Show
-
-
-
-
-
+```
 We implemented a custom type that we call GameRedeemer, and that corresponds to the transitions we saw in the diagram
 
 - Play is when the second player moves and as an argument it has a GameChoice. The second player can play zero or one, so that will be play zero or play one 
@@ -313,8 +301,7 @@ We implemented a custom type that we call GameRedeemer, and that corresponds to 
 
 Then we have two helper functions:
 
-
-
+```haskell
 {-# INLINABLE lovelaces #-}
 lovelaces :: Value -> Integer
 lovelaces = Ada.getLovelace . Ada.fromValue
@@ -324,7 +311,7 @@ gameDatum :: Maybe Datum -> Maybe GameDatum
 gameDatum md = do
     Datum d <- md
     PlutusTx.fromBuiltinData d
-
+```
 
 - One called lovelaces which, given the value, extracts the amount of lovelaces contained in that value. There is a function fromValue that, given the value, extracts the ADA. This however is not an integer, it is a new typewrapper around the integer. We get to the underlying integer with this getLovelace function 
 - The second one given a Maybe Datum, tries to deserialize if it is a just to Maybe GameDatum. We write this in the maybe monad, which means if the md is already nothing, it will return nothing. If it is just Datum d then we try to deserialize that into a GameDatum 
@@ -332,8 +319,7 @@ gameDatum md = do
 
 Now looking at the core logic of the mkGameValidator function:
 
-
-
+```haskell
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsZero' bsOne' dat red ctx =
     traceIfFalse "token missing from input" (assetClassValueOf (txOutValue ownInput) (gToken game) == 1) &&
@@ -366,17 +352,12 @@ mkGameValidator game bsZero' bsOne' dat red ctx =
             traceIfFalse "NFT must go to first player"   nftToFirst
 
         _ -> False
+```
 
-
-
-
-
-
-
+```haskell
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsZero' bsOne' dat red ctx =
-
-
+```
 
 - The first argument here is the parameter of the game type 
 - The second and the third argument we just need them due to the fact that it is not possible to use string literals to get byte strings in Haskell. This is compiled to plutus core and we want string literals representing the zero choice and the one choice. The result will just be the byte string with the digit zero and one but because we cannot use string literals we pass them in as auxiliary arguments
@@ -384,7 +365,7 @@ mkGameValidator game bsZero' bsOne' dat red ctx =
 
 Before we look at this main logic, let's first look at a couple of helper functions: 
 
-
+```haskell
     info :: TxInfo
     info = scriptContextTxInfo ctx
 
@@ -413,42 +394,39 @@ Before we look at this main logic, let's first look at a couple of helper functi
 
     nftToFirst :: Bool
     nftToFirst = assetClassValueOf (valuePaidTo info $ unPaymentPubKeyHash $ gFirst game) (gToken game) == 1
+```
 
 
+**Info:**
 
-Info:
-
+```haskell
   info :: TxInfo
     info = scriptContextTxInfo ctx
-
-
+```
 
 - info extracts the TxInfo from the context 
 
-
-
-
-
 **ownInput:**
 
+```haskell
  ownInput :: TxOut
     ownInput = case findOwnInput ctx of
         Nothing -> traceError "game input missing"
         Just i  -> txInInfoResolved i
-
-
-
-
+```
 - ownInput uses a function findOwnInput
 - We first check whether we get nothing. That would be the case if we are not validating, so we trace an error. If we are validating we get this txin info i,  and then we extract the txOut from that. 
 
 **findOwnInput**
 
+```haskell
 findOwnInput :: ScriptContext -> Maybe TxInInfo
 Find the input currently being validated.
+```
 
 **TxInInfo**
 
+```haskell
 data TxInInfo
 An input of a pending transaction.
 Constructors
@@ -456,17 +434,16 @@ TxInInfo
  
 txInInfoOutRef :: TxOutRef
 txInInfoResolved :: TxOut
-
-
-
+```
 
 **ownOutput:**
 
+```haskell
 ownOutput :: TxOut
     ownOutput = case getContinuingOutputs ctx of
         [o] -> o
         _   -> traceError "expected exactly one game output"
-
+```
 
 -  getContinuingOutputs given a script context returns a list of txOuts, and those are the outputs that sit at the script address we are currently validating. 
 getContinuingOutputs :: ScriptContext -> [TxOut]
@@ -477,11 +454,12 @@ getContinuingOutputs :: ScriptContext -> [TxOut]
 
 **outputDatum:**
 
+```haskell
  outputDatum :: GameDatum
     outputDatum = case gameDatum $ txOutDatumHash ownOutput >>= flip findDatum info of
         Nothing -> traceError "game output datum not found"
         Just d  -> d
-
+```
 
 
 
@@ -492,8 +470,10 @@ getContinuingOutputs :: ScriptContext -> [TxOut]
 
 **findDatum:**
 
+```haskell
 findDatum :: DatumHash -> TxInfo -> Maybe Datum
 Find the data corresponding to a data hash, if there is one
+```
 
 - we use flip here where flip is a standard Haskell function that switches the two arguments of a two argument function
 - we saw that info was actually the second argument, but by using flip we make it the first so then the second one is the datum hash 
@@ -502,6 +482,7 @@ Find the data corresponding to a data hash, if there is one
 
 **checkNonce:**
 
+```haskell
    checkNonce :: BuiltinByteString -> BuiltinByteString -> GameChoice -> Bool
     checkNonce bs nonce cSecond = sha2_256 (nonce `appendByteString` cFirst) == bs
       where
@@ -509,7 +490,7 @@ Find the data corresponding to a data hash, if there is one
         cFirst = case cSecond of
             Zero -> bsZero'
             One  -> bsOne'
-
+```
 
 
 - checkNonce is for the case that the first player has won and wants to prove it by revealing his nonce. Followed by proving that the hash he submitted in the beginning of the game fits this nonce.
@@ -526,12 +507,12 @@ This is just this conversion and we call the byte string cFirst, so cSecond is o
 
 Then to the hash we take the nonce concatenated with this byte string and apply the sha2_256 hash function to it. Then the check is to make sure that that is the hash the first player committed in the first place 
 
-nftToFirst:
+**nftToFirst:**
 
-
+```
 nftToFirst :: Bool
     nftToFirst = assetClassValueOf (valuePaidTo info $ unPaymentPubKeyHash $ gFirst game) (gToken game) == 1
-
+```
 
 We now have this state token NFT that identifies the correct UTxO and the question is what happens to this NFT after the game is over and there is no UTxO at the game address anymore.It seems reasonable that the NFT should return back to the first player regardless of the player that won the game
 
@@ -544,20 +525,20 @@ There is a function called valuePaidTo and gets the context or the info from the
 
 So now we can look at the conditions:
 
-
-
+```haskell
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsZero' bsOne' dat red ctx =
     traceIfFalse "token missing from input" (assetClassValueOf (txOutValue ownInput) (gToken game) == 1) &&
-
+```
 
 There is one condition that applies to all cases simultaneously:
 
 - the input we are  validating must be identified by the state token.
 
 
-The first situation is:
+**The first situation is:**
 
+```haskell
 (GameDatum bs Nothing, Play c) ->
             traceIfFalse "not signed by second player"   (txSignedBy info (unPaymentPubKeyHash $ gSecond game))             &&
             traceIfFalse "first player's stake missing"  (lovelaces (txOutValue ownInput) == gStake game)                   &&
@@ -565,9 +546,9 @@ The first situation is:
             traceIfFalse "wrong output datum"            (outputDatum == GameDatum bs (Just c))                             &&
             traceIfFalse "missed deadline"               (to (gPlayDeadline game) `contains` txInfoValidRange info)         &&
             traceIfFalse "token missing from output"     (assetClassValueOf (txOutValue ownOutput) (gToken game) == 1)
+```
 
-
-This is where the first player has moved. The second player is moving now, so this is the transaction where the second player moves and chooses to move c. 
+This is where the first player has moved. The second player is moving now, so this is the transaction where the second player moves and chooses to move ```c```. 
 
 - the datum, the second component must be nothing. Remember that just means that the second player hasn't moved to is moving now.
 
@@ -581,15 +562,16 @@ In this case, what do I have to check?
 - Sixth, the move has to happen before the first deadline. That is exactly the point of this first step, by the play deadline until then the move must have happened.
 - Lastly, the NFT must be passed onto the new UTxO to identify that again.
 
-The second situation is:
+**The second situation is:**
 
+```haskell
 (GameDatum bs (Just c), Reveal nonce) ->
             traceIfFalse "not signed by first player"    (txSignedBy info (unPaymentPubKeyHash $ gFirst game))              &&
             traceIfFalse "commit mismatch"               (checkNonce bs nonce c)                                            &&
             traceIfFalse "missed deadline"               (to (gRevealDeadline game) `contains` txInfoValidRange info)       &&
             traceIfFalse "wrong stake"                   (lovelaces (txOutValue ownInput) == (2 * gStake game))             &&
             traceIfFalse "NFT must go to first player"   nftToFirst
-
+```
 
 The second situation is both players have moved and the first player discovers that he has won. In order to prove that and get the winnings, he has to reveal his nonce.
 
@@ -600,16 +582,15 @@ The second situation is both players have moved and the first player discovers t
 - Lastly, the NFT must go back to the first player.
 
 
+**The third situation is:**
 
-
-The third situation is:
-
+```haskell
 (GameDatum _ Nothing, ClaimFirst) ->
             traceIfFalse "not signed by first player"    (txSignedBy info (unPaymentPubKeyHash $ gFirst game))              &&
             traceIfFalse "too early"                     (from (1 + gPlayDeadline game) `contains` txInfoValidRange info)   &&
             traceIfFalse "first player's stake missing"  (lovelaces (txOutValue ownInput) == gStake game)                   &&
             traceIfFalse "NFT must go to first player"   nftToFirst
-
+```
 
 In this case, the second player has not moved yet and also does not move in the deadline. Therefore, the first player wants his stake back.
 
@@ -618,16 +599,15 @@ In this case, the second player has not moved yet and also does not move in the 
 - Third, making sure the first player has provided his stake 
 - Lastly, we must get the NFT back to the first player
 
-The fourth situation is:
+**The fourth situation is:**
 
-
-
+```haskell
 (GameDatum _ (Just _), ClaimSecond) ->
             traceIfFalse "not signed by second player"   (txSignedBy info (unPaymentPubKeyHash $ gSecond game))             &&
             traceIfFalse "too early"                     (from (1 + gRevealDeadline game) `contains` txInfoValidRange info) &&
             traceIfFalse "wrong stake"                   (lovelaces (txOutValue ownInput) == (2 * gStake game))             &&
             traceIfFalse "NFT must go to first player"   nftToFirst
-
+```
 
 In the last case, both players have moved, but the first player has realized that he did not win and therefore did not reveal his nonce or he got disconnected. In any case, he missed the deadline so the second player wins. 
 
@@ -638,9 +618,9 @@ In the last case, both players have moved, but the first player has realized tha
 
 Those four cases are all situations in which we can have.
 
-
+```haskell
 _ -> False
-
+```
 
 So in all other cases, we fail validation.
 
@@ -648,7 +628,7 @@ So in all other cases, we fail validation.
 So now let's look at the rest of the on-chain code:
 
 
-
+```haskell
 data Gaming
 instance Scripts.ValidatorTypes Gaming where
     type instance DatumType Gaming = GameDatum
@@ -673,17 +653,11 @@ gameValidator = Scripts.validatorScript . typedGameValidator
 
 gameAddress :: Game -> Ledger.Address
 gameAddress = scriptAddress . gameValidator
-
-
-
-
-
-
-
-
+```
 
 Now, as preparation for the off-chain code, we will always need to find the right UTxO. We write this helper function findGameOutput:
 
+```haskell
 findGameOutput :: Game -> Contract w s Text (Maybe (TxOutRef, ChainIndexTxOut, GameDatum))
 findGameOutput game = do
     utxos <- utxosAt $ gameAddress game
@@ -694,7 +668,7 @@ findGameOutput game = do
   where
     f :: (TxOutRef, ChainIndexTxOut) -> Bool
     f (_, o) = assetClassValueOf (_ciTxOutValue o) (gToken game) == 1
-
+```
 
  This function gets the game, and then in the contract monad tries to find the UTxO. This could fail, so we use maybe, and then we return the reference and the game datum. 
 
@@ -702,8 +676,7 @@ findGameOutput game = do
 
 Now there's a second helper function, waitUntilTimeHasPassed:
 
-
-
+```haskell
 waitUntilTimeHasPassed :: AsContractError e => POSIXTime -> Contract w s e ()
 waitUntilTimeHasPassed t = do
     s1 <- currentSlot
@@ -711,12 +684,7 @@ waitUntilTimeHasPassed t = do
     void $ awaitTime t >> waitNSlots 1
     s2 <- currentSlot
     logInfo @String $ "waited until: " ++ show s2
-
-
-
-
-
-
+```
 
 The purpose of this is that it receives a POSIXTime, and then it waits until that POSIXTime has passed such that we are in the next slot.
 
@@ -727,6 +695,7 @@ The purpose of this is that it receives a POSIXTime, and then it waits until tha
 
 Okay, so now we have two contracts for the two players. One for the first player to play the game, and one for the second player. These correspond to the parameters first params and second params respectively.
 
+```haskell
 data FirstParams = FirstParams
     { fpSecond         :: !PaymentPubKeyHash
     , fpStake          :: !Integer
@@ -737,7 +706,7 @@ data FirstParams = FirstParams
     , fpTokenName      :: !TokenName
     , fpChoice         :: !GameChoice
     } deriving (Show, Generic, FromJSON, ToJSON, ToSchema)
-
+```
 
 So, first params we don't need the first player. The first player will be the owner of the wallet that invokes this contract, but we need the second. 
 
@@ -751,9 +720,8 @@ So, first params we don't need the first player. The first player will be the ow
 
 Looking at contract:
 
-
-
- firstGame :: forall w s. FirstParams -> Contract w s Text ()
+```haskell
+firstGame :: forall w s. FirstParams -> Contract w s Text ()
 firstGame fp = do
     pkh <- Contract.ownPaymentPubKeyHash
     let game = Game
@@ -773,20 +741,19 @@ firstGame fp = do
     logInfo @String $ "made first move: " ++ show (fpChoice fp)
 
     waitUntilTimeHasPassed $ fpPlayDeadline fp
-
-
+```
 
 - First get our own public key hash.
-- Then we can define the value of the game type.So we put our own public key hash as first player and then use the parameters we got from the FirstParams. For the token we just assemble the currency symbol and token name into an asset class.
-- The V value is just our stake plus the NFT that we must put into the UTxO.
-- C is our choice.
-- bs we compute the hash, our commitment to our choice. We take the nonce and concatenate it (if you want to play) with zero.There's zero byteString, and otherwise the one byteString and hash the results. 
-- tx, the constraints for the transaction are very simple. We must produce a script output at this address with the datum that contains the hash. We wait for the transaction and log a message.
+- Then we can define the value of the game type.So we put our own public key hash as first player and then use the parameters we got from the ```FirstParams```. For the token we just assemble the currency symbol and token name into an asset class.
+- The ```v``` value is just our stake plus the NFT that we must put into the UTxO.
+- ```c``` is our choice.
+- ```bs``` we compute the hash, our commitment to our choice. We take the nonce and concatenate it (if you want to play) with zero.There's zero byteString, and otherwise the one byteString and hash the results. 
+- ```tx```, the constraints for the transaction are very simple. We must produce a script output at this address with the datum that contains the hash. We wait for the transaction and log a message.
 
 So now, the second player has a chance to move, but it must happen before this play deadline. We then wait until this deadline has passed, which results in several cases.
 
 
-
+```haskell
   m   <- findGameOutput game
     now <- currentTime
     case m of
@@ -814,16 +781,12 @@ So now, the second player has a chance to move, but it must happen before this p
                 logInfo @String "victory"
 
             _ -> logInfo @String "second player played and won"
-
-
-
-
-
-
+```
 
 We check whether we find UTxO containing the NFT, if we don't find it, then something is wrong.
 
 In this case, the second player hasn't moved. 
+
 - The deadline has passed, the second player has not moved.
 - What we can do is we can invoke this ClaimFirst redeemer to get our stake back.
 - As constraints, we must spend this UTxO we found with this redeemer and as lookups we need to provide the UTxO. We also must provide the validator of the game.
@@ -831,13 +794,13 @@ In this case, the second player hasn't moved.
 
 Second case is that the second player did move and they are then in turn again. Two cases that the second player moved and won or that the second player moved and lost.
 
-
+```haskell
  GameDatum _ (Just c') | c' == c -> do
-
+```
 
 This is the case where the second player choose the same move that we played, so we won.
 
-
+```haskell
 logInfo @String "second player played and lost"
                 let lookups = Constraints.unspentOutputs (Map.singleton oref o) <>
                               Constraints.otherScript (gameValidator game)
@@ -848,9 +811,10 @@ logInfo @String "second player played and lost"
                 logInfo @String "victory"
 
             _ -> logInfo @String "second player played and won"
-
+```
 
 In the last case, the second player won but we can not do anything so we do not do anything. But if we won, we must now reveal our nonce to get the winning.
+
 - We use the reveal nonce redeemer.
 - Then we must also submit this transaction before the deadline for revealing has passed. We again need lookups and need to specify the UTxO while providing the gameValidator.
 - Finally, we submit and wait and have won.
@@ -858,6 +822,7 @@ In the last case, the second player won but we can not do anything so we do not 
 
 Now for the second player:
 
+```haskell
 data SecondParams = SecondParams
     { spFirst          :: !PaymentPubKeyHash
     , spStake          :: !Integer
@@ -867,11 +832,12 @@ data SecondParams = SecondParams
     , spTokenName      :: !TokenName
     , spChoice         :: !GameChoice
     } deriving (Show, Generic, FromJSON, ToJSON, ToSchema)
-
+```
 
 
 The parameters are very similar, except that now we don't need to provide the second player because that is us. We do not need the nonce now because the nonce was only for the first player.
 
+```haskell
 secondGame :: forall w s. SecondParams -> Contract w s Text ()
 secondGame sp = do
     pkh <- Contract.ownPaymentPubKeyHash
@@ -883,20 +849,11 @@ secondGame sp = do
             , gRevealDeadline = spRevealDeadline sp
             , gToken          = AssetClass (spCurrency sp, spTokenName sp)
             }
-
+```
 
 We start by looking up our own public key hash, and can then define the game value similar to what we did for the first player.
 
-
-
-
-
-
-
-
-
-
-
+```haskell
 m <- findGameOutput game
     case m of
         Just (oref, o, GameDatum bs Nothing) -> do
@@ -917,25 +874,23 @@ m <- findGameOutput game
             logInfo @String $ "made second move: " ++ show (spChoice sp)
 
             waitUntilTimeHasPassed $ spRevealDeadline sp
-
-
-
-
+```
 
 Then, we try to find the UTxO that contains the NFT. If we found the game and now we want to make our move, so invoke the play redeemer.
 
 - The token is the NFT
-- V is the value that we must put in the new output. Remember if we do the play transaction, we must consume the existing UTxO and while producing one at the same address. Therefore, the old one should contain the stake that the first player put in. Now we must add our own stake and keep the NFT in there. X is a local variable here to, the stake in lovelace. So we must put twice the stake and the NFT in the output.
-- C is our choice
+- ```v``` is the value that we must put in the new output. Remember if we do the play transaction, we must consume the existing UTxO and while producing one at the same address. Therefore, the old one should contain the stake that the first player put in. Now we must add our own stake and keep the NFT in there. X is a local variable here to, the stake in lovelace. So we must put twice the stake and the NFT in the output.
+- ```c``` is our choice
 
 Let's look at the constraints first:
 
 - We must spend the existing UTxO with redeemer Play, our choice.
-- Then we must create a new UTxO with the updated datum. The same bs, but now just C, just our move. Also using V we computed, which now also contains our own stake in addition tot he first player stake and the NFT.
+- Then we must create a new UTxO with the updated datum. The same ```bs```, but now just ```c```, just our move. Also using ```v``` we computed, which now also contains our own stake in addition to the first player stake and the NFT.
 - We must do this before the deadline passes to make the play move.
 
 Lastly, we submit and wait for confirmation, and then log. Now it's the first player's turn again, so we wait until this reveal deadline has passed.
 
+```haskell
 m'   <- findGameOutput game
             now' <- currentTime
             case m' of
@@ -952,9 +907,9 @@ m'   <- findGameOutput game
                     logInfo @String "second player won"
 
         _ -> logInfo @String "no running game found"
+```
 
-
-We try to find the UTxO which will now be a different one. That is what is called m’. If we do not find an UTxO any more, that means that in the meantime, while were waiting, the first player revealed and won.
+We try to find the UTxO which will now be a different one. That is what is called ```m’```. If we do not find an UTxO any more, that means that in the meantime, while were waiting, the first player revealed and won.
 
 So, in that case we have lost, we can't do anything. If we still do find the UTxO, it means the first player didn't reveal, which means either:
 
@@ -967,15 +922,15 @@ There's one extra thing we have to take care of here, namely we cannot just send
 
 For the lookups, we again need the UTxO and the validator. Finally, we can submit the transaction and log that the second player won.
 
-
- type GameSchema = Endpoint "first" FirstParams .\/ Endpoint "second" SecondParams
+```haskell
+type GameSchema = Endpoint "first" FirstParams .\/ Endpoint "second" SecondParams
 
 endpoints :: Contract () GameSchema Text ()
 endpoints = awaitPromise (first `select` second) >> endpoints
   where
     first  = endpoint @"first"  firstGame
     second = endpoint @"second" secondGame
-
+```
 
 
 At the end of the file, we define the schema. Starting with two endpoints, one for the first and second player, called first and second respectively.
@@ -983,6 +938,8 @@ At the end of the file, we define the schema. Starting with two endpoints, one f
 Then in the usual way we assemble the two contracts into one contract that we call endpoints. So as before, we give the choice between first and second. Then we block until one of the choices is made with awaitPromise. It is implemented by just using the contracts we just defined, first game and second game. Finally, we recursively call endpoints again.
 
 We can now test this contract using the emulator trace using file TestEvenOdd.hs:
+
+```haskell
 
 test :: IO ()
 test = do
@@ -1054,10 +1011,10 @@ myTrace c1 c2 = do
     callEndpoint @"second" h2 sp
 
     void $ Emulator.waitNSlots 10
+```
 
 
-
-So here's this test’ function where:
+So here's this ```test’``` function where:
 
 - we have this combined function that just calls test prime for all four possible choices.
 - we defined the two wallets, w1 and w2
@@ -1066,15 +1023,16 @@ And we use this variant of run emulator trace IO where we  can specify both play
 
 Load the TestEvenOdd.hs file in the repl:
 
+```haskell
 Prelude Week07.EvenOdd> :l src/Week07/TestEvenOdd.hs
 
 Output:
 Ok, two modules loaded.
-
+```
 
 Testing the first case:
 
-
+```haskell
 Prelude Week07.EvenOdd> test' Zero Zero
 
 Output:
@@ -1085,23 +1043,15 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
 	{ff, "STATE TOKEN"}: 1
 	{, ""}: 1099992060
-
+```
 
 
 We see the first player (one with NFT) won, as expected.
 
 
-
-
-
-
-
-
-
-
-
 Testing the second case:
 
+```haskell
 Prelude Week07.EvenOdd> test' Zero One
 
 Output:
@@ -1112,32 +1062,9 @@ Wallet 7ce812d7a4770bbf58004067665c3a48f28ddd58:
 Wallet 872cb83b5ee40eb23bfdab1772660c822a48d491:
 	{, ""}: 901999990
 	{ff, "STATE TOKEN"}: 1
-
+```
 
 We see the second player (one without NFT) won, as expected.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## State Machines
 
