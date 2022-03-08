@@ -255,7 +255,7 @@ deriving (Show, Generic, FromJSON, ToJSON, ToSchema, Prelude.Eq, Prelude.Ord)
 - We derive equality in the normal Haskell sense and an ord instance; unfortunately for the Plutus equivalence of eq and ord, that's not possible.
 
 
-We need eq, for Plutus eq, so we do that by hand in the usual way:
+We need ```Eq```, for Plutus ```Eq```, so we do that by hand in the usual way:
 
 ```haskell
 instance Eq GameChoice where
@@ -282,9 +282,9 @@ instance Eq GameDatum where
     GameDatum bs mc == GameDatum bs' mc' = (bs == bs') && (mc == mc')
 ```
 - BuiltinByteString is the hash that the first player submits 
-- Maybe GameChoice is the move by the second player 
+- ```Maybe GameChoice``` is the move by the second player 
 
-We also need Plutus equality for GameDatum. The obvious one is that two are equal if both components, the hash and the Maybe GameChoice, are in fact equal.
+We also need Plutus equality for ```GameDatum```. The obvious one is that two are equal if both components, the hash and the ```Maybe GameChoice```, are in fact equal.
 
 Looking at the redeemer:
 
@@ -292,12 +292,12 @@ Looking at the redeemer:
 data GameRedeemer = Play GameChoice | Reveal BuiltinByteString | ClaimFirst | ClaimSecond
     deriving Show
 ```
-We implemented a custom type that we call GameRedeemer, and that corresponds to the transitions we saw in the diagram
+We implemented a custom type that we call ```GameRedeemer```, and that corresponds to the transitions we saw in the diagram
 
-- Play is when the second player moves and as an argument it has a GameChoice. The second player can play zero or one, so that will be play zero or play one 
-- Reveal is for the case when the first player has one and must prove that by revealing its nonce so we us a byte string argument 
-- ClaimFirst is the case when the second player does not make a move; so the first player can claim back his stake 
-- ClaimSecond is for the case that the first player does not reveal his choice because he knows he has lost; so the second player can get his winnings 
+- ```Play``` is when the second player moves and as an argument it has a ```GameChoice```. The second player can play zero or one, so that will be play zero or play one 
+- ```Reveal``` is for the case when the first player has one and must prove that by revealing its nonce so we us a byte string argument 
+- ```ClaimFirst``` is the case when the second player does not make a move; so the first player can claim back his stake 
+- ```ClaimSecond``` is for the case that the first player does not reveal his choice because he knows he has lost; so the second player can get his winnings 
 
 Then we have two helper functions:
 
@@ -313,11 +313,11 @@ gameDatum md = do
     PlutusTx.fromBuiltinData d
 ```
 
-- One called lovelaces which, given the value, extracts the amount of lovelaces contained in that value. There is a function fromValue that, given the value, extracts the ADA. This however is not an integer, it is a new typewrapper around the integer. We get to the underlying integer with this getLovelace function 
-- The second one given a Maybe Datum, tries to deserialize if it is a just to Maybe GameDatum. We write this in the maybe monad, which means if the md is already nothing, it will return nothing. If it is just Datum d then we try to deserialize that into a GameDatum 
+- One called ```lovelaces``` which, given the value, extracts the amount of lovelaces contained in that value. There is a function ```fromValue``` that, given the value, extracts the ADA. This however is not an integer, it is a new typewrapper around the integer. We get to the underlying integer with this ```getLovelace``` function 
+- The second one given a ```Maybe Datum```, tries to deserialize if it is a just to ```Maybe GameDatum```. We write this in the maybe monad, which means if the ```md``` is already nothing, it will return nothing. If it is just ```Datum ```d then we try to deserialize that into a ```GameDatum``` 
 
 
-Now looking at the core logic of the mkGameValidator function:
+Now looking at the core logic of the ```mkGameValidator``` function:
 
 ```haskell
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
@@ -445,8 +445,11 @@ ownOutput :: TxOut
         _   -> traceError "expected exactly one game output"
 ```
 
--  getContinuingOutputs given a script context returns a list of txOuts, and those are the outputs that sit at the script address we are currently validating. 
+- ```getContinuingOutputs``` given a script context returns a list of ```txOuts```, and those are the outputs that sit at the script address we are currently validating. 
+
+```haskell
 getContinuingOutputs :: ScriptContext -> [TxOut]
+```
 
 - In our case we expect there to be exactly one such output, so we just pattern match against the list that we get as a result. 
 - If that contains exactly one element that is the output we are interested in
@@ -463,10 +466,10 @@ getContinuingOutputs :: ScriptContext -> [TxOut]
 
 
 
-- this should give us the datum of type GameDatum of our ownOutput
-- we are using this hyperfunction gameDatum we looked at earlier and recall that takes a maybe datum and then returns a maybe game datum 
-- given our ownOutput we now have the datum hash of that output 
-- we insist that the datum is actually included and there's a function findDatum 
+- this should give us the datum of type ```GameDatum``` of our ```ownOutput```
+- we are using this hyperfunction ```gameDatum``` we looked at earlier and recall that takes a maybe datum and then returns a ```Maybe GameDatum``` 
+- given our ```ownOutput``` we now have the datum hash of that output 
+- we insist that the datum is actually included and there's a function ```findDatum```
 
 **findDatum:**
 
@@ -477,8 +480,8 @@ Find the data corresponding to a data hash, if there is one
 
 - we use flip here where flip is a standard Haskell function that switches the two arguments of a two argument function
 - we saw that info was actually the second argument, but by using flip we make it the first so then the second one is the datum hash 
-- the bind is then used and  if all goes well we get maybe datum and then I use my helper function to turn that into a gameDatum 
-- all of this can fail, but if it does, we trace an error and otherwise we return this gameDatum 
+- the bind is then used and if all goes well we get maybe datum and then we use our helper function to turn that into a ```gameDatum```
+- all of this can fail, but if it does, we trace an error and otherwise we return this ```gameDatum``` 
 
 **checkNonce:**
 
