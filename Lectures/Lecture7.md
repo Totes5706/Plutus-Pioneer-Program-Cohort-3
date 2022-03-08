@@ -1068,9 +1068,9 @@ We see the second player (one without NFT) won, as expected.
 
 ## State Machines
 
+So, what is a state machine? A state machine, normally it has nothing to do with blockchain in particular. 
 
-
-       So, what is a state machine? A state machine, normally it has nothing to do with blockchain in particular. It is a system you start in a certain state, and then there are one or more transitions to other states. There may also be some states that are special, in that they are so-called final states, meaning there are no possible ways out. There are no transitions that lead out of the final state.
+It is a system you start in a certain state, and then there are one or more transitions to other states. There may also be some states that are special, in that they are so-called final states, meaning there are no possible ways out. There are no transitions that lead out of the final state.
             
 ![7 8](https://user-images.githubusercontent.com/59018247/157318615-c6bb3a0d-9b97-4cf5-aefa-999f91234f89.jpg)
 
@@ -1087,8 +1087,11 @@ Looking at the state machine documentation:
 
 ```haskell
 data StateMachineClient s i
+
 Client-side definition of a state machine.
+
 Constructors
+
 StateMachineClient
  
 scInstance :: StateMachineInstance s i
@@ -1105,44 +1108,61 @@ In many cases it is enough to define the transition function t :: (state, Value)
 
 **StateMachine**
 
+```haskell
 data StateMachine s i
+
 Specification of a state machine, consisting of a transition function that determines the next state from the current state and an input, and a checking function that checks the validity of the transition in the context of the current transaction.
+
 Constructors
+
 StateMachine
  
 smTransition :: State s -> i -> Maybe (TxConstraints Void Void, State s)
 The transition function of the state machine. Nothing indicates an invalid transition from the current state.
+
 smFinal :: s -> Bool
+
 Check whether a state is the final state
+
 smCheck :: s -> i -> ScriptContext -> Bool
+
 The condition checking function. Can be used to perform checks on the pending transaction that aren't covered by the constraints. smCheck is always run in addition to checking the constraints, so the default implementation always returns true.
+
 smThreadToken :: Maybe ThreadToken
+
 The ThreadToken that identifies the contract instance. Make one with getThreadToken and pass it on to mkStateMachine. Initialising the machine will then mint a thread token value.
+```
 
 **State**
 
+```haskell
 data State s
+
 Constructors
+
 State
  
 stateData :: s
 stateValue :: Value
-
+```
 
 **ThreadToken**
 
+```haskell
 data ThreadToken
+
 Constructors
+
 ThreadToken
  
 ttOutRef :: TxOutRef
 ttCurrencySymbol :: CurrencySymbol
-
+```
 
 
 We can now look at a new file StateMachines.hs, to see the same game we saw earlier but now implemented using state machines.
 
-
+```haskell
 data Game = Game
     { gFirst          :: !PaymentPubKeyHash
     , gSecond         :: !PaymentPubKeyHash
@@ -1151,27 +1171,30 @@ data Game = Game
     , gRevealDeadline :: !POSIXTime
     , gToken          :: !ThreadToken
     } deriving (Show, Generic, FromJSON, ToJSON, Prelude.Eq)
-
+```
 
 
 The only difference is earlier the token was of type asset class because we had to pass an NFT. Now that we're using state machines, we use type thread token instead.
 
+```haskell
 data GameDatum = GameDatum BuiltinByteString (Maybe GameChoice) | Finished
     deriving Show
-
-
+```
 
 Game datum has slightly changed because we have added a second constructor that we called finished. This is supposed to represent the final state of our state machine. It will not correspond to a UTxO, but we need that for the state machine mechanism to work.
+
+```haskell
 instance Eq GameDatum where
     {-# INLINABLE (==) #-}
     GameDatum bs mc == GameDatum bs' mc' = (bs == bs') && (mc == mc')
     Finished        == Finished          = True
     _               == _                 = False
-
+```
 
 
 This makes the definition of equality slightly more complicated because now we have to take Finished into account as well. 
 
+```haskell
 {-# INLINABLE transition #-}
 transition :: Game -> State GameDatum -> GameRedeemer -> Maybe (TxConstraints Void Void, State GameDatum)
 transition game s r = case (stateValue s, stateData s, r) of
@@ -1196,7 +1219,7 @@ transition game s r = case (stateValue s, stateData s, r) of
                                                      , State Finished mempty
                                                      )
     _                                        -> Nothing
-
+```
 
 
 Now, this is now the transition function of the state machine, which corresponds to the mkGameValidator that we created earlier. 
@@ -1209,6 +1232,7 @@ And so it takes:
 
 Now let's try to compare the transition function of the state machine to the make game mkGameValidator of our first version of the game.
 
+```haskell
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsZero' bsOne' dat red ctx =
     traceIfFalse "token missing from input" (assetClassValueOf (txOutValue ownInput) (gToken game) == 1) &&
@@ -1241,50 +1265,45 @@ mkGameValidator game bsZero' bsOne' dat red ctx =
             traceIfFalse "NFT must go to first player"   nftToFirst
 
         _ -> False
-
-
-
-
-
+```
 
 - Both functions try to determine whether a combination of datum, redeemer, and transaction are valid.
 - The first difference we notice is here in our old version, we first had to check that the UTxO we're consuming actually carries the NFT, and that is missing in the new implementation because the state machine automatically takes care of that. 
 
-Let's look at this first case where the first player moved. The component for the second player was still nothing. Therefore, now the second player wants to make a play with choice C. 
+Let's look at this first case where the first player moved. The component for the second player was still nothing. Therefore, now the second player wants to make a play with choice ```c```. 
 
+```haskell
 transition game s r = case (stateValue s, stateData s, r) of
-
-
-
+```
 
 - In the state machine we have the state S, which is a combination of datum and value; and you can access those two with state value and state data. The state value as is now the value in the UTxO that we're consuming state data S is the datum and R is the redeemer.
 
+```haskell
 lovelaces v == gStake game
-
+```
 
 
 - Then we checked that the value is actually the stake of the game.
 
+```haskell
   (v, GameDatum bs Nothing, Play c)
         | lovelaces v == gStake game         -> Just ( Constraints.mustBeSignedBy (gSecond game)                    <>
                                                        Constraints.mustValidateIn (to $ gPlayDeadline game)
                                                      , State (GameDatum bs $ Just c) (lovelaceValueOf $ 2 * gStake game)
                                                      )
-
+```
 
 - First, this must be signed by the second player.
 - Second, was the validity interval. This needs to happen after the deadline.
 - The third component  is the new state of the resulting UTxO which again is given by datum and value. Here we are specifying with this transition that the second player makes a move. The new datum will be bs $ Just c. The new value will be twice this stake of the game because it's now both the first player and the second player stake.We leave the NFT out of here, even though it should be present in the UTxO.And that is again, because
 
+```haskell
  (v, GameDatum _ (Just _), Reveal _)
         | lovelaces v == (2 * gStake game)   -> Just ( Constraints.mustBeSignedBy (gFirst game)                     <>
                                                        Constraints.mustValidateIn (to $ gRevealDeadline game)
                                                      , State Finished mempty
                                                      )
-
-
-
-
+```
 
 The second case was the case where the second player has moved, which is reflected here in the Just. The first player realizes he has won and now wants to reveal his nonce in order to prove that he has won.
 
@@ -1293,12 +1312,12 @@ The second case was the case where the second player has moved, which is reflect
 - Finally, we transition to this finished state.
 
 
-
+```haskell
    (v, GameDatum _ Nothing, ClaimFirst)
         | lovelaces v == gStake game         -> Just ( Constraints.mustBeSignedBy (gFirst game)                     <>
                                                        Constraints.mustValidateIn (from $ 1 + gPlayDeadline game)
                                                      , State Finished mempty
-
+```
 
 The third case was the case where the second player does not move in time before the deadline. The first player wants to reclaim the stake.
 
@@ -1306,11 +1325,12 @@ The third case was the case where the second player does not move in time before
 - Second, this condition specifies after the deadline has passed. 
 - Finally, we transition to this finished state.
 
+```haskell
  (v, GameDatum _ (Just _), ClaimSecond)
         | lovelaces v == (2 * gStake game)   -> Just ( Constraints.mustBeSignedBy (gSecond game)                    <>
                                                        Constraints.mustValidateIn (from $ 1 + gRevealDeadline game)
                                                      , State Finished mempty
-
+```
 
 Now the final case is the one where the second player has moved and the first player then does not reveal. This is because the first player has realized he has lost or because he left the game.
 
@@ -1318,24 +1338,27 @@ Now the final case is the one where the second player has moved and the first pl
 - Second, this condition specifies after the deadline has passed. 
 - Finally, we transition to this finished state
 
+```haskell
 {-# INLINABLE final #-}
 final :: GameDatum -> Bool
 final Finished = True
 final _        = False
-
+```
 
 We then need to specify the final state. We set final finished ito true and everything else is false.
 
 
-
+```haskell
 {-# INLINABLE check #-}
 check :: BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 check bsZero' bsOne' (GameDatum bs (Just c)) (Reveal nonce) _ =
     sha2_256 (nonce `appendByteString` if c == Zero then bsZero' else bsOne') == bs
 check _       _      _                       _              _ = True
+```
 
 Then we left out the nonce check in the transition function because we could express that as a constraint, so we need to declare that here.
 
+```haskell
 {-# INLINABLE gameStateMachine #-}
 gameStateMachine :: Game -> BuiltinByteString -> BuiltinByteString -> StateMachine GameDatum GameRedeemer
 gameStateMachine game bsZero' bsOne' = StateMachine
@@ -1344,8 +1367,7 @@ gameStateMachine game bsZero' bsOne' = StateMachine
     , smCheck       = check bsZero' bsOne'
     , smThreadToken = Just $ gToken game
     }
-
-
+```
 
 Now we can define our state machine. We just provide the four fields that we just defined:
 
@@ -1354,23 +1376,28 @@ Now we can define our state machine. We just provide the four fields that we jus
 - Additional check 
 - Thread Token 
 
+```haskell
 {-# INLINABLE mkGameValidator #-}
 mkGameValidator :: Game -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 mkGameValidator game bsZero' bsOne' = mkValidator $ gameStateMachine game bsZero' bsOne'
+```
 
+- Our old  ```mkGameValidator``` can now be replaced by using the state machine and using the make validator ```gameStateMachine```.
 
-- Our old  mkGameValidator can now be replaced by using the state machine and using the make validator gameStateMachine.
-
+```haskell
 type Gaming = StateMachine GameDatum GameRedeemer
+```
 
+Our type gaming can just be state machine ```GameDatum```, ```GameRedeemer```.
 
-Our type gaming can just be state machine GameDatum, GameRedeemer.
-
+```haskell
 gameStateMachine' :: Game -> StateMachine GameDatum GameRedeemer
 gameStateMachine' game = gameStateMachine game bsZero bsOne
+```
 
 - Our two strings are provided with a second version of gameStateMachine, where we only have to specify the game and not these two strings.
 
+```haskell
 typedGameValidator :: Game -> Scripts.TypedValidator Gaming
 typedGameValidator game = Scripts.mkTypedValidator @Gaming
     ($$(PlutusTx.compile [|| mkGameValidator ||])
@@ -1380,92 +1407,105 @@ typedGameValidator game = Scripts.mkTypedValidator @Gaming
     $$(PlutusTx.compile [|| wrap ||])
   where
     wrap = Scripts.wrapValidator @GameDatum @GameRedeemer
+```
 
+- Now ```mkGameValidator``` has been defined here using the state machine mechanism, instead of doing it explicitly. The rest stay the same.
 
-
-- Now mkGameValidator has been defined here using the state machine mechanism, instead of doing it explicitly. The rest stay the same.
-
+```haskell
 gameClient :: Game -> StateMachineClient GameDatum GameRedeemer
 gameClient game = mkStateMachineClient $ StateMachineInstance (gameStateMachine' game) (typedGameValidator game)
+```
 
+- ```gameClient``` is a ```StateMachineClient```, and is what we need to interact with a state machine from our wallet, from our contract monad. In order to make a ```StateMachineClient```, we can use the ```mkStateMachineClient``` function,which takes a state machine instance to give us our game client. Now, the client can be used to interact with the state machine from off-chain code.
 
-- gameClient is a StateMachineClient, and is what we need to interact with a state machine from our wallet, from our contract monad. In order to make a StateMachineClient, we can use the mkStateMachineClient function,which takes a state machine instance to give us our game client. Now, the client can be used to interact with the state machine from off-chain code.
-
+```haskell
 mapError' :: Contract w s SMContractError a -> Contract w s Text a
 mapError' = mapError $ pack . show
+```
 
+- State machine contracts have a specific constraint on the error type. We want to do what we did in the last lectures and always use Text as a map errortype. In order to make those two fit together, we define this ```mapError’``` function, which uses the map error we have discussed before. It then turns an SM contract error into a text by showing the SM contract error and then picking the resulting string into a text.
 
-- State machine contracts have a specific constraint on the error type. We want to do what we did in the last lectures and always use Text as a map errortype. In order to make those two fit together, we define this mapError’ function, which uses the map error we have discussed before. It then turns an SM contract error into a text by showing the SM contract error and then picking the resulting string into a text.
-
+```haskell
 firstGame :: forall s. FirstParams -> Contract (Last ThreadToken) s Text ()
 firstGame fp = do
     pkh <- Contract.ownPaymentPubKeyHash
     tt  <- mapError' getThreadToken
-
+```
 
 - We need to get the thread token. In order to do that, we must identify a UTxO in our wallet that can be used for the minting of the NFT to make that a true NFT. Then we have to apply the mapError’ prime in order to convert it to text error messages. 
 
+```haskell
 void $ mapError' $ runInitialise client (GameDatum bs Nothing) v
+```
 
-
-
-- runInitialise given the client, a datum and the value. First, it will mint the NFT corresponding to this thread token.
+- ```runInitialise``` given the client, a datum and the value. First, it will mint the NFT corresponding to this thread token.
 - Then it will create a UTxO at the state machine address to start the state machine. Put the NFT in that UTxO to uniquely identify it, and the datum and value of that UTxO are given by these arguments here. Therefore we put it in the initial state we want whether the first player commits using this hash. The second player has not moved yet, and the first player puts down his stake. We again, have to use the mapError’ in order to adjust the error messages. 
 
+```haskell
 tell $ Last $ Just tt
-
+```
 
 - Here we need to communicate the thread token because the second player wants to find the game. Therefore, the second player must define this game. Part of that game is this thread token. The second player otherwise would have no way of knowing what the thread token is.
 
-
-
-
-
-
+```haskell
 m <- mapError' $ getOnChainState client
     case m of
         Nothing     -> throwError "game output not found"
         Just (o, _) -> case tyTxOutData $ ocsTxOut o of
+```
 
-
-- We then use getOnchainState. 
+- We then use ```getOnchainState```. 
 
 
 **getonChainState**
 
+```haskell
 getOnChainState :: (AsSMContractError e, FromData state, ToData state) => StateMachineClient state i -> Contract w schema e (Maybe (OnChainState state i, Map TxOutRef ChainIndexTxOut))
+
 Get the current on-chain state of the state machine instance. Return Nothing if there is no state on chain. Throws an SMContractError if the number of outputs at the machine address is greater than one.
+```
 
 **onChainState**
 
+```haskell
 data OnChainState s i
+
 Typed representation of the on-chain state of a state machine instance
+
 Constructors
 OnChainState
  
 ocsTxOut :: TypedScriptTxOut (StateMachine s i)
+
 Typed transaction output
+
 ocsTxOutRef :: TypedScriptTxOutRef (StateMachine s i)
+
 Typed UTXO
+
 ocsTx :: ChainIndexTx
+
 Transaction that produced the output
+```
 
 **TypedScriptTxOut**
 
+```haskell
 data TypedScriptTxOut a
+
 A TxOut tagged by a phantom type: and the connection type of the output.
 Constructors
+
 (FromData (DatumType a), ToData (DatumType a)) => TypedScriptTxOut
  
 tyTxOutTxOut :: TxOut
 tyTxOutData :: DatumType a 
+```
 
+- So by using ```getOnchainState``` client, we have this m which could be nothing if no output is found as before. If it does, we throw an error and now we get this on-chain state.
+- We are not interested in the reference only in the ```o``` itself. Then we use this ```tyTxOutData``` to directly access the datum.
 
-
-
--  So by using getOnchainState client, we have this m which could be nothing if no output is found as before. If it does, we throw an error and now we get this on-chain state.
-- We are not interested in the reference only in the o itself. Then we use this tyTxOutData to directly access the datum.
-
+```haskell
 GameDatum _ Nothing -> do
                 logInfo @String "second player did not play"
                 void $ mapError' $ runStep client ClaimFirst
@@ -1477,25 +1517,31 @@ GameDatum _ Nothing -> do
                 logInfo @String "first player revealed and won"
 
             _ -> logInfo @String "second player played and won"
+```
 
-
--  Now we immediately have the datum.
+- Now we immediately have the datum.
 - As before we have the two cases that the second player has or has not moved. 
-- The important function here is runStep.
+- The important function here is ```runStep```.
 
 **runStep**
 
+```haskell
 runStep
+
 :: forall w e state schema input. (AsSMContractError e, FromData state, ToData state, ToData input)
  
-=> StateMachineClient state input
+-> StateMachineClient state input
+
 The state machine
+
 -> input
+
 The input to apply to the state machine
+
 -> Contract w schema e (TransitionResult state input)
  
-
 Run one step of a state machine, returning the new state.
+```
 
 - runStep creates a transaction and submits it, that will transition the state machine. 
 
@@ -1512,6 +1558,8 @@ Running this file along with TestStateMachine.hs should yield exactly the same r
 The objective of the homework this week is to modify StateMachine.hs, and instead of a binary type game replace it with rock paper scissors (so now 3 options)
 
 Lar’s had given the initial code:
+
+```haskell
 data GameChoice = Rock | Paper | Scissors
     deriving (Show, Generic, FromJSON, ToJSON, ToSchema, Prelude.Eq, Prelude.Ord)
 
@@ -1539,12 +1587,14 @@ instance Eq GameDatum where
     GameDatum bs mc == GameDatum bs' mc' = (bs == bs') && (mc == mc')
     Finished        == Finished          = True
     _               == _                 = False
-
+```
 
 - The big change here is now we have 3 game choices to handle the three options of rock paper and scissors.
 - We specify the logic of power for which player will win using each combo of outcomes
 
 The biggest change in the core logic of the state machine transition, is the second case. This is because we need to now handle both winning and also a draw. If it is a draw, the money needs to be sent back to the players.
+
+```haskell
 (v, GameDatum _ (Just c), Reveal _ c')
         | (lovelaces v == (2 * gStake game)) &&
           (c' `beats` c)                         -> Just ( Constraints.mustBeSignedBy (gFirst game)                     <>
@@ -1559,11 +1609,11 @@ The biggest change in the core logic of the state machine transition, is the sec
                                                                                        (lovelaceValueOf $ gStake game)
                                                          , State Finished mempty
                                                          )
-
-
-
+```
 
 Alter the next functions to account for 3 game options now:
+
+```haskell
 check :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> GameDatum -> GameRedeemer -> ScriptContext -> Bool
 check bsRock' bsPaper' bsScissors' (GameDatum bs (Just _)) (Reveal nonce c) _ =
     sha2_256 (nonce `appendByteString` toBS c) == bs
@@ -1607,12 +1657,10 @@ typedGameValidator game = Scripts.mkTypedValidator @Gaming
     $$(PlutusTx.compile [|| wrap ||])
   where
     wrap = Scripts.wrapValidator @GameDatum @GameRedeemer
-
-
-
-
+```
 Lastly, we alter the client to handle the 3 options in firstGame:
 
+```haskell
 client = gameClient game
         v      = lovelaceValueOf (fpStake fp)
         c      = fpChoice fp
@@ -1621,10 +1669,11 @@ client = gameClient game
                     Paper    -> bsPaper
                     Scissors -> bsScissors
         bs     = sha2_256 $ fpNonce fp `appendByteString` y
+```
 
+**The final code should look like:**
 
-The final code should look like:
-
+```haskell
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
@@ -1925,28 +1974,11 @@ endpoints = awaitPromise (first `select` second) >> endpoints
   where
     first  = endpoint @"first"  firstGame
     second = endpoint @"second" secondGame
+```
 
+**Then we can create a test file to test the output:**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Then we can create a test file to test the output:
+```haskell
 
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -2041,5 +2073,5 @@ myTrace c1 c2 = do
         case m of
             Nothing -> getTT h
             Just tt -> Extras.logInfo ("read thread token " ++ show tt) >> return tt
-
+```
 
