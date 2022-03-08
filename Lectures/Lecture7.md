@@ -203,15 +203,15 @@ data Game = Game
     } deriving (Show, Generic, FromJSON, ToJSON, Prelude.Eq, Prelude.Ord)
 ```
 
-- gFirst and gSecond are the two players identified by their public key hashes.
+- ```gFirst``` and ```gSecond``` are the two players identified by their public key hashes.
 
-- gStake is an integer that denotes the number of lovelace that are to be used as stake in the game by each player.
+- ```gStake``` is an integer that denotes the number of lovelace that are to be used as stake in the game by each player.
 
-- gPlayDeadline is by what time the second player has to make a move before the first player can claim back his stake.
+- ```gPlayDeadline``` is by what time the second player has to make a move before the first player can claim back his stake.
 
--  gRevealDeadline is in the case that the second player has made a move, how much time the first player has to claim victory by revealing his nonce.
+-  ```gRevealDeadline``` is in the case that the second player has made a move, how much time the first player has to claim victory by revealing his nonce.
 
-- gToken is a record type of type asset class. This is an important and common technique that is used in a context like this. 
+- ```gToken``` is a record type of type asset class. This is an important and common technique that is used in a context like this. 
 
 
 So, often we have a situation where we have state in some form. In our case it is the game and as we saw in the diagram earlier, there are a couple of states:
@@ -509,7 +509,7 @@ Then to the hash we take the nonce concatenated with this byte string and apply 
 
 **nftToFirst:**
 
-```
+```haskell
 nftToFirst :: Bool
     nftToFirst = assetClassValueOf (valuePaidTo info $ unPaymentPubKeyHash $ gFirst game) (gToken game) == 1
 ```
@@ -1071,7 +1071,8 @@ We see the second player (one without NFT) won, as expected.
 
 
        So, what is a state machine? A state machine, normally it has nothing to do with blockchain in particular. It is a system you start in a certain state, and then there are one or more transitions to other states. There may also be some states that are special, in that they are so-called final states, meaning there are no possible ways out. There are no transitions that lead out of the final state.
-
+            
+![7 8](https://user-images.githubusercontent.com/59018247/157318615-c6bb3a0d-9b97-4cf5-aefa-999f91234f89.jpg)
 
 If we look again at the diagram we had earlier for how our game works, then we can consider that a state machine. The initial state would be where the first player has made the move. The state is basically characterized by the state owned by the hash. In this state, there are two possible transitions:
 
@@ -1080,30 +1081,25 @@ If we look again at the diagram we had earlier for how our game works, then we c
 
 All the nodes in this diagram correspond to states. Therefore, the errors, the edges of the graph; correspond to transitions. In the blockchain, the state machine will be represented by UTxO sitting at the state machine script address. The state of the state machine would be the datum of the UTxO and the transition will be a transaction that consumes the current state. Finally, using a trend redeemer that would then characterize the transition and then produce a new UTxO at the same address, where the datum now reflects the new state. 
 
-
- 
- 
- 
- 
- 
- 
- 
 Looking at the state machine documentation:
  
 **StateMachineClient**
 
+```haskell
 data StateMachineClient s i
 Client-side definition of a state machine.
 Constructors
 StateMachineClient
  
 scInstance :: StateMachineInstance s i
+
 The instance of the state machine, defining the machine's transitions, its final states and its check function.
 scChooser :: [OnChainState s i] -> Either SMContractError (OnChainState s i)
+
 A function that chooses the relevant on-chain state, given a list of all potential on-chain states found at the contract address.
 To write your contract as a state machine you need * Two types state and input for the state and inputs of the machine * A 'SM.StateMachineInstance state input' describing the transitions and checks of the state machine (this is the on-chain code) * A 'StateMachineClient state input' with the state machine instance and an allocation function
 In many cases it is enough to define the transition function t :: (state, Value) -> input -> Maybe (TxConstraints state) and use mkStateMachine and mkStateMachineClient to get the client. You can then use runInitialise and runStep to initialise and transition the state machine. runStep gets the current state from the utxo set and makes the transition to the next state using the given input and taking care of all payments.
-
+```
 
 
 
