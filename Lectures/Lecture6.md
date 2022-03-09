@@ -1704,7 +1704,7 @@ curl -X 'POST' \
 
 Now we want to use this script to mint tokens by activating this contract. 
 
-So the idea is, I give both the:
+So the idea is, we give both the:
 
 - Amount  
 - Token Name
