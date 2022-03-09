@@ -344,6 +344,13 @@ Head to week06 subfolder in the plutus pioneer directory. We need to first creat
 Terminal 6
 [nix-shell:~/plutus-pioneer-program/code/week06]$ ./migrate-pab.sh
 ```
+We first need to update the ./start-testnet-pab.sh script to handle the passphrase we picked for our wallet. 
+
+Open ./start-testnet-pab.sh to update and save the passphrase:
+
+
+![Screenshot 2022-03-08 10 13 57 PM](https://user-images.githubusercontent.com/59018247/157365851-5469402d-c7f0-4369-b85e-bd49e8c24712.png)
+
 
 We will now launch the PAB:
 
