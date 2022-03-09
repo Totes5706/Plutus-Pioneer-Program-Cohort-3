@@ -16,7 +16,7 @@ Google Doc version can be found [HERE](https://docs.google.com/document/d/15XIo3
   - [Table of Contents](#table-of-contents)
   - [Preparation for Lecture 6](#preparation-for-lecture-6)
     - [Syncing the Node](#syncing-the-node)
-    - [Wallet Backend Preparation](#wallet-backend-preperation)
+    - [Wallet Backend Preparation](#wallet-backend-preparation)
     - [Syncing the Chain Index](#syncing-the-chain-index)
     - [Launching the PAB](#launching-the-pab)
   - [Introduction](#introduction)
