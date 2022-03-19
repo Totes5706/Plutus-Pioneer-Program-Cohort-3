@@ -941,8 +941,7 @@ unitTests = testGroup "Unit tests"
   , testCase "List comparison (same length)" $
       [1, 2, 3] `compare` [1,2,2] @?= LT
   ]
-
-```haskell
+```
 
 As an example, you have a main program that uses default main and some tests. These tests are of type test tree; as the name suggests, a test tree is a tree of tests. You can group tests and have subgroups and sub subgroups.
 
@@ -1207,8 +1206,6 @@ If we reload and run this again, the test fails now which makes sense. Now the w
 ## Interlude: Optics
 
 
-
-   
 Before we get to the second way of testing Plutus contracts, we will take a brief look at optics and lenses.There are various competing optics libraries on Hackage, but the most prominent, and the most infamous one, and the one that the Plutus team decided to use is called Lens.
 
 https://hackage.haskell.org/package/lens
@@ -1217,9 +1214,7 @@ Lens is authored by Edward Kmett, who is probably the most prolific contributor 
 
 
 
-
-
-
+![optics](https://user-images.githubusercontent.com/59018247/159125566-c768fc45-7b41-4195-98a2-38185884b861.png)
 
 
 
@@ -1227,7 +1222,7 @@ Lens is authored by Edward Kmett, who is probably the most prolific contributor 
 This is a nice diagram with  some of the operations that  the lens library provides. Optics are about reaching deeply into hierarchical data types and inspecting parts that are deeply hidden in a data type and manipulate them.
 
 
-  
+```haskell 
 {-# LANGUAGE TemplateHaskell #-}
 
 module Week08.Lens where
@@ -1268,36 +1263,31 @@ makeLenses ''Address
 
 goTo' :: String -> Company -> Company
 goTo' there c = c & staff . each . address . city .~ there
-
-
-
+```
 
 Let's look at a very simple example that we provide in module Lens that shows the problem and how optics addressed that problem.
 
-
-
+```haskell
 newtype Company = Company {_staff :: [Person]} deriving Show
-
-
-
-
+```
 So let's look at the company data type. It's just a newtype wrapper around a list of persons with the accessor called staff. We provide an underscore in front of staff that has no semantic meaning, when dealing with lenses; it's just convention to call fields with a leading underscore.Then we have this company  type wrapper around persons.
 
+```haskell
 data Person  = Person
     { _name    :: String
     , _address :: Address
     } deriving Show
+```
 
+Then ```Person``` has the record type with two fields, name and address. Where name is just a string and address is of type address, again, following this convention to use underscores in front of names.
 
-
-Then Person has the record type with two fields, name and address. Where name is just a string and address is of type address, again, following this convention to use underscores in front of names.
-
+```haskell
 newtype Address = Address {_city :: String} deriving Show
+```
 
+Finally, address is yet another newtype wrapper around a string with an accessor called ```_city```. 
 
-
-Finally, address is yet another newtype wrapper around a string with an accessor called _city. 
-
+```haskell
 alejandro, lars :: Person
 alejandro = Person
   {  _name    = "Alejandro"
@@ -1310,12 +1300,11 @@ lars = Person
 
 iohk :: Company
 iohk = Company { _staff = [alejandro, lars] }
-
-
-
+```
 
 And just as an example, we define two people, Alejandro and Lars with name and address. Finally, we define a company where the staff consists of these two persons.
 
+```haskell
 goTo :: String -> Company -> Company
 goTo there c = c {_staff = map movePerson (_staff c)}
   where
@@ -1327,15 +1316,16 @@ makeLenses ''Address
 
 goTo' :: String -> Company -> Company
 goTo' there c = c & staff . each . address . city .~ there
+```
 
-
-The task is to write a simple function, goTo, that gets a String as argument along with a Company. The function should create a new company which it gets by changing all the cities of all the staff of the company with the given string.
+The task is to write a simple function, ```goTo```, that gets a String as argument along with a Company. The function should create a new company which it gets by changing all the cities of all the staff of the company with the given string.
 If we apply that to iohk with a string argument of Athens, then we should get a Company with the same two Persons, but now both of those Persons have a city of Athens.
 You don't need any advanced Haskell to achieve this, but it's a bit messy, even in this simple example. The function below uses record syntax to modify specific fields of records, while leaving the other fields the same.
-The helper function movePerson updates the _address field of the Person p, and the _city field of that Address, and the main part of the function maps the movePerson function over each member of _staff.
+The helper function movePerson updates the ```_address``` field of the Person ```p```, and the ```_city``` field of that Address, and the main part of the function maps the movePerson function over each member of ```_staff```.
 
 We can  try this out in the repl:
 
+```haskell
 Prelude Main> :l src/Week08/Lens.hs
 
 Prelude Week08.Lens> iohk 
@@ -1347,37 +1337,29 @@ Prelude Test.Tasty Spec.Trace> goTo "Athens" iohk
 
 Output:
 Company {_staff = [Person {_name = "Alejandro", _address = Address {_city = "Athens"}},Person {_name = "Lars", _address = Address {_city = "Athens"}}]}
-
-
-
+```
 
 So, dealing with nested record types, even though it is quite simple conceptually, can be quite messy.
-This is what optics try to make easier with the idea of providing first-class field accessors. In the end it\'s very similar to dealing with such data types in an imperative language such as C# or Java.
+This is what optics try to make easier with the idea of providing first-class field accessors. In the end it's very similar to dealing with such data types in an imperative language such as C# or Java.
 We saw in lecture four how monads can be viewed as a programmable semi-colon, where the semi-colon is the statement separator in many imperative languages. In a similar way, optics can be thought of as providing a programmable dot, where a dot is the accessor dot as in Python or Java.
 You could implement lenses by hand, but the lens library provides some Template Haskell magic to do it automatically, so long as we follow the underscore convention mentioned above.
 
-
+```haskell
 makeLenses ''Company
 makeLenses ''Person
 makeLenses ''Address
-
-
+```
 
 So we added these make lenses company, make lenses person, make lenses address. The names of the lenses will be the names of the original fields without the underscore. The fields will have the  underscore and the lenses won't.
 
-
-
-
-
 There's a way to inspect what code template Haskell writes at compile time from the repl.
 
+```haskell
 Prelude Week08.Lens> :set -ddump-splices
+```
+For that, you can activate a  flag called ```--ddump-splices```. Then, reload the module. If nothing happens, you'll need to make a minor change to the code, perhaps by adding some whitespace, before reloading.
 
-
-
-For that, you can activate a  flag called --ddump-splices. Then, reload the module. If nothing happens, you'll need to make a minor change to the code, perhaps by adding some whitespace, before reloading.
-
-
+```haskell
 Prelude Week08.Lens> :r
 
 Output:
@@ -1404,23 +1386,21 @@ src/Week08/Lens.hs:37:1-20: Splicing declarations
     city :: Iso' Address String
     city = (iso (\ (Address x_abFw) -> x_abFw)) Address
     {-# INLINE city #-}
-
-
-
-
+```
 
 This now shows us what Template Haskell does.
 
-We see that makeLenses for Company creates a function staff, which returns an Iso' - a type of optic - from Company to [Person].
+We see that ```makeLenses``` for Company creates a function staff, which returns an Iso' - a type of optic - from Company to [Person].
 
-For makeLenses Person we get an address function which returns a Lens' from Person to Address, and we also get a name lens from Person to String.
+For ```makeLenses Person``` we get an address function which returns a Lens' from Person to Address, and we also get a name lens from Person to String.
 
-For makeLenses Address we get a city function which returns an Iso' from Address to String.
+For ```makeLenses Address``` we get a city function which returns an Iso' from Address to String.
 
 Iso and Lens are two different types of optics but the order of type arguments is always the same. You always have two type arguments, at least for these primed versions (there are more general optics which take four type parameters). The first argument is always the big data type and the second parameter is the part you are zooming into. The name optics relates to the mental image of zooming into a datatype.
 
 Let's try them out in the repl.
 
+```haskell
 Prelude Week08.Lens> lars
 
 Output:
@@ -1438,66 +1418,69 @@ Prelude Control.Lens Week08.Lens> lars ^. address
 
 Output:
 Address {_city = "Regensburg"}
-
-
-
-
+```
 
 The & symbol here is function application, but the other way around - the argument comes first and then the function.
 Again, we can compose.
+
+```haskell
 Prelude Control.Lens Week08.Lens> lars & address . city .~ "Munich"
 
 Output:
 Person {_name = "Lars", _address = Address {_city = "Munich"}}
-
+```
 
 There is another type of optics called Traversables, that zooms not only into one field, but into many simultaneously. If you had a list it would zoom into each element. So, for example, we could use a list of integers, with the each traversable that works with many container types, including lists, and set every element to 42.
+
+```haskell
 Prelude Control.Lens Week08.Lens> [1 :: Int, 3, 4] & each .~ 42
 
 Output:
 [42,42,42]
-
+```
 
 You may see a type-defaults warning when you run the above, but it is removed here.
 A cool thing is that various types of lenses can be combined, again with the dot operator. For example
+
+```haskell
 Prelude Control.Lens Week08.Lens> iohk & staff . each . address . city .~ "Athens"
 
 Output:
 Company {_staff = [Person {_name = "Alejandro", _address = Address {_city = "Athens"}},Person {_name = "Lars", _address = Address {_city = "Athens"}}]}
+```
 
+And this is exactly what our goTo function achieved, so we can write ```goTo'``` as
 
-And this is exactly what our goTo function achieved, so we can write goTo\' as
+```haskell
 goTo' :: String -> Company -> Company
 goTo' there c = c & staff . each . address . city .~ there
-
+```
 
 And this is actually what we did when we configured our test.
+
+```haskell
 tests :: TestTree
 tests = checkPredicateOptions
     (defaultCheckOptions & emulatorConfig .~ emCfg)
+```
+
+The function ```defaultCheckOptions``` is of type ```CheckOptions``` and there is a lens from ```CheckOptions``` to ```emulatorConfig```, and this is the part that we wanted to change.
+
+That concludes our brief excursion into optics and lenses.
 
 
-The function defaultCheckOptions is of type CheckOptions and there is a lens from CheckOptions to EmulatorConfig, and this is the part that we wanted to change.
-And that concludes our brief excursion into optics and lenses.
-
-
-
-
-
-
-
-Property Based Testing with QuickCheck
-
-
+## Property Based Testing with QuickCheck
 
 
 Property Based Testing is quite a revolutionary approach to testing that is much more powerful than simple unit testing. It originated from Haskell, which with its pureness and immutable data structures, is particularly suited to this approach. It has now been copied by almost all other programming languages.
+
 QuickCheck
+
 One of the inventors of QuickCheck, which is the most prominent and was the first library using this approach, is John Hughes, who is also one of the original inventors of Haskell. He and his company work with IOHK to provide special support for this approach to testing Plutus contracts.
 Before we look at using QuickCheck for Plutus contracts, let's first look at its use for pure Haskell programs.
 Property based testing subsumes unit tests. Let's write a very simple and silly unit test.
 
-
+```haskell
 module Week08.QuickCheck where
 
 prop_simple :: Bool
@@ -1535,74 +1518,77 @@ prop_sort_sorts xs = isSorted $ sort xs
 
 prop_sort_preserves_length :: [Int] -> Bool
 prop_sort_preserves_length xs = length (sort xs) == length xs
-
-
-
+```
 
 But before we go to that, let's first look at vanilla quick check for pure Haskell programs. In particular property-based testing subsumes unit tests, so unit tests are just a special case.
 
+```haskell
 prop_simple :: Bool
 prop_simple = 2 + 2 == (4 :: Int)
+```
+After loading this module, and the Test.QuickCheck module, we can test our unit test in the repl.
 
-
-
-After loading this module, and the Test.QuickCheck module, we can test our unit test in the REPL.
-
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> quickCheck prop_simple
 
 Output:
 +++ OK, passed 1 test.
-
+```
 
 This is not very exciting. For a more interesting example, the same module contains a buggy implementation of an insertion sort.
 
+```haskell
 sort :: [Int] -> [Int] -- not correct
 sort []     =  []
 sort (x:xs) =  insert x $ sort xs
-
-
+```
 
 Now to see a more interesting example, here's a implementation of a sort function, sorting list of integers. This is using insertion sort, which of course is not very efficient. 
-The idea of insertion sort is you sort the tail of the list and then insert the head of the list at the right position.  This is a buggy implementation.
 
+The idea of insertion sort is you sort the tail of the list and then insert the head of the list at the right position. This is a buggy implementation.
+
+```haskell
 isSorted :: [Int] -> Bool
 isSorted []           = True
 isSorted [_]          = True
 isSorted (x : y : ys) = x <= y && isSorted (y : ys)
-
-
+```
 
 And in order to test it, for example, a property that we could test would be after applying sort to a list of integers; the resulting list is sorted.
 
+```haskell
 prop_sort_sorts :: [Int] -> Bool
 prop_sort_sorts xs = isSorted $ sort xs
+```
 
 Using this, we can now provide a QuickCheck property that is not just simply of type Bool, but instead is a function from a list of Ints to Bool.
 
-
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> quickCheck prop_sort_sorts 
 
 Output:
 *** Failed! Falsified (after 8 tests and 4 shrinks):    
 [0,0,-1]
-
+```
 
 It fails, and gives us an example where the property does not hold. We can test that example.
 
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> sort [0, 0, -1]
 
 Output:
 [0,-1]
-
+```
 
 And can see that, indeed, it is not correct.
 
 How does QuickCheck do this? If you provide a function with one or more arguments, it will generate random arguments for the function. In our example, QuickCheck has generated 100 random lists of integers and, for each of those lists, has checked whether the property holds, until it hit a failure.
 
-Note that the failure was reported as
+Note that the failure was reported as:
 
+```haskell
 *** Failed! Falsified (after 8 tests and 4 shrinks):    
-
+```
 
 This means that after 8 tests the property was falsified, but at this point, rather than just report the failure, it has tried to shrink it - to simplify it.
 
@@ -1612,6 +1598,7 @@ It is this combination of random test generation and shrinking that makes QuickC
 
 We can see what type of random lists QuickCheck generates.
 
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> sample (arbitrary :: Gen [Int])
 
 Output:
@@ -1626,10 +1613,11 @@ Output:
 [12,-7,-9,9,-11,-15,5,-10,-7,4,8,8,-12,-6,16]
 [-11,11,-1,-6]
 [14,2,-5,9,13,-8,-8,-17,-1,-11,-19,15,9,8,-19,-4,16,4,4,19]
-
+```
 
 The way QuickCheck does this random generation is by using a type class called Arbitrary
 
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> :i Arbitrary
 
 
@@ -1638,27 +1626,35 @@ type Arbitrary :: * -> Constraint
 class Arbitrary a where
   arbitrary :: Gen a
   shrink :: a -> [a]
+```
 
 There are many more lines to the above output, but the important ones are shown. We can see that it has two methods. One is called arbitrary and one is called shrink.
-Gen is yet another monad. The monad provides various methods that allow for random number generation for values of type a.
-The second method is shrink, which, when given an a will provide a list of simpler versions of a. This, of course, depends on the type of a.
+```Gen``` is yet another monad. The monad provides various methods that allow for random number generation for values of type ```a```.
+The second method is shrink, which, when given an a will provide a list of simpler versions of ```a```. This, of course, depends on the type of ```a```.
 If we look at the output above that provides some random integer lists, we see something interesting. The further we go down the list, the more complicated the list becomes. The first is just the empty list, then we get single-element lists, then some longer lists, and it tends towards greater complexity over time.
-In addition to just providing random generation in the Gen monad, there is also a concept of complexity. If you implement an instance of Gen you are expected not only to generate a random a but also a random a of some given complexity.
+In addition to just providing random generation in the ```Gen``` monad, there is also a concept of complexity. If you implement an instance of ```Gen``` you are expected not only to generate a random a but also a random a of some given complexity.
 When QuickCheck checks a property, it starts with simple, random arguments, then makes them more complex over time. By default it tests 100 random arguments, but this can be configured.
+
 Now that we know that our code fails, let’s try to fix it.
+
+```haskell
 sort :: [Int] -> [Int] -- not correct
 sort []     =  []
 sort (x:xs) =  insert x xs
-
+```
 
 The problem is that all we do for a non-empty list is to insert the first element into the tail, but we don't recursively sort the tail.
-Our first attempt to fix...
+Our first attempt to fix:
+
+```haskell
 sort :: [Int] -> [Int]
 sort []     =  []
 sort (x:xs) =  insert x $ sort xs
+```
 
+Now, when we test this:
 
-Now, when we test this...
+```haskell
 Prelude Control.Lens Test.QuickCheck> :r
 
 
@@ -1669,69 +1665,63 @@ Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> quickCheck prop_sort_sor
 
 Output:
 +++ OK, passed 100 tests.
+```
 
+It passes. However, if we test specifically for the case that failed previously:
 
-It passes. However, if we test specifically for the case that failed previously...
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> sort [0, 0, -1]
 
 Output:
 [-1,0]
+```
 
-
-It is clearly not correct. Even though the list has been sorted, the length of the list has changed. This leads to an important point. QuickCheck can\'t do magic - its results are only as good as the properties we provide. What we see here is that our property prop_sort_sorts is not strong enough to test if the function is correct.
+It is clearly not correct. Even though the list has been sorted, the length of the list has changed. This leads to an important point. QuickCheck can't do magic - its results are only as good as the properties we provide. What we see here is that our property prop_sort_sorts is not strong enough to test if the function is correct.
 
 We can add a second property that checks the length.
 
+```haskell
 prop_sort_preserves_length :: [Int] -> Bool
 prop_sort_preserves_length xs = length (sort xs) == length xs
-
+```
 
 And we find that this property is not satisfied by our code.
 
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> quickCheck prop_sort_preserves_length
 *** Failed! Falsified (after 4 tests and 3 shrinks):    
 [0,0]
-
+```
 
 The bug in our code is in the insert function.
 
+```haskell
 insert :: Int -> [Int] -> [Int] -- not correct
 insert x []                     =  [x]
 insert x (y:ys)  | x <= y       =  x : ys
                  | otherwise    =  y : insert x ys
+```
 
+We say here that, if ```x``` is less or equal to ```y```, then we append ```x``` to ```ys```, but we have forgotten about the ```y```. It should read:
 
-We say here that, if x is less or equal to y, then we append x to ys, but we have forgotten about the y. It should read:
-
+```haskell
 insert x (y:ys)  | x <= y       =  x : y : ys
+```
 
+This should fix it:
 
-This should fix it.
-
+```haskell
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> :r
 Prelude Control.Lens Test.QuickCheck Week08.QuickCheck> quickCheck prop_sort_preserves_length
 +++ OK, passed 100 tests.
-
+```
 
 Of course, this is still not proof that our function is correct, because these two properties are still not enough to specify a sorting function fully. For example, the sorting function could return a list of the same length containing only zeroes. This would pass all tests. It is quite an art to find properties to guarantee that, if they are all satisfied, there is no bug.
 
 Even so, this approach to testing is often more effective than unit testing as it can test a huge number of random cases and can find examples of failure which a programmer writing a unit test may not have thought of.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Property Based Testing of Plutus Contracts
+## Property Based Testing of Plutus Contracts
 
 
 
