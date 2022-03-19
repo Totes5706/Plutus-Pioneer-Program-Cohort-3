@@ -349,7 +349,7 @@ useEndpoints :: TokenSale -> Contract () TSUseSchema Text ()
 useEndpoints = useEndpoints'
 ```
 
-And the first definition here is called token sale:
+And the first definition here is called ```TokenSale```:
 
 ```haskell
 data TokenSale = TokenSale
