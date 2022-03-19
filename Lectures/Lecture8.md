@@ -359,52 +359,35 @@ data TokenSale = TokenSale
     } deriving (Show, Generic, FromJSON, ToJSON, Prelude.Eq)
 ```
 
+It parameterizes this ```TokenSale```, so it is a record type with three fields.
 
+- First, the PaymentPubKeyHash of the seller ```tsSeller```
+- Then an asset class called ```tsToken```, that is the token being sold.
+- Finally, ```tsTT``` of type thread token used by the state machine to carry the state
 
-It parameterizes this TokenSale, so it is a record type with three fields.
-
-- First, the PaymentPubKeyHash of the seller
-- Then an asset class called TS token, that is the token being sold.
-- Finally, tsTT of type thread token used by the state machine
-
-
-
-
-
-
-
+```haskell
 data TSRedeemer =
       SetPrice Integer
     | AddTokens Integer
     | BuyTokens Integer
     | Withdraw Integer Integer
     deriving (Show, Prelude.Eq)
+```
+For ```TSRedeemer```, we provide exactly the operations we saw in the diagram.
 
+- ```SetPrice``` to a new value, this is the token price in lovelace.
+- ```AddTokens```, where the argument gives the amount of tokens to add.
+- ```BuyTokens```, where the argument gives the amount of tokens to buy.
+- Finally, ```Withdraw```. In this case, the first one is how many tokens to withdraw. The second one is how many lovelaces to withdraw.
 
-
-
-
-For TSRedeemer, we provide exactly the operations we saw in the diagram.
-
-- SetPrice to a new value, this is the token price in lovelace.
-- AddTokens, where the argument gives the amount of tokens to add.
-- BuyTokens, where the argument gives the amount of tokens to buy.
-- Finally, Withdraw. In this case, the first one is how many tokens to withdraw. The second one is how many lovelaces to withdraw.
-
-
+```haskell
 {-# INLINABLE lovelaces #-}
 lovelaces :: Value -> Integer
 lovelaces = Ada.getLovelace . Ada.fromValue
+```
+- ```lovelaces``` is that, given the value  it extracts the amount of lovelaces.
 
-
-
-- lovelace is that, given the value  it extracts the amount of lovelaces.
-
-
-
-
-
-
+```haskell
 {-# INLINABLE transition #-}
 transition :: TokenSale -> State Integer -> TSRedeemer -> Maybe (TxConstraints Void Void, State Integer)
 transition ts s r = case (stateValue s, stateData s, r) of
@@ -430,74 +413,66 @@ transition ts s r = case (stateValue s, stateData s, r) of
                                                     )
     _                                       -> Nothing
 
-
-
-
-
-
+```haskell
 {-# INLINABLE transition #-}
 transition :: TokenSale -> State Integer -> TSRedeemer -> Maybe (TxConstraints Void Void, State Integer)
 transition ts s r = case (stateValue s, stateData s, r) of
+```
 
+Now we look at the ```transition``` function of the state machine. 
 
-
-Now we look at the transition function of the state machine. 
-
-- The first argument is the parameter 
-- We get this state and in this case for datum we will use integer
+- The first argument ```TokenSale``` is the parameter 
+- We get the state and in this case for datum we will use integer
 - The price of the token and the redeemer.
 - Then we must return a maybe constrained state, so we return nothing if the corresponding transition is illegal. Then we must provide the constraints and the new state which contains the datum and the value.
 Similar to last time we split this given state into the value and the datum.
 
 
-
+```haskell
 (v, _, SetPrice p)   | p >= 0           -> Just ( Constraints.mustBeSignedBy (tsSeller ts)
                                                     , State p v
                                                     )
+```
 
+The first case is ```SetPrice```.
 
-The first case is SetPrice.
-
-- The seller wants to set the price to the new value p. We only allow that when the price is non-negative.
+- The seller wants to set the price to the new value ```p```. We only allow that when the price is non-negative.
 - In that case, the transition is allowed if the transaction has been signed by the seller. 
-- The new datum should be p, the value given here in the redeemer. This value should not change.
-- The v is the old value.
+- The new datum should be ```p```, the value given here in the redeemer. This value should not change.
+- The ```v``` is the old value.
 
 
-
+```haskell
 (v, p, AddTokens n)  | n > 0            -> Just ( mempty
                                                     , State p $
                                                       v                                       <>
                                                       assetClassValue (tsToken ts) n
                                                     )
+```
 
+The second case is ```AddTokens```.
 
-
-
-The second case is AddTokens.
-
-- The amount of tokens to add is positive.So not negative and also 
+- The amount of tokens to add is positive
 - In this case, there is no constraint
 - The new state, where the price doesn't change but the value changes by this amount of tokens
 
+```haskell
  (v, p, BuyTokens n)  | n > 0            -> Just ( mempty
                                                     , State p $
                                                       v                                       <>
                                                       assetClassValue (tsToken ts) (negate n) <>
                                                       lovelaceValueOf (n * p)
+```
 
-
-
-
-
-The third case is BuyTokens.
+The third case is ```BuyTokens```.
 
 - There is no constraint, any person can buy tokens.
 - In the new state, the price again does not change. The value changes, so we have the original value.
 - We subtract the amount of tokens that are bought, which again is a positive number. You can only buy a positive number of tokens.
-- Price is just the lovelace value of the amount of tokens multiplied by the current price which is this p.
+- Price is just the lovelace value of the amount of tokens multiplied by the current price which is this ```p```.
 
 
+```haskell
 (v, p, Withdraw n l) | n >= 0 && l >= 0 -> Just ( Constraints.mustBeSignedBy (tsSeller ts)
                                                     , State p $
                                                       v                                       <>
@@ -505,29 +480,25 @@ The third case is BuyTokens.
                                                       lovelaceValueOf (negate l)
                                                     )
 
-
-
-
-
-The fourth case we have the  Withdraw operation.
+```
+The fourth case we have the ```Withdraw``` operation.
 
 - Both amounts are greater or equal zero.
 - In this case, it  does have to be signed by the seller; because only the seller wants to be allowed to withdraw from the contract
 - In the new state, again the price doesn't change
 - All other transitions are illegal, so in all other cases we return nothing in the transition function.
 
+```haskell
 {-# INLINABLE tsStateMachine #-}
 tsStateMachine :: TokenSale -> StateMachine Integer TSRedeemer
 tsStateMachine ts = mkStateMachine (Just $ tsTT ts) (transition ts) (const False)
-
-
+```
 
 Now that we have the transition function, we can easily define our state machine. In this case we can use a smart constructor called make state machine.
 
 The idea is that once this token sale state machine has been started it will run forever, there is no operation to stop it again. This gives us our state machine.
 
-
-
+```haskell
 {-# INLINABLE mkTSValidator #-}
 mkTSValidator :: TokenSale -> Integer -> TSRedeemer -> ScriptContext -> Bool
 mkTSValidator = mkValidator . tsStateMachine
@@ -549,34 +520,30 @@ tsAddress = scriptAddress . tsValidator
 
 tsClient :: TokenSale -> StateMachineClient Integer TSRedeemer
 tsClient ts = mkStateMachineClient $ StateMachineInstance (tsStateMachine ts) (tsTypedValidator ts)
-
-
+```
 
 - We can turn the state machine into a validator function like we saw last time.
 - Then we get our typed validator with the usual template Haskell.
 - From that we get the validator and the address.
 - We can also as we saw last time easily define the state machine client, which is used to interact with the state machine from off-chain code, from the wallet.
 
-
+```haskell
 tsCovIdx :: CoverageIndex
 tsCovIdx = getCovIdx $$(PlutusTx.compile [|| mkTSValidator ||])
+```
 
+The next piece here is ```tsCovIdx```, which stands for coverage index. As the name suggests, it is for getting coverage information for tests.
 
-
-The next piece here is tsCovIdx, which stands for coverage index. As the name suggests, it is for getting coverage information for tests.
-
-
-
+```haskell
 mapErrorSM :: Contract w s SMContractError a -> Contract w s Text a
 mapErrorSM = mapError $ pack . show
-
-
+```
 
 Then we need one helper function that's also similar to last time, because we want to use these operations from the state machine library. 
 
-- They use their own custom error type, SMContractError.
+- They use their own custom error type, ```SMContractError```.
 
-
+```haskell
 startTS :: AssetClass -> Contract (Last TokenSale) s Text ()
 startTS token = do
     pkh <- Contract.ownPaymentPubKeyHash
@@ -590,24 +557,20 @@ startTS token = do
     void $ mapErrorSM $ runInitialise client 0 mempty
     tell $ Last $ Just ts
     logInfo $ "started token sale " ++ show ts
+```
 
+Now, let's look at the off-chain code. The first function we have is called ```startTS```, start token sale; and it takes one parameter.
 
+- It does not have a result, but it uses writer functionality with ```Last TokenSale```.
 
+First, we ask for our ```ownPaymentPubKeyHash```.
 
-
-Now, let's look at the off-chain code. The first function we have is called startTS, start token sale; and it takes one parameter.
-
-- It does not have a result, but it uses writer functionality with Last TokenSale.
-
-First, we ask for our ownPaymentPubKeyHash.
-
-- Then we use the get thread token function getThreadToken.
-- We have to use this mapErrorSm function to convert the error to text.
+- Then we use the get thread token function ```getThreadToken```.
+- We have to use this ```mapErrorSm``` function to convert the error to text.
 
 So with these two pieces of information, we can define a value of type token sale.
 
-
-
+```haskell
 setPrice :: TokenSale -> Integer -> Contract w s Text ()
 setPrice ts p = void $ mapErrorSM $ runStep (tsClient ts) $ SetPrice p
 
@@ -619,20 +582,18 @@ buyTokens ts n = void $ mapErrorSM $ runStep (tsClient ts) $ BuyTokens n
 
 withdraw :: TokenSale -> Integer -> Integer -> Contract w s Text ()
 withdraw ts n l = void $ mapErrorSM $ runStep (tsClient ts) $ Withdraw n l
-
-
-
+```
 
 Now we have simple functions corresponding to the various actions: 
 
-- setPrice
-- addTokens
-- buyTokens
-- withdraw
+- ```setPrice```
+- ```addTokens```
+- ```buyTokens```
+- ```withdraw```
 
-All we have to do is runStep and provide the client and the action we want to take. In every case, we have to use this mapErrorSM to convert the error messages accordingly.
+All we have to do is ```runStep``` and provide the client and the action we want to take. In every case, we have to use this ```mapErrorSM``` to convert the error messages accordingly.
 
-
+```haskell
 type TSStartSchema =
         Endpoint "start"      (CurrencySymbol, TokenName)
 type TSUseSchema =
@@ -640,10 +601,7 @@ type TSUseSchema =
     .\/ Endpoint "add tokens" Integer
     .\/ Endpoint "buy tokens" Integer
     .\/ Endpoint "withdraw"   (Integer, Integer)
-
-
-
-
+```
 Now we can bundle everything up, so we define two schemas:
 
 - One to start the token sale  
@@ -656,6 +614,7 @@ The start schema only has one endpoint that we called start. For use, we again h
 - buy tokens takes the amount of tokens to buy as an argument.
 - withdraw takes a pair of integers; the amount of tokens we want to withdraw and the amount of lovelace we want to withdraw.
 
+```haskell
 startEndpoint :: Contract (Last TokenSale) TSStartSchema Text ()
 startEndpoint = forever
               $ handleError logError
@@ -678,33 +637,29 @@ useEndpoints' ts = forever
     addTokens' = endpoint @"add tokens" $ addTokens ts
     buyTokens' = endpoint @"buy tokens" $ buyTokens ts
     withdraw'  = endpoint @"withdraw"   $ Prelude.uncurry $ withdraw ts
-
+```
 
 
 Then we can define startEndpoint and useEndpoints that now use these schemas.
 
+```haskell
 runMyTrace :: IO ()
 runMyTrace = runEmulatorTraceIO' def emCfg myTrace
-
-
-
+```
 
 In order to try it out, let's first use the emulator as we did before.So we define a run my trace function that again uses run emulator trace IO' with a custom emulator configuration and my trace.
 
+```haskell
 emCfg :: EmulatorConfig
 emCfg = EmulatorConfig (Left $ Map.fromList [(knownWallet w, v) | w <- [1 .. 3]]) def def
   where
     v :: Value
     v = Ada.lovelaceValueOf 1_000_000_000 <> assetClassValue token 1000
-
-
-
-
+```
 
 Let's first look at the custom emulator configuration where we specify an initial distribution. This does not only give ADA to the wallets, but also another token.The idea is every wallet gets 1000 ADA and 1000 tokens.
 
-
-
+```haskell
 myTrace :: EmulatorTrace ()
 myTrace = do
     h <- activateContractWallet w1 startEndpoint
@@ -744,7 +699,7 @@ checkPredicateOptionsCoverage :: CheckOptions
 checkPredicateOptionsCoverage options nm (CoverageRef ioref) predicate action =
     HUnit.testCaseSteps nm $ \step -> do
         checkPredicateInner options predicate action step (HUnit.assertBool nm) (\rep -> modifyIORef ioref (rep<>))
-
+```
 
 Now for the trace.
 
@@ -754,12 +709,12 @@ Now for the trace.
 
 Then there are two possibilities:
 
-- m is nothing, in which case the token sale hasn't started yet or something went wrong so we log an error message.
-- The other possibility, we do get our ts of type token sale.
+- ```m``` is nothing, in which case the token sale hasn't started yet or something went wrong so we log an error message.
+- The other possibility, we do get our ```ts``` of type token sale.
 
 Now we can start the use endpoints which are parameterized by ts value. We need to know ts in order to start the use endpoints.
 
-We start them on all three wallets, one two three.And then we call various endpoints.
+We start them on all three wallets, one two three. Then we call various endpoints.
 
 - The first, wallet one sets the price to 1 ADA.
 
@@ -783,6 +738,7 @@ So originally there were 100 tokens; 25 tokens have been bought that leaves 75 t
 
 Trying this out in the repl:
 
+```haskell
 cabal repl plutus-pioneer-program-week08:test:plutus-pioneer-program-week08-tests
 
 Output:
@@ -795,18 +751,18 @@ Ok, one module loaded.
 
 Prelude Spec.Trace> runMyTrace
 
-
 Output:
 
 Slot 00000: TxnValidate 2125c8770581c6140c3c71276889f6353830744191de0184b6aa00b185004500
 Slot 00000: SlotAdd Slot 1
 Slot 00001: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
   Contract instance started
-
+```
 
 
 The first endpoint call is to start. This creates three transactions; two of these are from the forge contract to create the NFT, and the third one is to set up our initial UTxO for the token sale.
 
+```
 Slot 00001: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
   Receive endpoint call: Object (fromList [("tag",String "start"),("value",Object (fromList [("unEndpointValue",Array [Object (fromList [("unCurrencySymbol",String "aa")]),Object (fromList [("unTokenName",String "A")])])]))])
 Slot 00001: W1: TxSubmit: cccba8b2abc3e82a735735c2346aa3fcac58152f17854b1745306e5b63a0b965
@@ -821,10 +777,11 @@ Slot 00003: SlotAdd Slot 4
 Slot 00004: *** CONTRACT LOG: "started token sale TokenSale {tsSeller = 21fe31dfa154a261626bf854046fd2271b7bed4b6abe45aa58877ef47f9721b9, tsToken = (aa,\"A\"), tsNFT = (65b4199f7d025bfb3b065b0fb88a77d694ffd849ff740b1a4cc453bfaab30f55,\"NFT\")}"
 Slot 00004: SlotAdd Slot 5
 Slot 00005: SlotAdd Slot 6
-
+```
 
 We successfully read the TokenSale value from the observable state, and start the three contract instances for the use contract.
 
+```
 Slot 00006: 00000000-0000-4000-8000-000000000000 {Contract instance for wallet 1}:
   Sending contract state to Thread 0
 Slot 00006: SlotAdd Slot 7
@@ -835,10 +792,11 @@ Slot 00007: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 2
   Contract instance started
 Slot 00007: 00000000-0000-4000-8000-000000000003 {Contract instance for wallet 3}:
   Contract instance started
-
+```
 
 Then we set the price.
 
+```
 Slot 00007: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 1}:
   Receive endpoint call: Object (fromList [("tag",String "set price"),("value",Object (fromList [("unEndpointValue",Number 1000000.0)]))])
 Slot 00007: W1: TxSubmit: 2de6dd820e6939b4b1f9e162c0e2cc878cc38ea1231a9be610315da4eda06714
@@ -848,13 +806,11 @@ Slot 00008: SlotAdd Slot 9
 Slot 00009: SlotAdd Slot 10
 Slot 00010: SlotAdd Slot 11
 Slot 00011: SlotAdd Slot 12
-
+```
 
 Then add some tokens.
 
-
-
-
+```
 Slot 00012: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 1}:
   Receive endpoint call: Object (fromList [("tag",String "add tokens"),("value",Object (fromList [("unEndpointValue",Number 100.0)]))])
 Slot 00012: W1: TxSubmit: 42f1bebe285d1ea23bd90683d110866bb438eede8ef62eaf5e9e3d65eec18e90
@@ -864,13 +820,11 @@ Slot 00013: SlotAdd Slot 14
 Slot 00014: SlotAdd Slot 15
 Slot 00015: SlotAdd Slot 16
 Slot 00016: SlotAdd Slot 17
-
+```
 
 Then the two buys initiated by Wallets 2 and 3.
 
-
-
-
+```
 Slot 00017: 00000000-0000-4000-8000-000000000002 {Contract instance for wallet 2}:
   Receive endpoint call: Object (fromList [("tag",String "buy tokens"),("value",Object (fromList [("unEndpointValue",Number 20.0)]))])
 Slot 00017: W2: TxSubmit: 30d28ca855a14accbb11deee682b174adffb548922e1d4257242880f28328f8e
@@ -889,10 +843,11 @@ Slot 00023: SlotAdd Slot 24
 Slot 00024: SlotAdd Slot 25
 Slot 00025: SlotAdd Slot 26
 Slot 00026: SlotAdd Slot 27
-
+```
 
 And finally, the withdrawal by Wallet 1.
 
+```
 Slot 00027: 00000000-0000-4000-8000-000000000001 {Contract instance for wallet 1}:
   Receive endpoint call: Object (fromList [("tag",String "withdraw"),("value",Object (fromList [("unEndpointValue",Array [Number 40.0,Number 1.0e7])]))])
 Slot 00027: W1: TxSubmit: a42a06cc3e3b1653ec4aba5ab8304484d778adcbddac2ceb9f639f7e4bd1dfd2
@@ -903,71 +858,51 @@ Slot 00029: SlotAdd Slot 30
 Slot 00030: SlotAdd Slot 31
 Slot 00031: SlotAdd Slot 32
 Slot 00032: SlotAdd Slot 33
-
+```
 
 All wallets initially owned 1000 tokens and 1000 Ada. Wallet 1 added 100 tokens to the contract, but then in the last step retrieved 40 tokens and 10 Ada, and so we see its final balance as 940 tokens and 1010 Ada minus transaction fees.
 
+```
 Final balances
 Wallet 1: 
     {aa, "A"}: 940
     {, ""}: 1009942570
-
+```
 
 Wallet 2 bought 20 tokens and paid 20 ADA for them, plus some transaction fees.
 
+```
 Wallet 2: 
     {aa, "A"}: 1020
     {, ""}: 979985260
-
+```
 
 Wallet 3 bought 5 tokens for 5 Ada.
 
+```
 Wallet 3: 
     {aa, "A"}: 1005
     {, ""}: 994985211
-
+```
 
 Finally, the script still contains the NFT, which will forever stay there, plus 35 tokens and 15 Ada. There were, at one point, 75 tokens and 25 Ada, before Wallet 1 made a withdrawal.
 
+```
 Script fb3eca878d177b6d9264c7c36845fb1e28935553812ed2b56e39c9c4564b85ad: 
     {65b4199f7d025bfb3b065b0fb88a77d694ffd849ff740b1a4cc453bfaab30f55, "NFT"}: 1
     {aa, "A"}: 35
     {, ""}: 15000000
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Automatic Testing using Emulator Traces
-
-
-
+## Automatic Testing using Emulator Traces
 
 There are various testing frameworks in Haskell, test harnesses that can organize, label, and group your tests. Plutus uses the Tasty test framework.
 
-You can find tasty on hackage (https://hackage.haskell.org/package/tasty) .
+You can find tasty on hackage: 
 
+[https://hackage.haskell.org/package/tasty](https://hackage.haskell.org/package/tasty) 
+
+```haskell
 main = defaultMain tests
 
 tests :: TestTree
@@ -1007,15 +942,17 @@ unitTests = testGroup "Unit tests"
       [1, 2, 3] `compare` [1,2,2] @?= LT
   ]
 
+```haskell
 
 As an example, you have a main program that uses default main and some tests. These tests are of type test tree; as the name suggests, a test tree is a tree of tests. You can group tests and have subgroups and sub subgroups.
 
-
-There's special support for tests in Plutus. This is provided in  module Plutus.Contract.Test (https://playground.plutus.iohkdev.io/doc/haddock/plutus-contract/html/Plutus-Contract-Test.html) in the plutus-contract package.
+There's special support for tests in Plutus. This is provided in  module Plutus.Contract.Test [https://playground.plutus.iohkdev.io/doc/haddock/plutus-contract/html/Plutus-Contract-Test.html](https://playground.plutus.iohkdev.io/doc/haddock/plutus-contract/html/Plutus-Contract-Test.html) in the plutus-contract package.
 
 There are various types of tests that are supported. But today we will only look at two of those.
 - One that works with emulator traces.
 - One that is much more sophisticated and uses property-based testing
+
+```haskell
 checkPredicate
 :: String
 Descriptive name of the test
@@ -1027,7 +964,7 @@ The predicate to check
  
 
 Check if the emulator trace meets the condition
-
+```haskell
 
 Let's start with the emulator trace based tests. In this module, there's the chapter on checking predicates.
 - There is a check predicate function; it takes a descriptive name of the test.
