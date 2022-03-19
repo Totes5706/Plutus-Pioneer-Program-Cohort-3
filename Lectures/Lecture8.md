@@ -1474,7 +1474,7 @@ That concludes our brief excursion into optics and lenses.
 
 Property Based Testing is quite a revolutionary approach to testing that is much more powerful than simple unit testing. It originated from Haskell, which with its pureness and immutable data structures, is particularly suited to this approach. It has now been copied by almost all other programming languages.
 
-QuickCheck
+### QuickCheck
 
 One of the inventors of QuickCheck, which is the most prominent and was the first library using this approach, is John Hughes, who is also one of the original inventors of Haskell. He and his company work with IOHK to provide special support for this approach to testing Plutus contracts.
 Before we look at using QuickCheck for Plutus contracts, let's first look at its use for pure Haskell programs.
@@ -2520,7 +2520,11 @@ cabal test
 ## Homework
 
 
-    The object for the homework this week is to add an additional function to TokenSale.hs called ```Close``` called by the seller. It would be used by seller to close the contract, and collect the remaining tokens and lovelace in the contract.
+### Objective
+
+    The object for the homework this week is to add an additional function to TokenSale.hs called Close called by the seller. It would be used by seller to close the contract, and collect the remaining tokens and lovelace in the contract.
+
+### Solution
 
 First, we can add ```Close``` to data ```TSRedeemer```:
 
