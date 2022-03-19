@@ -964,7 +964,7 @@ The predicate to check
  
 
 Check if the emulator trace meets the condition
-```haskell
+```
 
 Let's start with the emulator trace based tests. In this module, there's the chapter on checking predicates.
 - There is a check predicate function; it takes a descriptive name of the test.
@@ -973,6 +973,7 @@ Let's start with the emulator trace based tests. In this module, there's the cha
 
 The result is a test tree, which as we just saw, is the type of tests that Tasty uses. By using this check predicate, we can produce something that the tasty framework can understand.
 
+```haskell
 checkPredicateOptions
 :: CheckOptions
 Options to use
@@ -986,10 +987,11 @@ The predicate to check
  
 
 A version of checkPredicate with configurable CheckOptions
-
+```
 
 There's also a variation, check predicate options, where we can set some options. Furthermore, there is one additional argument of type check options.
 
+```haskell
 data CheckOptions
 Options for running the
 defaultCheckOptions :: CheckOptions
@@ -997,76 +999,67 @@ minLogLevel :: Lens' CheckOptions LogLevel
 emulatorConfig :: Lens' CheckOptions EmulatorConfig
 changeInitialWalletValue :: Wallet -> (Value -> Value) -> CheckOptions -> CheckOptions
 Modify the value assigned to the given wallet in the initial distribution.
+```
 
-Going back to the check predicate function and its cousins. The one ingredient we haven't looked at yet is TracePredicate:
+Going back to the check predicate function and its cousins. The one ingredient we haven't looked at yet is ```TracePredicate```:
 
+```haskell
 type TracePredicate = FoldM (Eff '[Reader InitialDistribution, Error EmulatorFoldErr, Writer (Doc Void)]) EmulatorEvent Bool
 not :: TracePredicate -> TracePredicate
 (.&&.) :: TracePredicate -> TracePredicate -> TracePredicate infixl 3
 (.||.) :: TracePredicate -> TracePredicate -> TracePredicate infixl 2
- 
+```
 
-The TracePredicate is a predicate on a trace as the name suggests, so a condition on a trace; that is the actual test. Given a trace, it is a condition that will be checked by the test.
+The ```TracePredicate``` is a predicate on a trace as the name suggests, so a condition on a trace; that is the actual test. Given a trace, it is a condition that will be checked by the test.
 
 There are all sorts of things you can check that a given contract has run to completion; or not run to completion the endpoint is available that an error happened. 
 
-But we, as an example, will only use one namely walletFundsChange:
+But we, as an example, will only use one namely ```walletFundsChange```:
 
-
+```haskell
 walletFundsChange :: Wallet -> Value -> TracePredicate
 Check that the funds in the wallet have changed by the given amount, excluding fees.
-
+```
 
 This will check that for a given wallet after the trace is completed, the wallet funds will have changed by this given value. If you look at the comment, then in particular it says here excluding fees. So, often as we saw in the examples, the value change is not really predictable, because there are always these fees and the fee calculation is quite complicated. This predicate allows us to ignore the fees and just look at the value change without fees. However, if you insist, there is also a variation of this value walletFunds where the fee is not automatically taken care of.
 
 
-
+```haskell
 tests :: TestTree
 tests = checkPredicateOptions
     myOptions
     "token sale trace"
     myPredicate
     myTrace
-
-
-
+```
 
 Going back to the module, we can now look at this tests function. 
 - We are using the checkPredicateOptions variation, because we need to specify the options in order to communicate that we want to use the emulator config where we specify the initial distribution of funds.
 
+```haskell
 myOptions :: CheckOptions
 myOptions = defaultCheckOptions & emulatorConfig .~ emCfg
+```
 
+The way we define these options is we start with the ```defaultCheckOptions```. Then we set the ```emulatorConfig``` part to ```emCfg``` that we had defined before. 
 
-
-
-The way we define these options is we start with the defaultCheck Options. Then we set the emulatorConfig part to emCfg that we had defined before. 
-
-- This weird operator .~ emCfg, is part of optics, but it basically says to set the emulatorConfig part of the check options to this value; but we will look at optics briefly later.
+- This weird operator ```.~ emCfg```, is part of optics, but it basically says to set the emulatorConfig part of the check options to this value; but we will look at optics briefly later.
 
 Now the interesting part is the myPredicate. And if this is defined here:
 
-
-
+```haskell
 myPredicate :: TracePredicate
 myPredicate =
     walletFundsChange w1 (Ada.lovelaceValueOf   10_000_000  <> assetClassValue token (-60) <> Plutus.negate (toValue minAdaTxOut)) .&&.
     walletFundsChange w2 (Ada.lovelaceValueOf (-20_000_000) <> assetClassValue token   20)                                         .&&.
     walletFundsChange w3 (Ada.lovelaceValueOf (- 5_000_000) <> assetClassValue token    5)
+```
 
-
-
-
-
-We use this logic to combine three predicates, using this walletFundsChange. 
-
-
-
-
+We use this logic to combine three predicates, using this ```walletFundsChange```. 
 
 Now we can test this in the repl:
 
-
+```haskell
 Prelude Main> import Test.Tasty
 
 Prelude Test.Tasty> :l test/Spec/Trace.hs
@@ -1077,14 +1070,15 @@ token sale trace: OK (1.22s)
 
 All 1 tests passed (1.22s)
 *** Exception: ExitSuccess
-
+```
 
 This passes. Let's see what happens if it doesn't pass. We can change one of the values.
 
+```haskell
 ( walletFundsChange (Wallet 1) (Ada.lovelaceValueOf   10_000_000  <> assetClassValue token (-50) )
+```
 
-
-
+```haskell
 Prelude Test.Tasty Spec.Trace> :l Spec.Trace
 
 [1 of 1] Compiling Spec.Trace       ( test/Spec/Trace.hs, /home/chris/git/ada/pioneer-fork/code/week08/dist-newstyle/build/x86_64-linux/ghc-8.10.4.20210212/plutus-pioneer-program-week08-0.1.0.0/t/plutus-pioneer-program-week08-tests/build/plutus-pioneer-program-week08-tests/plutus-pioneer-program-week08-tests-tmp/Spec/Trace.o )
@@ -1114,20 +1108,15 @@ token sale trace: FAIL (1.32s)
 
 1 out of 1 tests failed (1.32s)
 *** Exception: ExitFailure 1
-
-
-
+```
 We see an error message, followed by the emulator log, which we didn't get when the tests passed.
 This is probably the simplest way to write automated tests for Plutus contracts. You simply write one or more emulator traces, and then use checkPredicate in association with the appropriate test predicates, to check that the trace leads to the desired result. This lets us write more or less traditional unit tests.
 
 
-
-Test Coverage
-
+## Test Coverage
 
 
-   
-
+```haskell
 checkPredicateOptionsCoverage :: CheckOptions
                               -> String
                               -> CoverageRef
@@ -1137,24 +1126,15 @@ checkPredicateOptionsCoverage :: CheckOptions
 checkPredicateOptionsCoverage options nm (CoverageRef ioref) predicate action =
     HUnit.testCaseSteps nm $ \step -> do
         checkPredicateInner options predicate action step (HUnit.assertBool nm) (\rep -> modifyIORef ioref (rep<>))
+```
 
+Looking at the code in the bottom of the Spec.Trace module, We implemented this ```checkPredicateOptionsCoverage``` function. We looked at the implementation of ```checkPredicateOptions``` and ```checkPredicateCoverage``` and then combined the two.
 
-
-
-Looking at the code in the bottom of the Spec.Trace module, We implemented this checkPredicateOptionsCoverage function. We looked at the implementation of checkPredicateOptions and checkPredicateCoverage and then combined the two.
-
-
-CoverageRef is just a new type around an IO ref of coverage report.
+```CoverageRef``` is just a new type around an IO ref of coverage report.
 
 - For those of you who are not very familiar with Haskell, IO ref is an IO reference and that allows you to do mutual references, mutable variables in IO.
 
-
-
-
-
-
-
-
+```haskell
 testCoverage :: IO ()
 testCoverage = do
     cref <- newCoverageRef
@@ -1170,26 +1150,22 @@ testCoverage = do
             report <- readCoverageRef cref
             writeCoverageReport "TokenSaleTrace" tsCovIdx report
         Right () -> putStrLn $ "unexpected tasty result"
+```
 
+Using that, we wrote this function called ```testCoverage```. 
 
-
-
-
-
-Using that, we wrote this function called testCoverage. 
-
-- First we use this newCoverageRef to get such a cref. 
-- Then, we want to use my checkPredicateOptionsCoverage but of course, now I am in IO. So somehow we have to execute this in IO.
-- We are using this defaultMain that we saw earlier to run our normal unit tests.
-- defaultMain throws an exception at the end, even if the tests are successful. It always throws a so-called exit-code exception; either with exit-code 0 if the tests ran successfully or with exit-code non-zero if there was a failure. That is how the testing framework signals to cabal whether a test suite failed or succeeded by using these exit-codes. Nevertheless, this interferes  with the current stuff we want to do, so we are catching this exit exception.
+- First we use this ```newCoverageRef``` to get such a ```cref```. 
+- Then, we want to use my ```checkPredicateOptionsCoverage``` but of course, now I am in IO. So somehow we have to execute this in IO.
+- We are using this ```defaultMain``` that we saw earlier to run our normal unit tests.
+- ```defaultMain``` throws an exception at the end, even if the tests are successful. It always throws a so-called exit-code exception; either with exit-code 0 if the tests ran successfully or with exit-code non-zero if there was a failure. That is how the testing framework signals to cabal whether a test suite failed or succeeded by using these exit-codes. Nevertheless, this interferes  with the current stuff we want to do, so we are catching this exit exception.
 
 Then we provide the earlier options we had, the same name. 
 
 - We then have to catch this exception in the expected cases that there is an exception,because this default main is supposed to always throw this exit-code exception.
 
-- Then we have this function writeCoverageReport that takes the name of the report and it takes this report using the coverage index
+- Then we have this function ```writeCoverageReport``` that takes the name of the report and it takes this report using the coverage index
 
-
+```haskell
 Prelude Main> import Test.Tasty
 
 Prelude Test.Tasty> :l test/Spec/Trace.hs
@@ -1200,58 +1176,35 @@ token sale trace: OK (0.21s)
 
 All 1 tests passed (0.21s)
 Tasty exited with: ExitSuccess
+```
+
+![coveragepass](https://user-images.githubusercontent.com/59018247/159125412-1be993fc-ed56-4e08-b449-9f4641ba605d.png)
 
 
-
-
-
-
-
-
-So let's look at what that looks like. If we call this test coverage function, then it will create an html file in the week 8 code folder. We  can actually look at this file in a browser. Then we get this rendering of the token sale module with colors indicating the coverage. So in particular, we see that in our transition function, this has been covered. But in these guard conditions we see this condition was always true. 
+So let's look at what that looks like. If we call this test coverage function, then it will create an html file in the week 8 code folder. We can actually look at this file in a browser. Then we get this rendering of the token sale module with colors indicating the coverage. So in particular, we see that in our transition function, this has been covered. But in these guard conditions we see this condition was always true. 
 
 The green means in all the tests this condition was always true which makes sense, because in our trace we only set the price to non-negative values. We also see that this catch-all case here was never hit. This means this branch of the transition function has not been covered by our code.
 
 
 
-
-
+![coveragefail](https://user-images.githubusercontent.com/59018247/159125452-169a903a-9fd2-46fd-a06b-7843a5cd1cd7.png)
 
 
 
 
 Let's change the trace briefly and see how that changes this coverage report. So if we just comment this last step here in the trace where we withdraw. 
 
+```haskell
 {-
             callEndpoint @"withdraw" h1 (40, 10_000_000)
             void $ Emulator.waitNSlots 5
 -}
-
+```
 
 
 If we reload and run this again, the test fails now which makes sense. Now the wallet value changes of wallet one are different, because the withdrawal is now missing. If we reload this coverage report here, then now we see the withdrawal transition is black and the code here is red. That means that this is no longer covered by our trace.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Interlude: Optics
+## Interlude: Optics
 
 
 
