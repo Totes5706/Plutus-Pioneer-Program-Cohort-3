@@ -17,7 +17,7 @@ Google Doc version can be found [HERE](https://docs.google.com/document/d/1Z41CU
   - [Table of Contents](#table-of-contents)
   - [Preparation for Lecture 8](#preparation-for-lecture-8)
   - [Introduction](#introduction)
-  - [State Machine Example: Token Sale](#state-machine-example-token-sale)
+  - [State Machine Example: A Token Sale](#state-machine-example-a-token-sale)
   - [Automatic Testing using Emulator Traces](#automatic-testing-using-emulator-traces)
   - [Test Coverage](#test-coverage)
   - [Optics](#optics)
