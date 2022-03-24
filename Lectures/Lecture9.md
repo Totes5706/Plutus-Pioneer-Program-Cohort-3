@@ -89,13 +89,32 @@ It's also more straightforward to write mathematical proofs of various kinds of 
 
 ![Screenshot 2022-03-24 at 08-36-27 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159917538-75816d4c-1744-4924-a834-87e98743cc33.png)
 
+### What does a financial contract do?
+
 Let's start by looking at what a financial contract can do.
+
+![Screenshot 2022-03-24 at 08-38-27 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159917887-2d50f403-379e-4d5c-862c-5db631bff116.png)
 
 A contract can accept payments from participants in the contract.
 
+![Screenshot 2022-03-24 at 08-39-13 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159918025-0b5cd830-7144-462e-8a8f-9d127c2d981c.png)
+
+
 Depending on choices made by one the participants, it can evolve in different directions.
 
+![Screenshot 2022-03-24 at 08-39-47 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159918096-9e096f69-06da-4c99-adef-bcb23ad03d11.png)
 
+It can make decisions based on external information such as the information coming from a stock exchange. So, information coming from an oracle can determine the future behaviour of a contract.
+
+![Screenshot 2022-03-24 at 08-40-37 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159918218-2d123f1a-3138-46e1-9d08-da76ea976634.png)
+
+A contract can also make payments out. If money has been deposited in the contract, that money can be deposited out to participants.
+
+![Screenshot 2022-03-24 at 08-41-45 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159918420-32d34fc0-6ccc-4a28-96df-2282c9c1eee8.png)
+
+So we have flows of money and choices according to external factors.
+
+One final thing that we have is that the roles in a contract are things that themselves can be owned. We represent that in Marlowe by minting tokens that represent those roles. That means that we can use those tokens as evidence that somebody is meant to be playing a role. They are a form of security that a person submitting a transaction is allowed to submit that transaction, but also it means that these roles are tradable. A role could be traded by another person or another contract.
 
 
 
