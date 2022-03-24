@@ -1611,4 +1611,49 @@ Commands for creating Marlowe contracts from templates:
   zcb                      Create a zero-coupon bond.
 ```
 
-We have some templates just to get people started. we have four templates that are available in the playground and  another Marlowe literature  you may be familiar with the escrow contract there's a very simple contract  just to get started with  and then a swap and a zero coupon bond so these are things you can experiment with at the command line on testnet and then once you have your contract either one of those or as I mentioned one you designed in the playground there are just these couple commands for running the contract I mentioned execute which is actually putting the marla transaction on the blockchain initializes that preparatory transaction where you're taking your contract and kind of packaging all the information needed to run and then beforeeach step you need to  prepare the next set of input  and then to get funds outside of Marlowe there's a withdrawal function so  basically these are the four  functions one needs to use  after you have a contract that may have come from the template or from the playground I'll just briefly mention some of the low-level capabilities this  is really all I'm going  to say about these today  but they let you do things like create Marlowe so you actually can compute script addresses validator hashes data caches you can look at the binary representation of the plutus script you can get json representations of the datum or the redeemer you can count bytes look at the execution cost and memory and these things all matter if you're kind of in the nitty gritty world of developing a contract you want to know how much it's going to cost on the blockchain you want to know if it's going  to fit on the blockchain you want maybe some you know pre-computation of what these hashes are things like that and then that creation is supplemented by functions that actually build and submit transactions those low-level workflows  
+We have four templates just to get people started:
+
+- the escrow contract
+- a very simple contract 
+- a swap 
+- a zero coupon bond 
+
+These are things you can experiment with at the command line on the testnet. Once you have your contract, either one of those or as we mentioned one you designed in the playground, there are just these couple of commands for running the contract.
+
+```
+$ marlowe-cli run --help
+
+Usage: marlowe-cli run COMMAND
+  Run a contract.
+
+Available options:
+  -h,--help                Show this help text
+
+Commands for running contracts:
+  execute                  Run a Marlowe transaction.
+  initialize               Initialize the first transaction of a Marlowe contract and write output to a JSON file.
+  prepare                  Prepare the next step of a Marlowe contract and write the output to a JSON file.
+  withdraw                 Withdraw funds from the Marlowe role address.
+```
+
+- execute which is actually putting the Marlowe transaction on the blockchain 
+- initializes that preparatory transaction where you're taking your contract and packaging all the information needed to run 
+- then before each step you need to prepare the next set of input  
+- finally, to get funds outside of Marlowe there's a withdrawal function
+
+These are the four functions one needs to use after you have a contract that may have come from the template or from the playground.
+
+Briefly looking some of the low-level capabilities:
+
+
+![Screenshot 2022-03-24 at 16-27-21 PPP 030903 - Alexander Nemish Marlowe in Plutus](https://user-images.githubusercontent.com/59018247/160004567-7bb8b1de-34c2-4f4e-9e4f-16929c12ad83.png)
+
+They you do things like create Marlowe; so you actually can compute script addresses, validator hashes, and data hashes. 
+You can look at the binary representation of the plutus script, get json representations of the datum or the redeemer, count bytes, look at the execution cost and memory. These things all matter if you're kind of in the nitty gritty world of developing a contract you want to know how much it's going to cost or whether if it is going to fit on the blockchain. Also, maybe even pre-computation of what these hashes are. That creation is supplemented by functions that actually build and submit transactions.
+
+
+![Screenshot 2022-03-24 at 16-33-06 PPP 030903 - Alexander Nemish Marlowe in Plutus](https://user-images.githubusercontent.com/59018247/160005452-950a6560-61ac-4dab-ba33-0e6bf8667e32.png)
+
+
+
+
