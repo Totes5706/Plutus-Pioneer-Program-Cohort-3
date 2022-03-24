@@ -265,10 +265,81 @@ In this window we see the world from Shruti's perspective. Let's open up another
 
 ![Screenshot 2022-03-24 at 10-06-42 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159934146-be84e6fd-2d79-4fa9-aec6-502ef1bb3cd3.png)
 
+At the moment neither of them has any contracts running. They have a blank space, but let's start a contract up. Let's set up a zero coupon bond which is a fancy name for a loan. 
+
+Let's suppose that Charles is making a loan to Shruti. He's the investor she's the issuer of the bond.
+
+
+![Screenshot 2022-03-24 at 10-08-04 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159934448-920d5612-3ef3-4edb-bb72-e99c9c7fd976.png)
+
+
+![Screenshot 2022-03-24 at 10-10-37 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159934926-a9536ded-716a-48be-9d7d-a3ad90dfc6e5.png)
+
+Shruti wants to borrow 10 Ada from Charles and she's promised to pay back 11 Ada. So we've said who the issuer and investor are we said what the price and the eventual value will be and we're now going to create the contract. In order to do that we have to make a payment of 10 lovelace to get the contract started.
+
+![Screenshot 2022-03-24 at 10-12-15 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159935252-37457cb8-eb86-4dae-9884-a2117e252ca9.png)
+
+So let's pay. We are asked to approve and the payment goes through. You can see now in Shruti's Marlowe Run we've got the Zero Coupon Bond running, but also, if you look at Charles's view of the world, it's running there too for him.
+
+
+![Screenshot 2022-03-24 at 10-16-50 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936140-702d2ded-6398-481e-baef-d5d17065b47c.png)
+
+
+![Screenshot 2022-03-24 at 10-17-11 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936205-17af04b5-9f80-45be-9792-ace9d1eb1d3e.png)
+
+
+We're at the first step. If we click through on Shruti's contract, it's saying that it's waiting for something from the investor, who is Charles.
+
+
+![Screenshot 2022-03-24 at 10-18-43 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936516-0ce84a59-23b1-4a33-b9c8-4ba24f95e894.png)
+
+
+
+So let's see what's happening in his view.
+
+
+![Screenshot 2022-03-24 at 10-18-24 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936469-0996165d-cd3b-47d5-a018-16367ae479c7.png)
 
 
 
 
+He's being asked to make a deposit so let's click on that to make the deposit.
 
 
 
+![Screenshot 2022-03-24 at 10-19-00 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936571-c6e7cd4e-2254-4602-b89b-f5aa72015dc5.png)
+
+
+
+And click to confirm with a fee of 10 lovelace.
+
+Then you can see his view has changed now he's waiting for the issuer to pay him back.
+
+We look in Shruti's view, which is incidentally the mobile view, of Marlowe Run, and he's asked to pay her 1 Ada.
+
+
+![Screenshot 2022-03-24 at 10-19-29 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936673-2715559d-50b4-4bf1-aacf-f369e6602824.png)
+
+
+
+Let's make her do that now. He'll also have to pay a 10 lovelace transaction fee.
+
+
+
+![Screenshot 2022-03-24 at 10-19-44 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936748-aa258360-99b8-4ca5-a065-3dddb1de0d3a.png)
+
+
+
+Let's make that deposit.
+
+
+And you see now from both their perspectives that loan is completed you can see the history of what's gone on. You can see, at particular points, the balances that the contract holds.
+
+If we close that and select History, we can see the history of all the contracts that Shruti has taken part in.
+
+![Screenshot 2022-03-24 at 10-20-37 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936897-dc709a9f-269d-4d1b-bce9-026af344f404.png)
+
+![Screenshot 2022-03-24 at 10-20-47 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936927-daad52da-d7d5-40ce-9d2f-69436f913f5b.png)
+
+
+That pretty much covers the basics of what you get from Marlowe Run. It's an intuitive interface to a contract running on the blockchain. You see that each participant in the contract gets their view of the contract in real time, updated from what is, in this case in the browser, but eventually what\'s on the blockchain.
