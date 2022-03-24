@@ -846,5 +846,249 @@ In a nutshell, Marlowe contract evaluation consists of two steps.
 
 Let's see how it works from the client side.
 
-As you may have noticed, the Marlowe semantics code is quite abstract and it doesn't depend on the Cardano system\'s actions. So let's take a look at the actual Marlowe validator that's being executed on-chain.
+As you may have noticed, the Marlowe semantics code is quite abstract and it doesn't depend on the Cardano system's actions. So let's take a look at the actual Marlowe validator that's being executed on-chain.
 
+```haskell
+smallTypedValidator :: MarloweParams -> Scripts.TypedValidator TypedMarloweValidator
+smallTypedValidator = Scripts.mkTypedValidatorParam @TypedMarloweValidator
+    $$(PlutusTx.compile [|| smallMarloweValidator ||])
+    $$(PlutusTx.compile [|| wrap ||])
+    where
+        wrap = Scripts.wrapValidator
+```
+Here's the ```smallTypedValidator``` which calls the ```smallMarloweValidator`` code.
+
+```haskell
+smallMarloweValidator
+    :: MarloweParams
+    -> MarloweData
+    -> MarloweInput
+    -> ScriptContext
+    -> Bool
+smallMarloweValidator MarloweParams{rolesCurrency, rolePayoutValidatorHash}
+    MarloweData{..}
+    marloweTxInputs
+    ctx@ScriptContext{scriptContextTxInfo} = do
+    
+    let ownInput = case findOwnInput ctx of
+            Just i -> i
+            _      -> traceError "I0" {-"Can't find validation input"-}
+    let scriptInValue = txOutValue $ txInInfoResolved ownInput
+    let interval =
+            case txInfoValidRange scriptContextTxInfo of
+                -- FIXME: Recheck this, but it appears that any inclusiveness can appear at either bound when milliseconds
+                --        of POSIX time is converted from slot number.
+                Interval.Interval (Interval.LowerBound (Interval.Finite l) _) (Interval.UpperBound (Interval.Finite h) _) -> (l, h)
+                _ -> traceError "R0"
+    let positiveBalances = traceIfFalse "B0" $ validateBalances marloweState
+
+    {- Find Contract continuation in TxInfo datums by hash or fail with error -}
+    let inputs = fmap marloweTxInputToInput marloweTxInputs
+    {-  We do not check that a transaction contains exact input payments.
+        We only require an evidence from a party, e.g. a signature for PubKey party,
+        or a spend of a 'party role' token.
+        This gives huge flexibility by allowing parties to provide multiple
+        inputs (either other contracts or P2PKH).
+        Then, we check scriptOutput to be correct.
+     -}
+    let inputsOk = validateInputs inputs
+
+    -- total balance of all accounts in State
+    -- accounts must be positive, and we checked it above
+    let inputBalance = totalBalance (accounts marloweState)
+
+    -- ensure that a contract TxOut has what it suppose to have
+    let balancesOk = traceIfFalse "B1" $ inputBalance == scriptInValue
+    
+    let preconditionsOk = positiveBalances && balancesOk
+```
+This function is the meat of the validator.
+
+It takes ```MarloweParams``` - which we'll talk about later, it takes ```MarloweData```, followed by ```MarloweInput``` which is essentially transaction input expressed in Cardano types. It will then return a boolean
+
+We check that the balances are valid - we require balances to be positive.
+
+We do not check that a transaction contains exact input payments. We only require an evidence from a party, e.g. a signature for PubKey party, or a spend of a 'party role' token. This gives huge flexibility by allowing parties to provide multiple inputs (either other contracts or P2PKH). Then, we check scriptOutput to be correct.
+
+```haskell
+    let txInput = TransactionInput {
+            txInterval = interval,
+            txInputs = inputs }
+
+    let computedResult = computeTransaction txInput marloweState marloweContract
+    -- let computedResult = TransactionOutput [] [] (emptyState minSlot) Close
+    case computedResult of
+        TransactionOutput {txOutPayments, txOutState, txOutContract} -> do
+            let marloweData = MarloweData {
+                    marloweContract = txOutContract,
+                    marloweState = txOutState }
+
+                payoutsByParty = AssocMap.toList $ foldMap payoutByParty txOutPayments
+                payoutsOk = payoutConstraints payoutsByParty
+                checkContinuation = case txOutContract of
+                    Close -> True
+                    _ -> let
+                        totalIncome = foldMap (collectDeposits . getInputContent) inputs
+                        totalPayouts = foldMap snd payoutsByParty
+                        finalBalance = inputBalance + totalIncome - totalPayouts
+                        outConstrs = ScriptOutputConstraint
+                                    { ocDatum = marloweData
+                                    , ocValue = finalBalance
+                                    }
+                        in checkOwnOutputConstraint ctx outConstrs
+            preconditionsOk && inputsOk && payoutsOk && checkContinuation
+        Error TEAmbiguousTimeIntervalError -> traceError "E1"
+        Error TEApplyNoMatchError -> traceError "E2"
+        Error (TEIntervalError (InvalidInterval _)) -> traceError "E3"
+        Error (TEIntervalError (IntervalInPastError _ _)) -> traceError "E4"
+        Error TEUselessTransaction -> traceError "E5"
+        Error TEHashMismatch -> traceError "E6"
+```
+
+We construct a ```TransactionInput``` given the time interval and list of inputs, and we call the ```computeTransaction``` function that we saw in semantics.hs.
+
+With the computed result we construct a ```MarloweData``` with a new contract continuation and updated state.
+
+We calculate the new total balance given the income and total income
+
+```haskell
+
+  where
+    checkScriptOutput addr hsh value TxOut{txOutAddress, txOutValue, txOutDatumHash=Just svh} =
+                    txOutValue == value && hsh == Just svh && txOutAddress == addr
+    checkScriptOutput _ _ _ _ = False
+
+    allOutputs :: [TxOut]
+    allOutputs = txInfoOutputs scriptContextTxInfo
+
+    marloweTxInputToInput :: MarloweTxInput -> Input
+    marloweTxInputToInput (MerkleizedTxInput input hash) =
+        case findDatum (DatumHash hash) scriptContextTxInfo of
+            Just (Datum d) -> let
+                continuation = PlutusTx.unsafeFromBuiltinData d
+                in MerkleizedInput input hash continuation
+            Nothing -> traceError "H"
+    marloweTxInputToInput (Input input) = NormalInput input
+
+    validateInputs :: [Input] -> Bool
+    validateInputs inputs = all (validateInputWitness . getInputContent) inputs
+      where
+        validateInputWitness :: InputContent -> Bool
+        validateInputWitness input =
+            case input of
+                IDeposit _ party _ _         -> validatePartyWitness party
+                IChoice (ChoiceId _ party) _ -> validatePartyWitness party
+                INotify                      -> True
+          where
+            validatePartyWitness (PK pk)     = traceIfFalse "S" $ scriptContextTxInfo `txSignedBy` pk
+            validatePartyWitness (Role role) = traceIfFalse "T" -- "Spent value not OK"
+                                               $ Val.singleton rolesCurrency role 1 `Val.leq` valueSpent scriptContextTxInfo
+
+    collectDeposits :: InputContent -> Val.Value
+    collectDeposits (IDeposit _ _ (Token cur tok) amount) = Val.singleton cur tok amount
+    collectDeposits _                                     = zero
+
+    payoutByParty :: Payment -> AssocMap.Map Party Val.Value
+    payoutByParty (Payment _ (Party party) money) = AssocMap.singleton party money
+    payoutByParty (Payment _ (Account _) _)       = AssocMap.empty
+
+    payoutConstraints :: [(Party, Val.Value)] -> Bool
+    payoutConstraints payoutsByParty = all payoutToTxOut payoutsByParty
+      where
+        payoutToTxOut (party, value) = case party of
+            PK pk  -> traceIfFalse "P" $ value `Val.leq` valuePaidTo scriptContextTxInfo pk
+            Role role -> let
+                dataValue = Datum $ PlutusTx.toBuiltinData role
+                hsh = findDatumHash dataValue scriptContextTxInfo
+                addr = Ledger.scriptHashAddress rolePayoutValidatorHash
+                in traceIfFalse "R" $ any (checkScriptOutput addr hsh value) allOutputs
+```
+
+
+To validate inputs, we check that the required signatures and role tokens are present.
+
+Payments to parties go either to a public key ```PK pk```, or go to the validator ```Role role```, which simply checks, given a currency, that a transaction spends a role token.
+
+For off-chain execution, we provide three Marlowe PAB contracts.
+
+    Marlowe Follower Contract
+    Marlowe Control Contract
+    Marlowe Companion Contract
+
+### Marlowe Follower Contract
+
+```haskell
+marloweFollowContract :: Contract FollowerContractState MarloweFollowSchema MarloweError ()
+marloweFollowContract = awaitPromise $ endpoint @"follow" $ \params ->
+  do
+    let typedValidator = mkMarloweTypedValidator params
+    marloweHistory params
+      >>= maybe (pure InProgress) (updateHistory params)
+      >>= checkpointLoop (follow typedValidator params)
+
+  where
+    follow typedValidator params = \case
+        Finished -> do
+            logInfo $ "MarloweFollower found finished contract with " <> show params <> "."
+            pure $ Right InProgress -- do not close the contract so we can see it in Marlowe Run history
+        InProgress -> do
+            result <- waitForUpdateTimeout typedValidator never >>= awaitPromise
+            case result of
+                Timeout t -> absurd t
+                Transition Closed{..} -> do
+                    logInfo $ "MarloweFollower found contract closed with " <> show historyInput <> " by TxId " <> show historyTxId <> "."
+                    tell @FollowerContractState (transition params historyInput)
+                    pure (Right Finished)
+                Transition InputApplied{..} -> do
+                    logInfo $ "MarloweFollower found contract transitioned with " <> show historyInput <> " by " <> show historyTxOutRef <> "."
+                    tell @FollowerContractState (transition params historyInput)
+                    pure (Right InProgress)
+                Transition Created{..} -> do
+                    logInfo $ "MarloweFollower found contract created with " <> show historyData <> " by " <> show historyTxOutRef <> "."
+                    tell @FollowerContractState (created params historyData)
+                    pure (Right InProgress)
+
+    updateHistory :: MarloweParams
+                  -> History
+                  -> Contract FollowerContractState MarloweFollowSchema MarloweError ContractProgress
+    updateHistory params Created{..} =
+      do
+        logInfo $ "MarloweFollower found contract created with " <> show historyData <> " by " <> show historyTxOutRef <> "."
+        tell $ created params historyData
+        maybe (pure InProgress) (updateHistory params) historyNext
+    updateHistory params InputApplied{..} =
+      do
+        logInfo $ "MarloweFollower found contract transitioned with " <> show historyInput <> " by " <> show historyTxOutRef <> "."
+        tell $ transition params historyInput
+        maybe (pure InProgress) (updateHistory params) historyNext
+    updateHistory params Closed{..} =
+      do
+        logInfo $ "MarloweFollower found contract closed with " <> show historyInput <> " by TxId " <> show historyTxId <> "."
+        tell $ transition params historyInput
+        pure Finished
+```
+This is a very simple one - it contains only one endpoint called follow. It subscribes to all changes to a Marlowe contract validator address, so that we can store all the inputs that are applied to a Marlowe contract.
+
+It uses the ```updateHistory``` function which, in a nutshell, finds a Marlowe input and constructs a TransactionInput data type, and uses tell to update the PAB contract state.
+
+If you were connected to a web socket for this contract, you would be notified about transition changes.
+
+The state of the contract is stored in ```ContractHistory```, which stores an initial MarloweParams, an initial MarloweData and a list of all TransactionInputs that were applied to this contract, and the script address. You can always restore the current state by applying a list of inputs to an initial state.
+
+```haskell
+
+data ContractHistory =
+    ContractHistory
+        { chParams      :: MarloweParams      -- ^ The "instance id" of the contract
+        , chInitialData :: MarloweData        -- ^ The initial Contract + State
+        , chHistory     :: [TransactionInput] -- ^ All the transaction that affected the contract.
+                                              --   The current state and intermediate states can
+                                              --   be recalculated by using computeTransaction
+                                              --   of each TransactionInput to the initial state
+        , chAddress     :: Address            -- ^ The script address of the marlowe contract
+        }
+        deriving stock (Show, Generic)
+        deriving anyclass (FromJSON, ToJSON)
+```
+
+### Control Contract
