@@ -27,8 +27,12 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
 
 This week we will be learning how to use Marlowe in the browser. 
 
-We can get started by visting:
+We can get started by visting Marlowe Playground here:
 [https://marlowe-playground-staging.plutus.aws.iohkdev.io/#/](https://marlowe-playground-staging.plutus.aws.iohkdev.io/#/)
+
+The Marlowe run demo can be found at:
+[https://run.marlowe-finance.io/](https://run.marlowe-finance.io/)
+
 
 We can now begin with the lecture.
 
@@ -491,40 +495,113 @@ So we can build the contracts as pure Marlowe, but there are other routes as wel
 
 ![Screenshot 2022-03-24 at 10-51-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159943689-47ea8b39-c11d-476b-8dc5-3159c3c5c963.png)
 
-We have a visual editor for Marlowe so that you can produce Marlowe contracts visually, putting together blocks in a way that doesn\'t require you to be a confident programmer. You can start off by using the visual version as a way of learning to engage with Marlowe if you are a coder.
+We have a visual editor for Marlowe so that you can produce Marlowe contracts visually, putting together blocks in a way that doesn't require you to be a confident programmer. You can start off by using the visual version as a way of learning to engage with Marlowe if you are a coder.
 
-Marlowe is embedded in Haskell and in Javascript so we can use facilities like recursion to describe Marlowe contracts. We can say, in Haskell, let\'s do this particular pattern of behavior a certain number of times. We can write that in Haskell and then for a particular contract we convert the Haskell into Marlowe, and we can also do that for Javascript.
+![Screenshot 2022-03-24 at 10-55-16 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159944635-3e65edc3-8ca1-425d-a0fe-4a59cb2191f1.png)
 
-Finally, something we\'re not going to talk about anymore in this talk is that we can generate contracts from initial conditions. We\'ve been looking at that for the actor standard of financial contracts. On the basis of the contract terms we generate code in Marlowe. We write functions whose output is Marlowe code.
+Marlowe is embedded in Haskell and in Javascript so we can use facilities like recursion to describe Marlowe contracts. We can say, in Haskell, let's do this particular pattern of behavior a certain number of times. We can write that in Haskell and then for a particular contract we convert the Haskell into Marlowe, and we can also do that for Javascript.
+
+![Screenshot 2022-03-24 at 10-56-40 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159944896-eecf121b-8a10-4e6e-b972-10a1fd3f78c3.png)
+
+Finally, something we're not going to talk about anymore in this talk is that we can generate contracts from initial conditions. We've been looking at that for the actor standard of financial contracts. On the basis of the contract terms we generate code in Marlowe. We write functions whose output is Marlowe code.
 
 We provide users with a variety of different approaches, leveraging knowledge of Javascript, for example, or leveraging a non-code-based approach for describing the contracts
 
+![Screenshot 2022-03-24 at 11-17-18 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/159949375-974ac7d2-49f2-475e-a172-abd8856ae2d8.png)
+
 We also allow people to simulate the behavior of contracts. This is something that you can see in the current version of the Marlowe Playground.
 
+That's something you can play with yourselves. We are looking at different ways of describing the results of a simulation. So at the moment we have a transaction log. We are allowed to choose an next action to perform, you can undo the last step to take you back and then try another path so you can step interactively backwards and forwards through the source code through the application of the contract.
+
+![Screenshot 2022-03-24 at 11-18-04 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159949600-9b0b1cbe-5200-43a3-8a58-1ea9e4f91111.png)
+
+What we're looking at is changing the user interface Marlowe Playground so that we'll use something rather more like the Marlowe Run run description of a running contract.
 
 
+![Screenshot 2022-03-24 at 11-18-48 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159949751-4ebf4212-886b-4ff2-927d-e35643656183.png)
 
 
+### Assurance
+
+We've talked about usability. What about the sort of assurance that Marlowe can give users?
+
+![Screenshot 2022-03-24 at 11-19-35 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159949908-4e3bb631-cff6-4764-a982-6a130fe4d59e.png)
+
+We've seen we've seen that making the system transparent, that making code readable is itself an advantage. We've seen that there's simulation to give people to validate their intuition about a contract.
+
+But rather more formally we can use the power of logic to do two things for us. We can do what's called static analysis so we can automatically verify properties of individual contracts. That means we can guarantee this contract will behave as it should, checking every route through the contract.
+
+Also we can do machine-supported proof so, not automatic any longer, written by a user, but we can prove properties of the overall system.
 
 
+![Screenshot 2022-03-24 at 11-20-42 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159950114-bab50110-7cb4-4589-a7d1-1f8563657bbb.png)
+
+### Static Analysis
+
+What static analysis allows us to do is check all execution paths through a Marlowe contract. All choices, all choices of slots for a submission of a transaction so we examine every possible way in which the contract might be executed.
+
+The canonical example here is the example of whether a pay construct might fail. Is it possible a pay construct could fail? The answer is that we will use what's called an SMT solver An SMT is an automatic logic tool - the one we use is called Z3, although others are available. The SMT solver effectively checks all execution parts.
+
+If a property is is satisfied that's fine, we get get the result. If it's not satisfied, we get a counter example. We get told that there's a way through this contract that leads to a failed payment - a payment that can't be fulfilled. So it gives an example of how it can go wrong, and that's really helpful. It means that if you really want to make sure that a failed payment can't happen, then this gives you a mechanism to understand and to debug how that eventuality can happen, and so gives you a chance to think about how to avoid it.
+
+So, very powerful and entirely push button. You push a button and you get the results
 
 
+![Screenshot 2022-03-24 at 11-24-59 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159951048-f27f4619-e7e4-4780-9164-e44ff6ad37a1.png)
 
+Here you see a fragment of a Marlowe contract. It's an escrow contract where the contract starts with a deposit of 450 lovelace.
 
+Checking the analysis in the playground, we've got the results. Static analysis could not find any any execution that results in any warning, so that\'s saying that you're okay - it's not going to give you a warning whatever you do.
 
+But if we change that deposit of 450 lovelace to a deposit of 40 and analyze we then get this warning.
 
+We get a transaction partial payment. We're told that we get to a payment where we're meant to pay 450 units of lovelace but there are only 40 available, and we get given a list of transactions that take us there.
 
+So we're able to see from that how we got to that point, and the problem is that we didn't put enough money in and then we reached a place where we needed to make a payment of 450 lovelace.
 
+So it's easy for us to see that we need to either make the payment smaller or make the initial deposit bigger. As it's entirely push button, we get that sort of assurance for free, as it were.
 
+![Screenshot 2022-03-24 at 11-27-43 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159951644-9bf04d06-59fc-4818-b7d9-5373ba2081e5.png)
 
+But thinking about verification, we can do rather more than that. We can prove properties of the system once and for all.
 
+So, for example, we can prove from the semantics that accounts inside a Marlowe contract never go negative. You can't ever overdraw an account in a Marlowe contract.
 
+We can also prove this theorem of money preservation. We can prove that if we look at all the money that's gone into the contract so far, that's equal to the sum of two things - the amount of money that's held inside the contract plus the amount of money that has been paid out. That gives a clear picture of money preservation.
 
+We're also able to to prove other more technical things about the system. For example, that a Close construct will never produce any warnings. So, if we're analyzing for warnings, we don't need to worry about Close constructs. That allows us to optimize the static analysis.
 
+We're also able to prove that the static analysis, which makes a number of simplifications to speed things up, is sound and complete. That means the static analysis will give us an error warning when the real contract can generate an error warning and it won't give us an error warning if the real contract can't do that.
 
+One thing that we haven't done but is on our road map is to do these sorts of proofs for individual contracts or individual contract templates. Things that we can't necessarily prove with static analysis, we can prove by proving them by hand.
 
+The system is amenable to having these proofs written about it, and they give us the highest level of assurance about how it works.
 
+We've said enough for the moment about Marlowe. Where can you go to find out more?
 
+![Screenshot 2022-03-24 at 11-30-11 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159952166-43a82cdd-7a02-4418-8435-29f2c4a0bee0.png)
+
+There\'s a Marlowe GitHub repository that has the semantics and the basics about Marlowe.
+
+https://github.com/input-output-hk/marlowe
+
+Quite a lot of the implementation of the tools from Marlowe is in the Plutus repository because it has that repository as a dependency.
+
+If you look in the IOHK online research library and search for Marlowe you'll find a number of research papers we've written about how the system works.
+
+You'll also find an online tutorial in the Marlowe Playground.
+
+[https://github.com/input-output-hk/marlowe](https://github.com/input-output-hk/marlowe)
+
+Finally, Alex is going to give some more information in his presentation coming up next.
+
+### Summary 
+
+Just to summarize, what we have in Marlowe is a DSL, a special-purpose language for financial contracts, running on top of Plutus. Because it's a DSL it allows us to give assurance that is harder to give for a general purpose language. And we get assurance of they way contracts should and shouldn\'t behave.
+
+It also allows us to to orient its design around users as well as developers. The language is simple and therefore we get readability.
+
+We also get simulatability and we get these stronger assurances of static analysis and verification.
 
 
 
