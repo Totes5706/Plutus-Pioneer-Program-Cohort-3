@@ -382,12 +382,53 @@ Using Marlowe run and an associated wallet, we construct the transactions.
 
 We get a flow of information in both directions. Marlowe run will submit transactions to the blockchain that then can be validated by the Marlowe interpreter, which is itself a Plutus contract. It's one of the largest Plutus contracts that exists.
 
+![Screenshot 2022-03-24 at 10-34-45 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159939924-230b848d-c8c8-4868-8c77-1d42d197b591.png)
+
 But there's also information flow another way because suppose that the transaction I've submitted is a deposit of money into a running contract, and suppose the contract also involves Charles Hoskinson, so my instance of Marlowe Run has submitted that transaction, but Charles also has to be notified about that.
 
 The information flows in the other direction using the companion contract to ensure that every instance of Marlowe Run gets informed about activity in that contract.
 
-Alex will talk some more about the details of the implementation but here you\'re seeing an outline of how it all how it all works.
+Alex will talk some more about the details of the implementation but here you're seeing an outline of how it all how it all works.
 
 Transactions are validated on chain through the interpreter, but they have to be built off chain and in some cases have to be authorized. Essentially the blockchain is the central synchronization point for the distributed system that is the collection of instances of Marlowe Run that are interacting to execute the contract
 
 You saw in the demo that, in two separate windows, we were sharing information. That was simulating it locally but in production this will be information that's stored on the blockchain.
+
+![Screenshot 2022-03-24 at 10-35-47 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159940103-deb3af4c-664e-4be6-b30e-1f5e76cba0ab.png)
+
+### System Design
+
+Let's talk a little bit about how the system is designed in in a high-level way.
+
+Here's a piece of the semantics of Marlowe, and as you can see it's a Haskell function.
+
+```haskell
+
+-- | Carry a step of the contract with no inputs
+reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
+reduceContractStep env state contract = case contract of
+
+    Close -> case refundOne (accounts state) of
+        Just ((party, token, money), newAccounts) -> let
+            newState = state { accounts = newAccounts }
+            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) token money)) newState Close
+        Nothing -> NotReduced
+
+    Pay accId payee token val cont -> let
+        moneyToPay = evalValue env state val
+        in  if moneyToPay <= 0
+            then Reduced (ReduceNonPositivePay accId payee moneyToPay) ReduceNoPayment state cont
+            else let
+                balance    = moneyInAccount accId token (accounts state) -- always positive
+                paidMoney  = min balance moneyToPay -- always positive
+                newBalance = balance - paidMoney -- always positive
+                newAccs    = updateMoneyInAccount accId token newBalance (accounts state)
+                warning = if paidMoney < moneyToPay
+                          then ReducePartialPay accId payee paidMoney moneyToPay
+                          else ReduceNoWarning
+                (payment, finalAccs) = giveMoney accId payee token paidMoney newAccs
+                in Reduced warning payment (state { accounts = finalAccs }) cont
+```
+
+
+
