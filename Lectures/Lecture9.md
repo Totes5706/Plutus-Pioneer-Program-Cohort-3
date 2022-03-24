@@ -235,7 +235,7 @@ This is the prototype of how end users will interact with Marlowe on the blockch
 
 We'll now look at a demo of what we have in Marlowe Run to give you a sense of what we can do at the moment in terms of giving users the experience that they will have when Marlowe is running on blockchain. This will be the app that is going to provide that experience.
 
-You can find the Marlowe Playground at
+You can find the Marlowe Run demo at:
 
 [https://run.marlowe-finance.io/](https://run.marlowe-finance.io/)
 
@@ -243,13 +243,27 @@ You can find the Marlowe Playground at
 ![Screenshot 2022-03-24 at 10-01-38 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159933110-83085082-c99f-477a-ac8d-3761afa59d58.png)
 
 
+Marlowe run runs in the browser and what it does is provide the end user interaction with contracts running on the blockchain.
+
+For the moment we're simulating that blockchain inside the browser but eventually this will be the tool you\'ll use to run contracts for real on Cardano.
+
+To interact with the contract your wallet needs to be involved to control your your signature and to control your assets, so we link up Marlowe to run with a wallet. Let's link it up with Shruti's wallet. You can do this by creating a demo wallet, or by selecting an existing wallet.
+
+### Create wallet for Shruti
+
+![Screenshot 2022-03-24 at 10-03-39 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159933489-10f26cbe-2cfe-4524-9e43-fdcd3c5d2104.png)
 
 
+![Screenshot 2022-03-24 at 10-05-10 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159933821-af5caa58-1d49-40ca-8c81-c2652b1d225c.png)
+
+In this window we see the world from Shruti's perspective. Let's open up another window and link that window to the world from Charles's perspective.
+
+### Create Wallet for Charles
+
+![Screenshot 2022-03-24 at 10-06-24 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159934088-f3e032b3-a412-4c0c-ac5f-24d009ed1a22.png)
 
 
-
-
-
+![Screenshot 2022-03-24 at 10-06-42 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159934146-be84e6fd-2d79-4fa9-aec6-502ef1bb3cd3.png)
 
 
 
