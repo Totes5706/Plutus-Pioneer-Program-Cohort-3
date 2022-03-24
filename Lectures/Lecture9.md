@@ -1648,7 +1648,7 @@ Briefly looking some of the low-level capabilities:
 
 ![Screenshot 2022-03-24 at 16-27-21 PPP 030903 - Alexander Nemish Marlowe in Plutus](https://user-images.githubusercontent.com/59018247/160004567-7bb8b1de-34c2-4f4e-9e4f-16929c12ad83.png)
 
-They you do things like create Marlowe; so you actually can compute script addresses, validator hashes, and data hashes. 
+They allow you do things like create Marlowe; so you actually can compute script addresses, validator hashes, and data hashes. 
 You can look at the binary representation of the plutus script, get json representations of the datum or the redeemer, count bytes, look at the execution cost and memory. These things all matter if you're kind of in the nitty gritty world of developing a contract you want to know how much it's going to cost or whether if it is going to fit on the blockchain. Also, maybe even pre-computation of what these hashes are. That creation is supplemented by functions that actually build and submit transactions.
 
 
