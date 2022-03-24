@@ -429,6 +429,30 @@ reduceContractStep env state contract = case contract of
                 (payment, finalAccs) = giveMoney accId payee token paidMoney newAccs
                 in Reduced warning payment (state { accounts = finalAccs }) cont
 ```
+We take an environment, the current state and a contract we executed, and based on what contract that is - a close perhaps, or a pay, we can reduce we can take some steps of computing the results of that contract.
 
+We do that in a way that uses uses Haskell in a quite straightforward way to advance the contract. This specification in Haskell is an executable specification of the semantics and this gives us some very nice consequences.
 
+![Screenshot 2022-03-24 at 10-43-45 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159941901-7197d209-c3d8-423d-a834-b66e270d49e3.png)
 
+### Semantics 
+
+We've got al we've got a high level description of what the semantics are, and we're doing that through something that is effectively an interpreter. So we're defining at a high level this interpreter in Haskell for Marlowe contracts.
+
+### Completeness
+
+One really nice thing about writing it in this sort of way is that we can be sure we cover all cases because it's a it will be obvious if we're missing some cases. Writing it as an interpreter ensures that we will hit cases we need to in describing the semantics.
+
+### Engagement 
+
+Also it really helps us to understand the semantics. When you're designing a language you have an abstract idea about what it's going to mean, but there's nothing like having a an implementation of it so you can actually run the semantics.
+
+What would it mean if we were to add this construct? What would it mean if we were to modify the semantics in this way?
+
+If we'd written it in a purely purely logical format, it's difficult to unscramble just from the rules as they're laid out what, precisely, a change in rule might mean.
+
+What's even nicer is that we can reuse the semantics in a number of different ways.
+
+![Screenshot 2022-03-24 at 10-44-34 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159942103-8b0f9e7c-c647-4b9f-9b75-a112647ec43b.png)
+
+In the theorem prover Isabelle, we can use the semantics for reasoning and proof and we use pretty much the same semantics because Isabelle uses a functional language as is as its subject.
