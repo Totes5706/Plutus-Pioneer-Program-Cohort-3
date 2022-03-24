@@ -456,3 +456,89 @@ What's even nicer is that we can reuse the semantics in a number of different wa
 ![Screenshot 2022-03-24 at 10-44-34 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159942103-8b0f9e7c-c647-4b9f-9b75-a112647ec43b.png)
 
 In the theorem prover Isabelle, we can use the semantics for reasoning and proof and we use pretty much the same semantics because Isabelle uses a functional language as is as its subject.
+
+We can run the semantics in Plutus. Plutus is more or less Haskell, perhaps not with all the libraries, but we can, in principle at least, build our implementation on blockchain from our semantics, and also we can translate the semantics into PureScript for simulation in the browser.
+
+![Screenshot 2022-03-24 at 10-46-18 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159942489-aacb9715-83bb-48a3-8339-695da4f0f872.png)
+
+Now pure script is not the same exactly the same as Haskell. Isabelle's language is not exactly the same as Haskell. How can we be sure that all these versions are the same?
+
+One way of doing it is to extract Haskell code from Isabelle and test the original against um this extracted code. We do that on random contracts and that gives us a pretty high level of assurance that the two are the same.
+
+Down down the line in our road map we certainly expect to be using a Haskell and Javascript implementation at some point to replace PureScript in the front end so we don't have to write a PureScript version of the semantics when we're doing the off chain interpretation building the transactions to be submitted. We can use the real haskell implementation by compiling it into Javascript and running that in Marlowe Run in the client code.
+
+So, building the language in Haskell means that though we use various different versions of the semantics, we can get a high level of assurance that these are the same and indeed we can in some situations replace things like the PureScript by Javascript.
+
+
+![Screenshot 2022-03-24 at 10-48-07 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159942935-8c4ad2d4-2cb6-4526-a487-64672619023c.png)
+
+
+### Usability
+
+That gives us a picture about how how the system is put together. Let's go to another aspect of Marlowe. We we talked about it being a special purpose language, and that being a DSL promoted usability.
+
+Let's say a bit more about that.
+
+![Screenshot 2022-03-24 at 10-48-48 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159943081-ca283fc2-80c2-402e-a5c4-cfe2885b34c3.png)
+
+One way we we promote usability is that we provide different ways of writing contracts. Another way we promote usability is to allow people to explore interactively how contracts behave before they\'re actually run in the simulation.
+
+So let's talk about those now.
+
+We want to write a Marlowe contract, how can we do it? Well, we can write Haskell using the Marlowe data type as text. That's one way we can do it and that's fine. We have an editor for that inside the playground that supports code completion and will make suggestions and and so on.
+
+So we can build the contracts as pure Marlowe, but there are other routes as well.
+
+![Screenshot 2022-03-24 at 10-51-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159943689-47ea8b39-c11d-476b-8dc5-3159c3c5c963.png)
+
+We have a visual editor for Marlowe so that you can produce Marlowe contracts visually, putting together blocks in a way that doesn\'t require you to be a confident programmer. You can start off by using the visual version as a way of learning to engage with Marlowe if you are a coder.
+
+Marlowe is embedded in Haskell and in Javascript so we can use facilities like recursion to describe Marlowe contracts. We can say, in Haskell, let\'s do this particular pattern of behavior a certain number of times. We can write that in Haskell and then for a particular contract we convert the Haskell into Marlowe, and we can also do that for Javascript.
+
+Finally, something we\'re not going to talk about anymore in this talk is that we can generate contracts from initial conditions. We\'ve been looking at that for the actor standard of financial contracts. On the basis of the contract terms we generate code in Marlowe. We write functions whose output is Marlowe code.
+
+We provide users with a variety of different approaches, leveraging knowledge of Javascript, for example, or leveraging a non-code-based approach for describing the contracts
+
+We also allow people to simulate the behavior of contracts. This is something that you can see in the current version of the Marlowe Playground.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
