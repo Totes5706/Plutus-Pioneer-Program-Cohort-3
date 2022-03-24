@@ -1092,3 +1092,267 @@ data ContractHistory =
 ```
 
 ### Control Contract
+
+The ```marlowePlutusContract``` is a control contract. It allows you to create an instance of a Marlowe contract, apply inputs to the instance, to auto-execute the contract, if possible, to redeem tokens from payments to roles, and to close the contract.
+
+```haskell
+{-  This is a control contract.
+    It allows to create a contract, apply inputs, auto-execute a contract,
+    redeem role payouts, and close.
+ -}
+marlowePlutusContract :: Contract MarloweContractState MarloweSchema MarloweError ()
+marlowePlutusContract = selectList [create, apply, applyNonmerkleized, auto, redeem, close]
+```
+
+Let's go through Marlowe contract creation.
+
+### Create Endpoint
+
+```haskell
+ create = endpoint @"create" $ \(reqId, owners, contract) -> catchError reqId "create" $ do
+        -- Create a transaction with the role tokens and pay them to the contract creator
+        -- See Note [The contract is not ready]
+        ownPubKey <- unPaymentPubKeyHash <$> Contract.ownPaymentPubKeyHash
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] ownPubKey = " <> show ownPubKey
+        let roles = extractNonMerkleizedContractRoles contract
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] roles = " <> show roles
+        (params, distributeRoleTokens, lkps) <- setupMarloweParams owners roles
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] params = " <> show params
+        time <- currentTime
+        logInfo $ "Marlowe contract created with parameters: " <> show params <> " at " <> show time
+        let marloweData = MarloweData {
+                marloweContract = contract,
+                marloweState = State
+                    { accounts = AssocMap.singleton (PK ownPubKey, Token adaSymbol adaToken) minLovelaceDeposit
+                    , choices  = AssocMap.empty
+                    , boundValues = AssocMap.empty
+                    , minTime = time } }
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] marloweData = " <> show marloweData
+        let minAdaTxOut = lovelaceValueOf minLovelaceDeposit
+        let typedValidator = mkMarloweTypedValidator params
+        let tx = mustPayToTheScript marloweData minAdaTxOut <> distributeRoleTokens
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] tx = " <> show tx
+        let lookups = Constraints.typedValidatorLookups typedValidator <> lkps
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] lookups = " <> show lookups
+        -- Create the Marlowe contract and pay the role tokens to the owners
+        utx <- either (throwing _ConstraintResolutionContractError) pure (Constraints.mkTx lookups tx)
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:create] utx = " <> show utx
+        submitTxConfirmed utx
+        logInfo $ "MarloweApp contract creation confirmed for parameters " <> show params <> "."
+        tell $ Just $ EndpointSuccess reqId $ CreateResponse params
+        marlowePlutusContract
+```
+
+When you call the create endpoint, you provide a contract and a map of roles to public keys. We then setup a ```MarloweParams```.
+
+```haskell
+data MarloweParams = MarloweParams {
+        rolePayoutValidatorHash :: ValidatorHash,
+        rolesCurrency           :: CurrencySymbol
+    }
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
+  deriving anyclass (FromJSON,ToJSON)
+```
+```MarloweParams``` is a way to parameterise a Marlowe contract. You can specify your own role payout validator by providing its hash. There is a default one that checks that the role token is spent within the transaction but you can do whatever you like.
+
+When your contract uses roles, we need to know the currency symbol for the role. When the contract uses roles, we need to create role tokens and distribute them to their owners.
+
+In the ```setupMarloweParams``` function we get the roles that are used within the contract. If we have owners for these roles, we create tokens with role names. By default we create one token per role. Then, in the same transaction, we distribute the role tokens to their owners.
+
+```haskell
+setupMarloweParams
+    :: forall s e i o a.
+    (AsMarloweError e)
+    => RoleOwners
+    -> Set Val.TokenName
+    -> Contract MarloweContractState s e
+        (MarloweParams, TxConstraints i o, ScriptLookups a)
+setupMarloweParams owners roles = mapError (review _MarloweError) $ do
+    if Set.null roles
+    then do
+        let params = marloweParams adaSymbol
+        pure (params, mempty, mempty)
+    else if roles `Set.isSubsetOf` Set.fromList (AssocMap.keys owners)
+    then do
+        let tokens = (, 1) <$> Set.toList roles
+        txOutRef@(Ledger.TxOutRef h i) <- getUnspentOutput
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:setupMarloweParams] txOutRef = " <> show txOutRef
+        txOut <-
+          maybe
+            (throwing _ContractError . Contract.OtherContractError . T.pack $ show txOutRef <> " was not found on the chain index. Please verify that plutus-chain-index is 100% synced.")
+            pure
+            =<< txOutFromRef txOutRef
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:setupMarloweParams] txOut = " <> show txOut
+        let utxo = Map.singleton txOutRef txOut
+        let theCurrency = Currency.OneShotCurrency
+                { curRefTransactionOutput = (h, i)
+                , curAmounts              = AssocMap.fromList tokens
+                }
+            curVali     = Currency.curPolicy theCurrency
+            lookups     = Constraints.mintingPolicy curVali
+                            <> Constraints.unspentOutputs utxo
+            mintTx      = Constraints.mustSpendPubKeyOutput txOutRef
+                            <> Constraints.mustMintValue (Currency.mintedValue theCurrency)
+        let rolesSymbol = Ledger.scriptCurrencySymbol curVali
+        let minAdaTxOut = adaValueOf 2
+        let giveToParty (role, addr) =
+              mustPayToShelleyAddress addr (Val.singleton rolesSymbol role 1 <> minAdaTxOut)
+        distributeRoleTokens <- foldMapM giveToParty $ AssocMap.toList owners
+        let params = marloweParams rolesSymbol
+        pure (params, mintTx <> distributeRoleTokens, lookups)
+    else do
+        let missingRoles = roles `Set.difference` Set.fromList (AssocMap.keys owners)
+        let message = T.pack $ "You didn't specify owners of these roles: " <> show missingRoles
+        throwing _ContractError $ Contract.OtherContractError message
+```
+
+### Apply Endpoint
+
+```haskell
+
+  apply = endpoint @"apply-inputs" $ \(reqId, params, timeInterval, inputs) -> catchError reqId "apply-inputs" $ do
+        let typedValidator = mkMarloweTypedValidator params
+        _ <- applyInputs params typedValidator timeInterval inputs
+        tell $ Just $ EndpointSuccess reqId ApplyInputsResponse
+        logInfo $ "MarloweApp contract input-application confirmed for inputs " <> show inputs <> "."
+        marlowePlutusContract
+    applyNonmerkleized = endpoint @"apply-inputs-nonmerkleized" $ \(reqId, params, timeInterval, inputs) -> catchError reqId "apply-inputs-nonmerkleized" $ do
+        let typedValidator = mkMarloweTypedValidator params
+        _ <- applyInputs params typedValidator timeInterval $ ClientInput <$> inputs
+        tell $ Just $ EndpointSuccess reqId ApplyInputsResponse
+        logInfo $ "MarloweApp contract input-application confirmed for inputs " <> show inputs <> "."
+        marlowePlutusContract
+```
+
+The apply endpoint is very simple. We call the ```applyInputs``` function.
+
+```haskell
+applyInputs :: AsMarloweError e
+    => MarloweParams
+    -> SmallTypedValidator
+    -> Maybe TimeInterval
+    -> [MarloweClientInput]
+    -> Contract MarloweContractState MarloweSchema e MarloweData
+applyInputs params typedValidator timeInterval inputs = mapError (review _MarloweError) $ do
+    -- TODO: Move to debug log.
+    logInfo $ "[DEBUG:applyInputs] params = " <> show params
+    logInfo $ "[DEBUG:applyInputs] timeInterval = " <> show timeInterval
+    timeRange <- case timeInterval of
+            Just si -> pure si
+            Nothing -> do
+                time <- currentTime
+                pure (time, time + defaultTxValidationRange)
+    logInfo $ "[DEBUG:applyInputs] timeRange = " <> show timeRange
+    mkStep params typedValidator timeRange inputs
+```
+
+
+We construct a time range and we use the ```mkStep``` function which takes a params, typedValidator, timeRange  and a list of inputs.
+
+### Redeem Endpoint
+
+```haskell
+   redeem = promiseMap (mapError (review _MarloweError)) $ endpoint @"redeem" $ \(reqId, MarloweParams{rolesCurrency}, role, paymentAddress) -> catchError reqId "redeem" $ do
+        -- TODO: Move to debug log.
+        logInfo $ "[DEBUG:redeem] rolesCurrency = " <> show rolesCurrency
+        let address = scriptHashAddress (mkRolePayoutValidatorHash rolesCurrency)
+        logInfo $ "[DEBUG:redeem] address = " <> show address
+        utxos <- utxosAt address
+        let
+          spendable txout =
+            let
+              expectedDatumHash = datumHash (Datum $ PlutusTx.toBuiltinData role)
+              dh = either id Ledger.datumHash <$> preview Ledger.ciTxOutDatum txout
+            in
+              dh == Just expectedDatumHash
+          utxosToSpend = Map.filter spendable utxos
+          spendPayoutConstraints tx ref txout =
+            do
+              let amount = view Ledger.ciTxOutValue txout
+              previousConstraints <- tx
+              payOwner <- mustPayToShelleyAddress paymentAddress amount
+              pure
+                $ previousConstraints
+                <> payOwner -- pay to a token owner
+                <> Constraints.mustSpendScriptOutput ref unitRedeemer -- spend the rolePayoutScript address
+
+        spendPayouts <- Map.foldlWithKey spendPayoutConstraints (pure mempty) utxosToSpend
+        if spendPayouts == mempty
+        then do
+            logInfo $ "MarloweApp contract redemption empty for role " <> show role <> "."
+            tell $ Just $ EndpointSuccess reqId RedeemResponse
+        else do
+            let
+              constraints = spendPayouts
+                  -- must spend a role token for authorization
+                  <> Constraints.mustSpendAtLeast (Val.singleton rolesCurrency role 1)
+              -- lookup for payout validator and role payouts
+              validator = rolePayoutScript rolesCurrency
+            -- TODO: Move to debug log.
+            logInfo $ "[DEBUG:redeem] constraints = " <> show constraints
+            ownAddressLookups <- ownShelleyAddress paymentAddress
+            let
+              lookups = Constraints.otherScript validator
+                  <> Constraints.unspentOutputs utxosToSpend
+                  <> ownAddressLookups
+            -- TODO: Move to debug log.
+            logInfo $ "[DEBUG:redeem] lookups = " <> show lookups
+            tx <- either (throwing _ConstraintResolutionContractError) pure (Constraints.mkTx @Void lookups constraints)
+            -- TODO: Move to debug log.
+            logInfo $ "[DEBUG:redeem] tx = " <> show tx
+            _ <- submitTxConfirmed $ Constraints.adjustUnbalancedTx tx
+            logInfo $ "MarloweApp contract redemption confirmed for role " <> show role <> "."
+            tell $ Just $ EndpointSuccess reqId RedeemResponse
+
+        marlowePlutusContract
+```
+
+The redeem endpoint allows you to get money that has been paid to a role payout script.
+
+We get the address of the script and then send all the outputs to the token owner.
+
+
+### Auto Endpoint
+
+```haskell
+ auto = endpoint @"auto" $ \(reqId, params, party, untilTime) -> catchError reqId "auto" $ do
+        let typedValidator = mkMarloweTypedValidator params
+        let continueWith :: MarloweData -> Contract MarloweContractState MarloweSchema MarloweError ()
+            continueWith md@MarloweData{marloweContract} =
+                if canAutoExecuteContractForParty party marloweContract
+                then autoExecuteContract reqId params typedValidator party md
+                else do
+                    tell $ Just $ EndpointSuccess reqId AutoResponse
+                    marlowePlutusContract
+
+        maybeState <- getOnChainState typedValidator
+        case maybeState of
+            Nothing -> do
+                wr <- waitForUpdateUntilTime typedValidator untilTime
+                case wr of
+                    Transition Closed{} -> do
+                        logInfo @String $ "Contract Ended for party " <> show party
+                        tell $ Just $ EndpointSuccess reqId AutoResponse
+                        marlowePlutusContract
+                    Timeout{} -> do
+                        logInfo @String $ "Contract Timeout for party " <> show party
+                        tell $ Just $ EndpointSuccess reqId AutoResponse
+                        marlowePlutusContract
+                    Transition InputApplied{historyData} -> continueWith historyData
+                    Transition Created{historyData} -> continueWith historyData
+            Just (OnChainState{ocsTxOutRef=st}, _) -> do
+                let marloweData = toMarloweState st
+                continueWith marloweData
+    -- The MarloweApp contract is closed implicitly by not returning
+    -- itself (marlowePlutusContract) as a continuation
+```
+
