@@ -23,7 +23,7 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
   - [Marlowe Playground Demo](#marlowe-playground-demo)
   - [Homework](#homework)
 
-## Preparation for Lecture 8
+## Preparation for Lecture 9
 
 This week we will be learning how to use Marlowe in the browser. 
 
@@ -116,17 +116,105 @@ So we have flows of money and choices according to external factors.
 
 One final thing that we have is that the roles in a contract are things that themselves can be owned. We represent that in Marlowe by minting tokens that represent those roles. That means that we can use those tokens as evidence that somebody is meant to be playing a role. They are a form of security that a person submitting a transaction is allowed to submit that transaction, but also it means that these roles are tradable. A role could be traded by another person or another contract.
 
+![Screenshot 2022-03-24 at 08-44-30 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159918885-d963f50b-4960-4d81-bb33-6771b14ccf09.png)
+
+### Design
+
+Now let's think about how to design a language based on these ingredients.
+
+![Screenshot 2022-03-24 at 08-45-27 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159919037-98a45de5-15a6-4975-9290-c6ebd62728e3.png)
+
+When we design a language of contracts, what we are really doing is designing a programming language. A smart contract is just a program running on a blockchain.
+
+A contract could, in principle, run forever. And also, more subtly, it could get stuck waiting for an input forever.
+
+It could terminate while holding assets, locking them up forever.
+
+So there's a whole lot of security issues that a program might have.
+
+![Screenshot 2022-03-24 at 08-48-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159919605-d43745ec-fbda-444e-b8d3-1e2b9b5acc34.png)
 
 
+### Designed for safety
+
+What we chose to do was to design for safety.
+Contracts are finite
+
+Firstly, contracts are designed to be finite. Their life will be finite, there is no recursion or looping in Marlowe. We will come back to that a bit later on when we talk about Marlowe being embedded in other languages.
+
+### Contracts will terminate
+
+We can be sure that contracts will terminate. We do that by putting timeouts on every external action. Every choice, every deposit of money into the contract comes with a deadline. Marlowe contracts cannot wait forever for somebody to make a choice or for an action to happen. If you hit the timeout then an alternative course is taken.
+
+### No assets retained on close
+
+We've designed the semantics of the language so that when a contract reaches its close, at the end of its lifetime, any money left in the contract will be refunded to participants.
+
+### Conservation of value
+
+Conservation of value is something that we get for free from the underlying blockchain. The blockchain guarantees that we can't double spend and because we are using the transaction mechanisms of the underlying blockchain, we can be sure that we are getting conservation of value.
+
+So this is giving us a lot of guarantees out of the box. These are not guarantees that you get from Plutus contracts in general. A Plutus contract could go on forever, it need not terminate and it could terminate while holding a whole collection of assets which then become unreachable.
 
 
+![Screenshot 2022-03-24 at 08-51-36 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159920158-29260325-e294-47a1-b6bc-8d9a03056ddd.png)
+
+### The Marlowe Language
+
+So what does the language look like? Let's cut to the chase.
+
+Marlowe, at heart is represented as a Haskell datatype.
+
+```haskell
+data Contract = Close
+| Pay Party Payee Value Contract
+| If Observation Contract Contract
+| When [Case Action Contract] Timeout Contract
+| Let ValueId Value Contract
+| Assert Observation Contract
+deriving (Eq,Ord,Show,Read,Generic,Pretty)
+```
+
+We have a ```Pay``` construct. In that a Party in the contract makes a payment to a Payee of a particular Value, and then the contract continues with what we call the continuation contract.
+
+```haskell
+Pay Party Payee Value Contract
+```
+
+We can go in two separate directions. We can observe ```If``` a particular Observation is true or not. If the observation is true we follow the first Contract, if it is false we follow the second Contract.
+
+```haskell
+If Observation Contract Contract
+```
+
+The most complex construct in Marlowe is the ```When``` construct. It takes three arguments. The first of those is a list of Contract/Action pairs - a list of Cases.
+
+```haskell
+When [Case Action Contract] Timeout Contract
+```
+
+What the When construct does is wait for one of a number of Actions. When one of those Actions happens, it performs the corresponding Contract. For example, it could be waiting for a deposit. If we have a case where the first part of the pair is a deposit, then we execute the corresponding second part of the pair. Similarly with making a choice or with getting a value from an oracle.
+
+Here we are waiting for external actions and, of course, the contract can\'t make those actions happen. A contract can\'t force somebody to make a choice. It can't force somebody to make a deposit. But what we can do is say that if none of these actions takes place then we will hit the Timeout, and when we hit the Timeout, we will perform the Contract represented by the final argument to the When construct.
+
+So, we can guarantee that something will happen in the When construct, either by one of the actions triggering a successive contract, or we hit the timeout and go to that continuation.
+
+Finally we have the ```Close``` construct which has the semantics defined so that nothing is retained when we close.
+
+```haskell
+data Contract = Close
+```
+
+That is the Marlowe language, and we will see that we can use these to construct Marlowe contracts in a variety of ways.
 
 
+![Screenshot 2022-03-24 at 08-56-53 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159921044-8f6d48e3-21e9-40ba-9987-8bcc8870cc7d.png)
 
+### The Marlowe Product
 
+So that is the language. What is the Marlowe product itself?
 
-
-
+We have a suite of things. First we'll look at the overall vision for Marlowe and then look at where we are in terms of fulfilling that vision.
 
 
 
