@@ -229,7 +229,7 @@ So as things stand at the moment you can use the Marlowe Playground to simulate 
 
 This is the prototype of how end users will interact with Marlowe on the blockchain. Our intention is that we'll have all these products available running on the Cardano blockchain when we have the full support for this which will involve having the Plutus Application Backend and the wallet back end and so on working as they should.
 
-![Screenshot 2022-03-24 at 10-00-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159932867-bb12f7f0-6012-4d2f-8a93-6764bc960bc6.png)
+
 
 ### Marlowe Run Demo
 
@@ -342,4 +342,52 @@ If we close that and select History, we can see the history of all the contracts
 ![Screenshot 2022-03-24 at 10-20-47 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159936927-daad52da-d7d5-40ce-9d2f-69436f913f5b.png)
 
 
-That pretty much covers the basics of what you get from Marlowe Run. It's an intuitive interface to a contract running on the blockchain. You see that each participant in the contract gets their view of the contract in real time, updated from what is, in this case in the browser, but eventually what\'s on the blockchain.
+That pretty much covers the basics of what you get from Marlowe Run. It's an intuitive interface to a contract running on the blockchain. You see that each participant in the contract gets their view of the contract in real time, updated from what is, in this case in the browser, but eventually what's on the blockchain.
+
+![Screenshot 2022-03-24 at 10-00-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159932867-bb12f7f0-6012-4d2f-8a93-6764bc960bc6.png)
+
+### Engineering
+
+Let's now take a look under the hood and see how Marlowe will be executed on Cardano.
+
+Here's a diagram just to give you the context. You'll understand most parts of this diagram already. We a Cardano root node on which Plutus is running, and as you know, Plutus is a dialect of haskell, more or less.
+
+![Screenshot 2022-03-24 at 10-27-21 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159938352-e8f4aaa2-5a4e-4acb-964d-ed760de87a9a.png)
+
+Marlowe is embedded in Haskell and Marlowe is executed using Plutus. So Marlowe sits on top of Plutus, but it's also linked to Marlowe Run and has an attachment to a wallet you'll be able to interact with as an end user with a running Marlowe contract.
+
+Also it gets linked to Oracles and so on sitting out there in the real world.
+
+Now, what does it mean to to execute a Marlowe contract?
+
+Again this will be familiar to you from Plutus but let's just talk through precisely how it works.
+
+![Screenshot 2022-03-24 at 10-29-02 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159938722-a8c605ab-760a-41fa-8951-856ac2743c11.png)
+
+Executing a Marlowe contract will produce a series of transactions on the blockchain. Obviously Plutus running on Cardano checks the validity of transactions. We have a validation function.
+
+The validation function for these Marlowe transactions is essentially a Marlowe interpreter. It checks that the transactions indeed conform to the steps of the Marlowe contract. That's done using the EUTxO model, so we pass the current state of the contract and some other information through as datum.
+
+The Marlowe interpreter uses that to ensure that the the transactions that are submitted meet the criteria for the particular Marlowe contract.
+
+So that's the on chain part.
+
+Obviously off chain there's a component as well. So we have to have Marlowe Run and we'll have to build the transactions that meet the the validation step on chain.
+
+![Screenshot 2022-03-24 at 10-31-01 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159939173-8616f84e-5b71-4bc7-bc03-0efb57c8fd4d.png)
+
+And, if and when the contract requires crypto assets it will have off chain code to ensure that transactions are appropriately signed so that we will have authorization for spending crypto assets.
+
+Using Marlowe run and an associated wallet, we construct the transactions.
+
+We get a flow of information in both directions. Marlowe run will submit transactions to the blockchain that then can be validated by the Marlowe interpreter, which is itself a Plutus contract. It's one of the largest Plutus contracts that exists.
+
+But there's also information flow another way because suppose that the transaction I've submitted is a deposit of money into a running contract, and suppose the contract also involves Charles Hoskinson, so my instance of Marlowe Run has submitted that transaction, but Charles also has to be notified about that.
+
+The information flows in the other direction using the companion contract to ensure that every instance of Marlowe Run gets informed about activity in that contract.
+
+Alex will talk some more about the details of the implementation but here you\'re seeing an outline of how it all how it all works.
+
+Transactions are validated on chain through the interpreter, but they have to be built off chain and in some cases have to be authorized. Essentially the blockchain is the central synchronization point for the distributed system that is the collection of instances of Marlowe Run that are interacting to execute the contract
+
+You saw in the demo that, in two separate windows, we were sharing information. That was simulating it locally but in production this will be information that's stored on the blockchain.
