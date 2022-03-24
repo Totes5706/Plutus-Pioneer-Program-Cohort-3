@@ -694,11 +694,157 @@ computeTransaction tx state contract = let
 ```
 The entrance to the semantics is the ```computeTransaction` function. It gets the transaction input, the current state and the current contract and returns the transaction output.
 
-First of all we check the slot interval for errors. For example, we do not allow the slot interval to contain any timeouts. If you have a contract with a When construct of 10, you cannot produce a contract with a slot interval of 5..15 because it will contain a timeout.
+First of all we check the time interval for errors. For example, we do not allow the time interval to contain any timeouts.
 
 Then we apply all inputs and if this is successful we return the transaction output with any warnings we have found, the payments we expect, the new state and the continuation contract.
 
+```haskell
+-- | Apply a list of Inputs to the contract
+applyAllInputs :: Environment -> State -> Contract -> [Input] -> ApplyAllResult
+applyAllInputs env state contract inputs = let
+    applyAllLoop
+        :: Bool
+        -> Environment
+        -> State
+        -> Contract
+        -> [Input]
+        -> [TransactionWarning]
+        -> [Payment]
+        -> ApplyAllResult
+    applyAllLoop contractChanged env state contract inputs warnings payments =
+        case reduceContractUntilQuiescent env state contract of
+            RRAmbiguousTimeIntervalError -> ApplyAllAmbiguousTimeIntervalError
+            ContractQuiescent reduced reduceWarns pays curState cont -> case inputs of
+                [] -> ApplyAllSuccess
+                    (contractChanged || reduced)
+                    (warnings ++ convertReduceWarnings reduceWarns)
+                    (payments ++ pays)
+                    curState
+                    cont
+                (input : rest) -> case applyInput env curState input cont of
+                    Applied applyWarn newState cont ->
+                        applyAllLoop
+                            True
+                            env
+                            newState
+                            cont
+                            rest
+                            (warnings
+                                ++ convertReduceWarnings reduceWarns
+                                ++ convertApplyWarning applyWarn)
+                            (payments ++ pays)
+                    ApplyNoMatchError -> ApplyAllNoMatchError
+                    ApplyHashMismatch -> ApplyAllHashMismatch
+    in applyAllLoop False env state contract inputs [] []
+  where
+    convertApplyWarning :: ApplyWarning -> [TransactionWarning]
+    convertApplyWarning warn =
+        case warn of
+            ApplyNoWarning -> []
+            ApplyNonPositiveDeposit party accId tok amount ->
+                [TransactionNonPositiveDeposit party accId tok amount]
 
+```
 
+So what happens in ```applyAllInputs```?
 
+First of all, it's a loop. It uses the ```reduceContractUntilQuiescent``` function which reduces the contract until it reaches a quiescent state. Once we reach a quiescent state, we take the first input and try to apply it, and then continue with the loop, until we get an empty input list. Then we return the current state and the continuation contract.
+
+The ```reduceContractUntilQuiescent``` function goes through a loop and tries to apply ```reduceContractStep``` which essentially evaluates a contract.
+
+```haskell
+
+-- | Reduce a contract until it cannot be reduced more
+reduceContractUntilQuiescent :: Environment -> State -> Contract -> ReduceResult
+reduceContractUntilQuiescent env state contract = let
+    reductionLoop
+      :: Bool -> Environment -> State -> Contract -> [ReduceWarning] -> [Payment] -> ReduceResult
+    reductionLoop reduced env state contract warnings payments =
+        case reduceContractStep env state contract of
+            Reduced warning effect newState cont -> let
+                newWarnings = case warning of
+                                ReduceNoWarning -> warnings
+                                _               -> warning : warnings
+                newPayments  = case effect of
+                    ReduceWithPayment payment -> payment : payments
+                    ReduceNoPayment           -> payments
+                in reductionLoop True env newState cont newWarnings newPayments
+            AmbiguousTimeIntervalReductionError -> RRAmbiguousTimeIntervalError
+            -- this is the last invocation of reductionLoop, so we can reverse lists
+            NotReduced -> ContractQuiescent reduced (reverse warnings) (reverse payments) state contract
+
+    in reductionLoop False env state contract [] []
+```
+
+```haskell
+-- | Carry a step of the contract with no inputs
+reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
+reduceContractStep env state contract = case contract of
+
+    Close -> case refundOne (accounts state) of
+        Just ((party, money), newAccounts) -> let
+            newState = state { accounts = newAccounts }
+            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) money)) newState Close
+        Nothing -> NotReduced
+
+    Pay accId payee tok val cont -> let
+        amountToPay = evalValue env state val
+        in  if amountToPay <= 0
+            then let
+                warning = ReduceNonPositivePay accId payee tok amountToPay
+                in Reduced warning ReduceNoPayment state cont
+            else let
+                balance    = moneyInAccount accId tok (accounts state)
+                paidAmount = min balance amountToPay
+                newBalance = balance - paidAmount
+                newAccs = updateMoneyInAccount accId tok newBalance (accounts state)
+                warning = if paidAmount < amountToPay
+                          then ReducePartialPay accId payee tok paidAmount amountToPay
+                          else ReduceNoWarning
+                (payment, finalAccs) = giveMoney accId payee tok paidAmount newAccs
+                newState = state { accounts = finalAccs }
+                in Reduced warning payment newState cont
+
+    If obs cont1 cont2 -> let
+        cont = if evalObservation env state obs then cont1 else cont2
+        in Reduced ReduceNoWarning ReduceNoPayment state cont
+
+    When _ timeout cont -> let
+        startSlot = fst (timeInterval env)
+        endSlot   = snd (timeInterval env)
+        -- if timeout in future – do not reduce
+        in if endSlot < timeout then NotReduced
+        -- if timeout in the past – reduce to timeout continuation
+        else if timeout <= startSlot then Reduced ReduceNoWarning ReduceNoPayment state cont
+        -- if timeout in the time range – issue an ambiguity error
+        else AmbiguousTimeIntervalReductionError
+
+    Let valId val cont -> let
+        evaluatedValue = evalValue env state val
+        boundVals = boundValues state
+        newState = state { boundValues = Map.insert valId evaluatedValue boundVals }
+        warn = case Map.lookup valId boundVals of
+              Just oldVal -> ReduceShadowing valId oldVal evaluatedValue
+              Nothing     -> ReduceNoWarning
+        in Reduced warn ReduceNoPayment newState cont
+
+    Assert obs cont -> let
+        warning = if evalObservation env state obs
+                  then ReduceNoWarning
+                  else ReduceAssertionFailed
+        in Reduced warning ReduceNoPayment state cont
+```
+
+If we get a Close then we are in a quiescent state. If we get a payment, then we evaluate it, update the balances and then return the reduced contract.
+
+We do the same for If, Let and Assert. But for When, we only evaluate it if it's timed out, otherwise we say that it's not reduced, and that the contract is quiescent.
+
+In a nutshell, Marlowe contract evaluation consists of two steps.
+
+    We reduce the contract until it is quiescent - it's either closed or we get to a When that's not timed out yet.
+    We try to apply inputs and evaluate the contract further.
+
+Let's see how it works from the client side.
+
+As you may have noticed, the Marlowe semantics code is quite abstract and it doesn't depend on the Cardano system\'s actions. So let's take a look at the actual Marlowe validator that's being executed on-chain.
 
