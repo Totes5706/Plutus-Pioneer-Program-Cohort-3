@@ -612,6 +612,10 @@ We'll start with a brief description of Marlowe Semantics. Then we'll look at th
 
 Here are the main data types for Marlowe.
 
+These files have been updated since the video was recorded, therefore these lecture notes are modified for the respective changes. The files of interest can be found at:
+
+[https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe)
+
 ```haskell
 
 data Contract = Close
@@ -1355,4 +1359,129 @@ We get the address of the script and then send all the outputs to the token owne
     -- The MarloweApp contract is closed implicitly by not returning
     -- itself (marlowePlutusContract) as a continuation
 ```
+The auto endpoint is quite interesting and quite complicated. There is a set of contracts that can be executed automatically.
+
+Imagine a contract that contains only deposits and payouts. No participant needs to provide choices or any interactive stuff. There are only scheduled payments. Such a contract can be executed automatically, and the auto endpoint allows exactly that.
+
+So, if a contract can be executed automatically, it calls ```autoExecuteContract```.
+
+```haskell
+
+autoExecuteContract :: UUID
+                      -> MarloweParams
+                      -> SmallTypedValidator
+                      -> Party
+                      -> MarloweData
+                      -> Contract MarloweContractState MarloweSchema MarloweError ()
+    autoExecuteContract reqId params typedValidator party marloweData = do
+        time <- currentTime
+        let timeRange = (time, time + defaultTxValidationRange)
+        let action = getAction timeRange party marloweData
+        case action of
+            PayDeposit acc p token amount -> do
+                logInfo @String $ "PayDeposit " <> show amount <> " at within time " <> show timeRange
+                let payDeposit = do
+                        marloweData <- mkStep params typedValidator timeRange [ClientInput $ IDeposit acc p token amount]
+                        continueWith marloweData
+                catching _MarloweError payDeposit $ \err -> do
+                    logWarn @String $ "Error " <> show err
+                    logInfo @String $ "Retry PayDeposit in 2 seconds"
+                    _ <- awaitTime (time + 2000)
+                    continueWith marloweData
+            WaitForTimeout timeout -> do
+                logInfo @String $ "WaitForTimeout " <> show timeout
+                _ <- awaitTime timeout
+                continueWith marloweData
+            WaitOtherActionUntil timeout -> do
+                logInfo @String $ "WaitOtherActionUntil " <> show timeout
+                wr <- waitForUpdateUntilTime typedValidator timeout
+                case wr of
+                    Transition Closed{} -> do
+                        logInfo @String $ "Contract Ended"
+                        tell $ Just $ EndpointSuccess reqId AutoResponse
+                        marlowePlutusContract
+                    Timeout{} -> do
+                        logInfo @String $ "Contract Timeout"
+                        continueWith marloweData
+                    Transition InputApplied{historyData} -> continueWith historyData
+                    Transition Created{historyData} -> continueWith historyData
+
+            CloseContract -> do
+                logInfo @String $ "CloseContract"
+                let closeContract = do
+                        _ <- mkStep params typedValidator timeRange []
+                        tell $ Just $ EndpointSuccess reqId AutoResponse
+                        marlowePlutusContract
+
+                catching _MarloweError closeContract $ \err -> do
+                    logWarn @String $ "Error " <> show err
+                    logInfo @String $ "Retry CloseContract in 2 seconds"
+                    _ <- awaitTime (time + 2000)
+                    continueWith marloweData
+            NotSure -> do
+                logInfo @String $ "NotSure"
+                tell $ Just $ EndpointSuccess reqId AutoResponse
+                marlowePlutusContract
+
+          where
+            continueWith = autoExecuteContract reqId params typedValidator party
+```
+This is pays a deposit or waits for other parties to do their part.
+
+### Companion Contract
+
+```haskell
+marloweCompanionContract :: Contract CompanionState MarloweCompanionSchema MarloweError ()
+marloweCompanionContract = checkExistingRoleTokens
+  where
+    checkExistingRoleTokens = do
+        -- Get the existing unspend outputs of the wallet that activated the companion contract
+        pkh <- Contract.ownPaymentPubKeyHash
+        let ownAddress = pubKeyHashAddress pkh Nothing
+        -- Filter those outputs for role tokens and notify the WebSocket subscribers
+        -- NOTE: CombinedWSStreamToServer has an API to subscribe to WS notifications
+        utxo <- utxosAt ownAddress
+        let txOuts = Ledger.toTxOut <$> Map.elems utxo
+        forM_ txOuts notifyOnNewContractRoles
+        -- This contract will run in a loop forever (because we always return Right)
+        -- checking for updates to the UTXO's for a given address.
+        -- The contract could be stopped via /contract/<instance>/stop but we are
+        -- currently not doing that.
+        checkpointLoop (fmap Right <$> checkForUpdates) ownAddress
+    checkForUpdates ownAddress = do
+        txns <- NonEmpty.toList <$> awaitUtxoProduced ownAddress
+        let txOuts = txns >>= view (citxOutputs . _ValidTx)
+        forM_ txOuts notifyOnNewContractRoles
+        pure ownAddress
+
+notifyOnNewContractRoles :: TxOut
+    -> Contract CompanionState MarloweCompanionSchema MarloweError ()
+notifyOnNewContractRoles txout = do
+    -- Filter the CurrencySymbol's of this transaction output that might be
+    -- a role token symbol. Basically, any non-ADA symbols is a prospect to
+    -- to be a role token, but it could also be an NFT for example.
+    let curSymbols = filterRoles txout
+    forM_ curSymbols $ \cs -> do
+        -- Check if there is a Marlowe contract on chain that uses this currency
+        contract <- findMarloweContractsOnChainByRoleCurrency cs
+        case contract of
+            Just (params, md) -> do
+                logInfo $ "WalletCompanion found currency symbol " <> show cs <> " with on-chain state " <> show (params, md) <> "."
+                tell $ CompanionState (Map.singleton params md)
+            Nothing           -> do
+            -- The result will be empty if:
+            --   * Note [The contract is not ready]: When you create a Marlowe contract first we create
+            --                                       the role tokens, pay them to the contract creator and
+            --                                       then we create the Marlowe contract.
+            --   * If the marlowe contract is closed.
+                -- TODO: Change for debug
+                logWarn $ "WalletCompanion found currency symbol " <> show cs <> " but no on-chain state."
+                pure ()
+```
+
+The last interesting contract is the Marlowe Companion Contract.
+
+This is a contract that monitors a participant wallet and notifies when a role token arrives.
+
+It listens to transactions that go to your own address and if there is a token and this token is generated by Marlowe contract creation, it tries to find the Marlowe contract and, if it succeeds, it updates the state of the contract. If you are subscribed to the contract's web socket, you will get a notification about a role token, and you'll get a map of ```MarloweParams``` to ```MarloweData```.
 
