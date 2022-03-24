@@ -217,13 +217,30 @@ So that is the language. What is the Marlowe product itself?
 We have a suite of things. First we'll look at the overall vision for Marlowe and then look at where we are in terms of fulfilling that vision.
 
 
+![Screenshot 2022-03-24 at 09-57-42 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159932268-252fad81-3566-4275-b292-7f8546c12d41.png)
+
+We have a prototype for Marlowe Run. That is the system through which an end user will interact with contracts running on the Cardano blockchain. You can think of Marlowe Run as the Marlowe DAPP. It's the things that allows Marlowe contracts to be executed.
+
+We're also building a market where contracts can be uploaded, downloaded, and where we can provide various kinds of assurance about those contracts.
+
+We allow contracts to be simulated interactively and we call that Marlowe Play. We allow contracts to be built in various different ways and we call that Marlowe Build. In fact fact what we've done at the moment is bundle those two - Marlowe Play and Build - into what we call the Marlowe Playground.
+
+So as things stand at the moment you can use the Marlowe Playground to simulate and construct Marlowe contracts we're in the process of redesigning the user experience based on what we've done with Marlowe Run.
+
+This is the prototype of how end users will interact with Marlowe on the blockchain. Our intention is that we'll have all these products available running on the Cardano blockchain when we have the full support for this which will involve having the Plutus Application Backend and the wallet back end and so on working as they should.
+
+![Screenshot 2022-03-24 at 10-00-13 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159932867-bb12f7f0-6012-4d2f-8a93-6764bc960bc6.png)
+
+### Marlowe Run Demo
+
+We'll now look at a demo of what we have in Marlowe Run to give you a sense of what we can do at the moment in terms of giving users the experience that they will have when Marlowe is running on blockchain. This will be the app that is going to provide that experience.
+
+You can find the Marlowe Playground at
+
+[https://run.marlowe-finance.io/](https://run.marlowe-finance.io/)
 
 
-
-
-
-
-
+![Screenshot 2022-03-24 at 10-01-38 https __run marlowe-finance io](https://user-images.githubusercontent.com/59018247/159933110-83085082-c99f-477a-ac8d-3761afa59d58.png)
 
 
 
