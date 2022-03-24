@@ -64,3 +64,73 @@ Afterwards we will look at the Marlowe playground and play with a simple smart c
 ![Screenshot 2022-03-24 at 08-31-01 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159916706-2cac5426-b67c-4969-a9e1-e8e2d3474131.png)
 
 ![Screenshot 2022-03-24 at 08-31-52 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159916827-2dd81e8d-4f93-42cc-930e-100ecc9d8a5d.png)
+
+Marlowe is a special-purpose language for writing financial contracts on Cardano.
+
+### Why do we build DSLs?
+
+One reason is that we want to build languages that are closer to the language of the user and not so much the language of the system. They are designed to be in the specific domain of the application. A financial language will talk about payments, for example.
+
+When we write a DSL, we get some advantages. We can write down things in that domain, but we can't perhaps write as much as we could in a general purpose language. And, if we do work in this more specialised context, we have the advantage of being able to give people better feedback and better error messages. We can also give more guarantees on program behaviour. That's one of the things that will be stressed in this lecture.
+
+
+![Screenshot 2022-03-24 at 08-34-11 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159917160-4312cec9-813f-4087-b306-cd421baaeaa5.png)
+
+### What kind of assurance can we give?
+
+We can give two kinds of assurance. We can make sure that contracts do what they are supposed to do, but we can also make sure that they don't do what they shouldn't. We will see both aspects of that as we go along.
+
+We've designed the language to be a simple as possible and the implementation reflects that, and we'll talk a bit about that later on. Contracts are nice and readable, and also we can easily simulate them, so we can present to users a very clear picture of how their contract in Marlowe will behave.
+
+In fact, we can do more than that. Because they are particularly restricted, we can explore every possible behavior path that a contract can take, before it is executed. So, we can give complete guarantees about how a contract will behave, not just on one or two tests, but on every possibly execution sequence.
+
+It's also more straightforward to write mathematical proofs of various kinds of safety, so that is the strongest criteria that we can hit in this kind of world; a mathematical proof that the system will do certain things and won't do others.
+
+
+![Screenshot 2022-03-24 at 08-36-27 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/159917538-75816d4c-1744-4924-a834-87e98743cc33.png)
+
+Let's start by looking at what a financial contract can do.
+
+A contract can accept payments from participants in the contract.
+
+Depending on choices made by one the participants, it can evolve in different directions.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
