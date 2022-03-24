@@ -1533,4 +1533,46 @@ There's also a low level mode, that is really for developers that are mostly deb
 
 This is the simple installation, which installs the way you would install any tool in the cardano ecosystem. 
 
-you have you know one option which is to use nick so if you're using a mix based system and you havecabal installed there you  just clone the repository  open the shell and install the tool or if you'renot using nyx or nyx os and you have the cabal and ghc tool chains already installed on your machineyou just clone the repository and install Marlowe  cli it will take a little  while if you haven't beendoing cardano development for all the dependencies to download and various packages to build but witha little patience you'll have a working version of marla cli after doing a simple installationthe basic interface for a command line tool is the command line 
+You have one option to use nix, so if you're using a mix nix system and you have cabal installed:
+
+- just clone the repository  
+- open the shell and install the tool 
+
+Otherwise if you have the cabal and ghc tool chains already installed on your machine, you can:
+
+- just clone the repository 
+- install Marlowe-CLI 
+
+It will take a little while if you haven't been doing Cardano development, for all the dependencies to download and various packages to build. With a little patience, you will have a working version of Marlowe-CLI after doing the simple installation.
+
+
+```
+$ marlowe-cli --help
+
+Usage: marlowe-cli [--version] COMMAND
+  Utilities for Marlowe.
+
+marlowe-cli : a command-line tool for Marlowe contracts
+
+Usage: marlowe-cli [--version] (COMMAND | COMMAND)
+  Utilities for Marlowe.
+
+Available options:
+  -h,--help                Show this help text
+  --version                Show version.
+
+High-level commands:
+  run                      Run a contract.
+  template                 Create a contract from a template.
+
+Low-level commands:
+  contract                 Export contract address, validator, datum, or redeemer.
+  input                    Create inputs to a contract.
+  role                     Export role address, validator, datum, or redeemer.
+  transaction              Create and submit transactions.
+  util                     Miscellaneous utilities.
+```
+More commands found at: [https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-cli](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe-cli)
+
+
+The basic interface for a command line tool is the command line so here's an example of just listing all the tools that are available within Marlowe cli and we're not going to go over all these but Ipointed out we have both these high level and low level commands we'll be focusing on the high level commands today and the high  level workflow actually builds on those commands  it's basically built around user interaction so you  might in Marlowe playground either type or graphically design a contract maybe using blockly or using  Haskell and then export that from the playground and  then you have a contract and you want to run it on the network so using Marlowe cli you actually have that json file that's coming out of Marlowe playground and you have various  operations you can use to  make the contract operates the first step here at the top this top circle the user needs to decide on which contract they're going to run and its parameters if it's a template that's already built into Marlowe cli it's really simple you can just create  that json file if you're  not using a template you have to download it from the Marlowe playground and then you initialize the contract and this is basically just bundling information together about which contract you're running its initial state who are the people what are the addresses involved in the contract so all  that up sort of upfront  work and then you basically have a execute command that actually submits the  first transaction of the  contract onto the box chain and then once you've done  that that execution might  actually send out some payments it might just be a single execution where you finished the contract or if the contract is not put complete then the user gets to decide what the next input is for the contract after they've made that decision they prepare the next step of  the contract and then they  execute it so what you'll see in the example is that once we've done this preliminary work you're basically doing execute prepare and then execute and just kind of keep going in that circle to advance the contract this is actually what you'd see visually if you're using Marlowe run you'd see  cards that show the contract  progressing so this is mimicking that process so I mentioned we have some templates just to get folks started we have four templates that are available in the playground and  another Marlowe literature  you may be familiar with the escrow contract there's a very simple contract  just to get started with  and then a swap and a zero coupon bond so these are things you can experiment with at the command line on testnet and then once you have your contract either one of those or as I mentioned one you designed in the playground there are just these couple commands for running the contract I mentioned execute which is actually putting the marla transaction on the blockchain initializes that preparatory transaction where you're taking your contract and kind of packaging all the information needed to run and then beforeeach step you need to  prepare the next set of input  and then to get funds outside of Marlowe there's a withdrawal function so  basically these are the four  functions one needs to use  after you have a contract that may have come from the template or from the playground I'll just briefly mention some of the low-level capabilities this  is really all I'm going  to say about these today  but they let you do things like create Marlowe so you actually can compute script addresses validator hashes data caches you can look at the binary representation of the plutus script you can get json representations of the datum or the redeemer you can count bytes look at the execution cost and memory and these things all matter if you're kind of in the nitty gritty world of developing a contract you want to know how much it's going to cost on the blockchain you want to know if it's going  to fit on the blockchain you want maybe some you know pre-computation of what these hashes are things like that and then that creation is supplemented by functions that actually build and submit transactions those low-level workflows  
