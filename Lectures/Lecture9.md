@@ -17,12 +17,10 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
   - [Table of Contents](#table-of-contents)
   - [Preparation for Lecture 9](#preparation-for-lecture-9)
   - [Introduction](#introduction)
-  - [State Machine Example: A Token Sale](#state-machine-example-a-token-sale)
-  - [Automatic Testing using Emulator Traces](#automatic-testing-using-emulator-traces)
-  - [Test Coverage](#test-coverage)
-  - [Optics](#optics)
-  - [Property Based Testing with QuickCheck](#property-based-testing-with-quickcheck)
-  - [Property Based Testing with Plutus Contracts](#property-based-testing-with-plutus-contracts)
+  - [Simon Thompson: Marlowe Overview](#simon-thompson-marlowe-overview)
+  - [Alexander Nemash: Marlowe in Plutus](#alexander-nemash-marlowe-in-plutus)
+  - [Brian Bush: The Marlowe CLI](#brian-bush-the-marlowe-cli)
+  - [Marlowe Playground Demo](#marlowe-playground-demo)
   - [Homework](#homework)
 
 ## Preparation for Lecture 8
@@ -38,7 +36,7 @@ We can now begin with the lecture.
 ## Introduction
 
 Welcome to the second to last lecture of the Plutus Pioneer Program. This lecture is not 
-about Plutus, but about Marlow; which is a domain specific language for financial contracts built on top of Plutus. 
+about Plutus, but about Marlowe; which is a domain specific language for financial contracts built on top of Plutus. 
 
 Marlowe has also changed a little bit since the recording of this lecture for the first iteration.
 It was decided to not edit this lecture as much, because it is still mostly accurate and in particular the demo at the end still works.
@@ -60,4 +58,6 @@ There is a very nice tool to do this, it is called the Marlowe-CLI, which is sim
 So in this lecture we will also  include a presentation by our colleague Brian bush, who will talk about Marlowe -CLI and explain how it works. 
 
 Afterwards we will look at the Marlowe playground and play with a simple smart contract.
+
+## Simon Thompson: Marlowe Overview
 
