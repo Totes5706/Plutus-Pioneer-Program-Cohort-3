@@ -1581,7 +1581,7 @@ The basic interface for a command line tool, is the command line. Here is an exa
 ![Screenshot 2022-03-24 at 16-03-01 PPP 030903 - Alexander Nemish Marlowe in Plutus](https://user-images.githubusercontent.com/59018247/160000596-6f3b86a8-83e8-4202-bc59-d801a07c1231.png)
 
 
-It is built around user interaction, so you might in Marlowe Playground either type or graphically design a contract (maybe using blockly or using  Haskell). Then export that from the playground. Then you have a contract and you want to run it on the network, so using Marlowe-CLI you actually have that json file that's coming out of Marlowe playground. Also, you have various operations you can use to make the contract operates. 
+It is built around user interaction, so you might in Marlowe playground either type or graphically design a contract (maybe using blockly or using  Haskell). You would then export that from the playground. Then you have a contract that you would want to run on the network, so using  the Marlowe-CLI you actually have the json file that is coming from Marlowe playground. Also, you have various operations you can use to make sure the contract operates. 
 
 - The first step here at the top this top circle, the user needs to decide on which contract they're going to run and its parameters. 
 
