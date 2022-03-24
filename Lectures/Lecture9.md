@@ -581,9 +581,9 @@ We've said enough for the moment about Marlowe. Where can you go to find out mor
 
 ![Screenshot 2022-03-24 at 11-30-11 Plutus Pioneer Program - Iteration #3 - Lecture #9](https://user-images.githubusercontent.com/59018247/159952166-43a82cdd-7a02-4418-8435-29f2c4a0bee0.png)
 
-There\'s a Marlowe GitHub repository that has the semantics and the basics about Marlowe.
+There's a Marlowe GitHub repository that has the semantics and the basics about Marlowe.
 
-https://github.com/input-output-hk/marlowe
+[https://github.com/input-output-hk/marlowe](https://github.com/input-output-hk/marlowe)
 
 Quite a lot of the implementation of the tools from Marlowe is in the Plutus repository because it has that repository as a dependency.
 
@@ -591,7 +591,7 @@ If you look in the IOHK online research library and search for Marlowe you'll fi
 
 You'll also find an online tutorial in the Marlowe Playground.
 
-[https://github.com/input-output-hk/marlowe](https://github.com/input-output-hk/marlowe)
+[https://marlowe-playground-staging.plutus.aws.iohkdev.io/doc/marlowe/tutorials/index.html](https://marlowe-playground-staging.plutus.aws.iohkdev.io/doc/marlowe/tutorials/index.html)
 
 Finally, Alex is going to give some more information in his presentation coming up next.
 
@@ -604,16 +604,99 @@ It also allows us to to orient its design around users as well as developers. Th
 We also get simulatability and we get these stronger assurances of static analysis and verification.
 
 
+## Alexander Nemash: Marlowe in Plutus
 
+Alex Nemish is one of the Marlowe developers and in this presentation, he shows us a bit of Marlowe semantics and Marlowe PAB (Plutus Application Backend) contracts.
 
+We'll start with a brief description of Marlowe Semantics. Then we'll look at the PAB contracts.
 
+Here are the main data types for Marlowe.
 
+```haskell
 
+data Contract = Close
+              | Pay AccountId Payee Token (Value Observation) Contract
+              | If Observation Contract Contract
+              | When [Case Contract] Timeout Contract
+              | Let ValueId (Value Observation) Contract
+              | Assert Observation Contract
+  deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord)
+  deriving anyclass (Pretty)
+```
+It's a contract. Essentially those are six constructors that you can start to model a contract with and here's the state that is going to be stored on a blockchain.
 
+```haskell
+data State = State { accounts    :: Accounts
+                   , choices     :: Map ChoiceId ChosenNum
+                   , boundValues :: Map ValueId Integer
+                   , minTime     :: POSIXTime }
+  deriving stock (Haskell.Show,Haskell.Eq,Generic)
+```
+So we have a state of balances of accounts by party, we have a map of choices, we have bound values which come from the Let constructor, and a minTime which is the POSIXTime that the contract sees.
 
+```haskell
+data InputContent = IDeposit AccountId Party Token Integer
+                  | IChoice ChoiceId ChosenNum
+                  | INotify
+  deriving stock (Haskell.Show,Haskell.Eq,Generic)
+  deriving anyclass (Pretty)
+```
+The ```InputContent``` data type essentially contains actions for a Marlowe contract. It is either a deposit, a choice, or a notification.
 
+```haskell
+data TransactionInput = TransactionInput
+    { txInterval :: TimeInterval
+    , txInputs   :: [Input] }
+  deriving stock (Haskell.Show, Haskell.Eq)
+```
+Here is the TransactionInput datatype. This is what we give as an input. Every transaction has a defined time interval and a list of inputs
 
+```haskell
+data TransactionOutput =
+    TransactionOutput
+        { txOutWarnings :: [TransactionWarning]
+        , txOutPayments :: [Payment]
+        , txOutState    :: State
+        , txOutContract :: Contract }
+    | Error TransactionError
+  deriving stock (Haskell.Show)
+```
+And we have ```TransactionOutput``` which contains the payments that we expect to happen, the output state and the output contract.
 
+```haskell
+data MarloweData = MarloweData {
+        marloweState    :: State,
+        marloweContract :: Contract
+    } deriving stock (Haskell.Show, Haskell.Eq, Generic)
+      deriving anyclass (ToJSON, FromJSON)
+```
+
+We also see MarloweData which is essentially what is going to be stored on the blockchain. It's the current state of a contract as well as the actual contract.
+
+```haskell
+-- | Try to compute outputs of a transaction given its inputs, a contract, and it's @State@
+computeTransaction :: TransactionInput -> State -> Contract -> TransactionOutput
+computeTransaction tx state contract = let
+    inputs = txInputs tx
+    in case fixInterval (txInterval tx) state of
+        IntervalTrimmed env fixState -> case applyAllInputs env fixState contract inputs of
+            ApplyAllSuccess reduced warnings payments newState cont ->
+                    if not reduced && (not (isClose contract) || (Map.null $ accounts state))
+                    then Error TEUselessTransaction
+                    else TransactionOutput { txOutWarnings = warnings
+                                           , txOutPayments = payments
+                                           , txOutState = newState
+                                           , txOutContract = cont }
+            ApplyAllNoMatchError -> Error TEApplyNoMatchError
+            ApplyAllAmbiguousTimeIntervalError -> Error TEAmbiguousTimeIntervalError
+            ApplyAllHashMismatch -> Error TEHashMismatch
+        IntervalError error -> Error (TEIntervalError error)
+```
+The entrance to the semantics is the ```computeTransaction` function. It gets the transaction input, the current state and the current contract and returns the transaction output.
+
+First of all we check the slot interval for errors. For example, we do not allow the slot interval to contain any timeouts. If you have a contract with a When construct of 10, you cannot produce a contract with a slot interval of 5..15 because it will contain a timeout.
+
+Then we apply all inputs and if this is successful we return the transaction output with any warnings we have found, the payments we expect, the new state and the continuation contract.
 
 
 
