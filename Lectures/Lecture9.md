@@ -606,15 +606,17 @@ We also get simulatability and we get these stronger assurances of static analys
 
 ## Alexander Nemash: Marlowe in Plutus
 
+The files for Marlowe have been updated since the video was recorded, therefore these lecture notes are modified for the respective changes. The files of interest can be found at:
+
+[https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe)
+
 Alex Nemish is one of the Marlowe developers and in this presentation, he shows us a bit of Marlowe semantics and Marlowe PAB (Plutus Application Backend) contracts.
 
 We'll start with a brief description of Marlowe Semantics. Then we'll look at the PAB contracts.
 
 Here are the main data types for Marlowe.
 
-These files have been updated since the video was recorded, therefore these lecture notes are modified for the respective changes. The files of interest can be found at:
 
-[https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe](https://github.com/input-output-hk/marlowe-cardano/tree/main/marlowe/src/Language/Marlowe)
 
 ```haskell
 
