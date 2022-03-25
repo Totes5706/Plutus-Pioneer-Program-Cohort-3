@@ -1814,22 +1814,89 @@ This is what you what you would actually do on the command line with some simple
 
 - We are going to say the price is 256 ADA 
 
-```--seller "Role=$SELLER_ROLE"```
-```--buyer "Role=$BUYER_ROLE"```
-```--mediator "Role=$MEDIATOR_ROLE"```
+```
+--seller "Role=$SELLER_ROLE"
+--buyer "Role=$BUYER_ROLE"
+--mediator "Role=$MEDIATOR_ROLE"
+```
 
-- we give the names of the seller, buyer, and mediator 
-
-```--payment-deadline "$PAYMENT_DEADLINE"
+- we give the names of the seller, buyer, and mediator
+ 
+```
+--payment-deadline "$PAYMENT_DEADLINE"
    --complaint-deadline "$COMPLAINT_DEADLINE"
    --dispute-deadline "$DISPUTE_DEADLINE"
-   --mediation-deadline "$MEDIATION_DEADLINE"```
+   --mediation-deadline "$MEDIATION_DEADLINE"
+```
 
 - we list these four deadlines that are in the contract 
 
+```
+--out-contract-file tx-1.contract
+--out-state-file tx-1.state
+```
+- what this command line tool is going to give us is two things; the actual contract and the actual state. These are both json files where you are going to see the contract and the initial state.
 
-- what this command line tool is going to give us is two things; the actual contract and the actual state 
+![Screenshot 2022-03-25 at 11-33-13 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160152094-640ddbd6-031d-46fe-ab6b-b690904d145b.png)
 
-and these are both json files so if you run this you can look inside them and poke around and see what's in there but basically you're going to see the contract and you're going to see the initial state the next step is to provide the admin ADA and actually get the contract starter so christopher marlowe the mediator is going to send three ADA to the script  address to create the  contract so we're here on the flow chart so at the contract address we're going  to have three ADA after  this is run and we're still going to have most of the contract to execute now this is a little more complicated this takes two commands but we'll walk  through them as I mentioned  earlier in the talk first you have to initialize the contract and then you're going to execute it so initializing it you tell it which network we're working on this is the public test net that we're going to use and a couple of network parameters the tool understands the particular network you're working on and then we mentioned earlier there's a currency symbol for the roles so you have to give it that currency symbol and then you just give it the contract we produced from the template and the initial state we produced from the template it'll take this information package it all up together  and create this transaction  one dot Marlowe file sothis is the   comprehensive information that's needed to run that transaction once again that's a json file so you can open it up and take a look what's  there you'll see all the  scripts and the validators and things and then just to get more information we're saying print stats so we're going to get some statistical information  about this transaction  so once you bundle everything together for the transaction into this Marlowe file then you can run it on the test net so we have to say a little bit about the test net its network magic number  where the cardano node is  living on the socket path and then we're going to be spending some ADA here so we need to give it an input UTxO some unspent transaction output that it can actually use to run the transaction this is as you remember we'll be depositing three data and  then the mediator is going  to get all the leftover data the mediator has to sign the transaction so they're a required signer we're giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
+The next step is to provide the minimum ADA, and actually get the contract started. In this case, Christopher Marlowe the mediator is going to send 3 ADA to the script address to create the contract.  
+
+
+![Screenshot 2022-03-25 at 11-34-58 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160152436-48160326-0f2b-4708-b2f3-196e27e196b5.png)
+
+This is a little more complicated this takes two commands but we will walk through them as we mentioned earlier. First, you have to initialize the contract:
+
+```
+
+marlowe-cli run initialize --testnet 1097911963              \
+                           --slot-length "$SLOT_LENGTH"      \
+                           --slot-offset "$SLOT_OFFSET"      \
+                           --roles-currency "$ROLE_CURRENCY" \
+                           --contract-file tx-1.contract     \
+                           --state-file    tx-1.state        \
+                           --out-file      tx-1.marlowe      \
+                           --print-stats
+```
+
+Then you're going to execute:
+
+```
+marlowe-cli run execute --testnet 1097911963                       \
+                        --socket-path "$CARDANO_NODE_SOCKET_PATH"  \
+                        --tx-in "$TX_0_MEDIATOR_ADA"               \
+                        --change-address "$MEDIATOR_ADDRESS"       \
+                        --required-signer "$MEDIATOR_PAYMENT_SKEY" \
+                        --marlowe-out-file tx-1.marlowe            \
+                        --out-file tx-1.raw                        \
+                        --print-stats                              \
+                        --submit=600                               \
+```
+
+```--testnet 1097911963 ```
+
+- Initializing it first, you tell it which network we are working on this is the public testnet
+
+```
+   --slot-length "$SLOT_LENGTH"      
+   --slot-offset "$SLOT_OFFSET"      
+```
+
+- we are going to use a couple of network parameters the tool understands the particular network you're working on 
+
+```--roles-currency "$ROLE_CURRENCY"``` 
+
+- The currency symbol for the roles 
+
+```
+--contract-file tx-1.contract     
+--state-file    tx-1.state       
+--out-file      tx-1.marlowe  
+--print-stats
+```
+
+- Then you  give it both the contract and initial state we produced from the template. It wil take this information, package it all up together, and create this transaction (tx-1.marlowe file). Then to get more information, we are saying ```print-stats```` so we're going to get some statistical information about this transaction  
+
+
+Once you bundle everything together for the transaction into this Marlowe file then you can run it on the test net so we have to say a little bit about the test net its network magic number  where the cardano node is  living on the socket path and then we're going to be spending some ADA here so we need to give it an input UTxO some unspent transaction output that it can actually use to run the transaction this is as you remember we'll be depositing three data and  then the mediator is going  to get all the leftover data the mediator has to sign the transaction so they're a required signer we're giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
 
 
