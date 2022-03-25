@@ -1930,7 +1930,65 @@ Once you bundle everything together for the transaction into this Marlowe file, 
 ![Screenshot 2022-03-25 at 12-03-04 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160157509-121bd28a-06a8-412c-a3a9-a7d4a04769d6.png)
 
 
-The next step is depositing funds so the buyer deposits the funds 256 ADA to purchase the bicycle so we progressed here on the flow chart according to the contract which is in small print here we've highlighted in red the remaining part of the contract the part we just executed is up here where we're making the deposit and that deposit actually goes into the account of the seller so the buyers depositing funds in the account and seller the contract is holding that so the seller can't access those yet the contract is protecting them but Marlowe has a sense of accounts so every bit of funding that's in the contract is assigned to one of the rolesso here we have kind of a similar pattern for creating and submitting a transaction instead of initialize since this is a subsequent transaction  we're using the prepare  command and then once again we use the execute command and the prepare command basically just gives the contract input so we have the state of the contract at transaction one this tx1 Marlowe file after we've done the input we're going to be ready for transaction two so we have tx2.Marlowe and this input is a deposit input sowe're depositing into the seller account we are the buyer making the deposit we're depositing256.80 which is the price and then we're going to tell the transaction that we don't want this transaction to be valid  for any time we're going to  actually say it has to occur between this slot and this other slot on the blockchain so this is sort of a standard thing when you're submitting cardon the transactions often you give a slot range where they're valid and if this is your deadline to submit the transaction so that's basically the core of this is we're just providing the input of the command line here a lot of the execute command is similar to what we saw before we tell it about the network we tell it the file but this case this is what we did at transaction one this is the input to the transaction we give it this the UTxO that's living on the Marlowe script that's heldin the script so this is basically the result of transaction one and then because this is runninga Plutus script you have to give it collateral so we choose a collateral UTxO and then we actually have to deposit the ADA so we need at least 256 data to make the deposit and then the roll token is held in this case by the buyer because each participant each role has its own role token thatroll token is sitting in their wallet you could look at it and it basically is what authorizes the prior to make a transaction  so they have to include  the role token as input they will get it back outso the rule token doesn't stay at the script or it doesn't go anywhere except it passes through the script and it comes back to the buyer so they can authorize another transaction and then of course the buyer has to sign this so they're a required signer and then the transaction we're creating is this transaction 2.Marlowe so we're starting from transaction one we're going to transaction two and one of the outputs of this is just going to be as I said giving the buyer their token back and then they get any leftover ADA as change and there's a transaction file you could look at and resubmit it so it sounds like a lot but each piece has sort of  a logical logical function  and as I mentioned before we have a lot of tutorials  that go through this step  by step so an example you know we had this printstatistics flag turned on these are these are the sort of things that you will see  when the statistics are printed so here you can see that it was first transaction was using about 0.19 eta that was the fee the size of the transaction was four percent of the 16k limit on transaction size so we're wayunder the transaction limit and it actually wasn't  running Plutus so we didn't  use any execution limit execution steps or memory  transaction 2 was a plutus transaction so you can see it's quite a bit more expensive it's 1.3 eta it was actually using 97 of the size the budget for  transactions it was using a modest amount of memory and  not a lot of computation 
+The next step is depositing funds: 
+
+- so the buyer deposits 256 ADA to purchase the bicycle 
+- 
+That deposit goes into the account of the seller, and the contract is holding that amount so the seller can not access it yet.  Marlowe has a sense of accounts, so every bit of funding that is in the contract is assigned to one of the roles.
+
+![Screenshot 2022-03-25 at 12-39-47 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160163566-bf210ceb-476d-4fd6-b5ca-28cdd7d53e13.png)
+
+Here we have a similar pattern for creating and submitting a transaction. Instead of initialize, since this is a subsequent transaction,  we're using the prepare  command and then once again we use the execute command. 
+
+```
+marlowe-cli run prepare --marlowe-file tx-1.marlowe           \
+                        --deposit-account "Role=$SELLER_ROLE" \
+                        --deposit-party "Role=$BUYER_ROLE"    \
+                        --deposit-amount "$PRICE"             \
+                        --invalid-before "$NOW"               \
+                        --invalid-hereafter "$((NOW+4*HOUR))" \
+                        --out-file tx-2.marlowe               \
+                        --print-stats
+```
+
+ The prepare command basically just gives the contract input, so we have the state of the contract at this tx-1.marlowe file. After we have done the input, we are going to be ready for transaction two so we have tx-2.marlowe.
+
+This input is a deposit input so we are depositing into the seller account, and we are the buyer making the deposit (256 ADA). Then we're going to tell the transaction that we do not want this transaction to be valid for any time. That is basically the core of this, we are just providing the input of the command line.
+
+```
+marlowe-cli run execute --testnet 1097911963                                  \
+                        --socket-path "$CARDANO_NODE_SOCKET_PATH"             \
+                        --marlowe-in-file tx-1.marlowe                        \
+                        --tx-in-marlowe "$TX_1"#1                             \
+                        --tx-in-collateral "$TX_0_BUYER_ADA"                  \
+                        --tx-in "$TX_0_BUYER_ADA"                             \
+                        --tx-in "$TX_0_BUYER_TOKEN"                           \
+                        --required-signer "$BUYER_PAYMENT_SKEY"               \
+                        --marlowe-out-file tx-2.marlowe                       \
+                        --tx-out "$BUYER_ADDRESS+$MINIMUM_ADA+1 $BUYER_TOKEN" \
+                        --change-address "$BUYER_ADDRESS"                     \
+                        --out-file tx-2.raw                                   \
+                        --print-stats                                         \
+                        --submit=600                                          \
+```
+
+Most of the execute command is similar to what we saw before. 
+
+  
+![Screenshot 2022-03-25 at 12-52-06 PPP 030902 - Simon Thompson Marlowe Overview](https://user-images.githubusercontent.com/59018247/160165733-b697945d-1f2b-4de7-8260-9e1ffcd57ce9.png)
+
+
+This is an example output since we had this print statistics flag turned on. Here you can see that:
+
+- it was first transaction was using about 0.19 ADA, that was the fee 
+- the size of the transaction was 4% of the 16k limit on transaction size 
+- it was not running Plutus, so we did not use any execution limit execution steps or memory 
+
+Transaction 2 was a plutus transaction so you can see it's quite a bit more expensive:
+
+- it is 1.3 ADA 
+- it was actually using 97% of the size the budget for transaction size 
+- it was using a modest amount of memory and  ot a lot of computation 
 
 
 
