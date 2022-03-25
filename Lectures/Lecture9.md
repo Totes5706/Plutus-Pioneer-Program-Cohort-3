@@ -1776,6 +1776,50 @@ We have three roles here, and we have given them names. We are going to look at 
 
 ![Screenshot 2022-03-25 at 11-08-50 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160147585-5f3d54e0-b5c0-4b31-b1b1-ca677d40101a.png)
 
-so the first stage with Marlowe cli is constructing the contract so what you need is the names of the parties you need the deadlines you need the price of the item and then there's acarnano on chain requirement or something called then ADA and these are basically the input things here's what the contract  looks like here's what the  chart looks like and we have these two validator scripts these two addresses  one is for the contract  one is for the payout and of course initially they start empty so we have the full contract we have a  bunch of input and there's  no funds in the contract there are a lot of parameters  here that we're going  to be using this is just for reference you can refer to these later we  also have detailed tutorials online that goes through all this information this is what you'd actually do on the command line with some simple single commands to create the export contract we just say we're  going to use the template  called escrow and this is all the input we have to give it we're going to give it a three ADA to  start off the contract to  hold at the script address we're going to say the  price is 256 eta we give the  names of the seller the buyer the mediator we list these four deadlines that are in the contract and then what this command line tool is going to give us is two things it's going to give us the actual contract and the actual state and these are both json files so if you run this you can look inside them and poke around and see what's in there but basically you're going to see the contract and you're going to see the initial state the next step is to provide the admin ADA and actually get the contract starter so christopher marlowe the mediator is going to send three ADA to the script  address to create the  contract so we're here on the flow chart so at the contract address we're going  to have three ADA after  this is run and we're still going to have most of the contract to execute now this is a little more complicated this takes two commands but we'll walk  through them as I mentioned  earlier in the talk first you have to initialize the contract and then you're going to execute it so initializing it you tell it which network we're working on this is the public test net that we're going to use and a couple of network parameters the tool understands the particular network you're working on and then we mentioned earlier there's a currency symbol for the roles so you have to give it that currency symbol and then you just give it the contract we produced from the template and the initial state we produced from the template it'll take this information package it all up together  and create this transaction  one dot Marlowe file sothis is the   comprehensive information that's needed to run that transaction once again that's a json file so you can open it up and take a look what's  there you'll see all the  scripts and the validators and things and then just to get more information we're saying print stats so we're going to get some statistical information  about this transaction  so once you bundle everything together for the transaction into this Marlowe file then you can run it on the test net so we have to say a little bit about the test net its network magic number  where the cardano node is  living on the socket path and then we're going to be spending some ADA here so we need to give it an input UTxO some unspent transaction output that it can actually use to run the transaction this is as you remember we'll be depositing three data and  then the mediator is going  to get all the leftover data the mediator has to sign the transaction so they're a required signer we're giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
+The first stage with Marlowe-CLI is constructing the contract. What you need is:
+
+- the names of the parties
+- the deadlines 
+- the price of the item
+- the Cardano on-chain requirement of minimum ADA 
+
+We have these two validator scripts with two addresses: 
+
+- one is for the contract  
+- one is for the payout
+
+Intially they start empty, so we have the full contract containing input, and there are no funds in the contract yet. 
+
+
+![Screenshot 2022-03-25 at 11-16-09 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160148863-5a0a7ddc-9bc8-46d6-8655-778ef22b7017.png)
+
+
+There are a lot of parameters here that we are going to be usin, this is just for reference you can refer to these later. We also have detailed tutorials online that goes through all this information.
+
+
+![Screenshot 2022-03-25 at 11-17-30 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160149077-7fca2d67-743b-4e23-b05c-9d064abf0463.png)
+
+
+This is what you what you would actually do on the command line with some simple single commands to create the export contract. 
+
+```marlowe-cli template escrow```
+
+- We just say we are going to use the template called escrow, and this is all the input we have to give. 
+
+```--minimum-ada "$MINIMUM_ADA"```
+
+- We going to give it a three ADA to start off the contract to hold at the script address 
+
+```--price "$PRICE"```
+
+- We going to say the price is 256 ADA 
+
+```--seller "Role=$SELLER_ROLE"```
+```--buyer "Role=$BUYER_ROLE"```
+```--mediator "Role=$MEDIATOR_ROLE"```
+
+- we give the names of the seller, buyer, and mediator 
+
+we list these four deadlines that are in the contract and then what this command line tool is going to give us is two things it's going to give us the actual contract and the actual state and these are both json files so if you run this you can look inside them and poke around and see what's in there but basically you're going to see the contract and you're going to see the initial state the next step is to provide the admin ADA and actually get the contract starter so christopher marlowe the mediator is going to send three ADA to the script  address to create the  contract so we're here on the flow chart so at the contract address we're going  to have three ADA after  this is run and we're still going to have most of the contract to execute now this is a little more complicated this takes two commands but we'll walk  through them as I mentioned  earlier in the talk first you have to initialize the contract and then you're going to execute it so initializing it you tell it which network we're working on this is the public test net that we're going to use and a couple of network parameters the tool understands the particular network you're working on and then we mentioned earlier there's a currency symbol for the roles so you have to give it that currency symbol and then you just give it the contract we produced from the template and the initial state we produced from the template it'll take this information package it all up together  and create this transaction  one dot Marlowe file sothis is the   comprehensive information that's needed to run that transaction once again that's a json file so you can open it up and take a look what's  there you'll see all the  scripts and the validators and things and then just to get more information we're saying print stats so we're going to get some statistical information  about this transaction  so once you bundle everything together for the transaction into this Marlowe file then you can run it on the test net so we have to say a little bit about the test net its network magic number  where the cardano node is  living on the socket path and then we're going to be spending some ADA here so we need to give it an input UTxO some unspent transaction output that it can actually use to run the transaction this is as you remember we'll be depositing three data and  then the mediator is going  to get all the leftover data the mediator has to sign the transaction so they're a required signer we're giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
 
 
