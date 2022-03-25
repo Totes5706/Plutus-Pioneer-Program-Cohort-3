@@ -2097,5 +2097,38 @@ so we  had all these transactions  we had seven transactions there's actually a 
 
 so  the Marlowe cli tool is  pretty much feature completeso you can run these high-level workflows you can interact with the plutus application back-end youcan do the low-level workflows we're using this for testing debugging things like that there area few enhancements we'll be adding to it something called localization of contracts which Marlowesupports but the cli does not support yet it will help us reduce contract size and then most ofthe other functions we plan to include are really convenience methods so you can take some queriesand do things like that and this is all online and available to use on the testnet so thank you.
 
+## Marlowe Playground Demo
+
+We can get started by visting Marlowe Playground here: [https://marlowe-playground-staging.plutus.aws.iohkdev.io/#/](https://marlowe-playground-staging.plutus.aws.iohkdev.io/#/)
 
 
+![Screenshot 2022-03-25 at 13-28-56 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160171667-7bde8bdc-d88b-43c0-9d3c-e8cfa177c5a3.png)
+
+You can do it in Haskell, you can do it in Javascript, or you can do it in Blockly or directly in Marlowe.
+
+Blockly is very nice and you don't need any programming experience to do this. Some updates have happened since the recording of the lecture. Cardano slots have been changed with POSIXtime, so we can use the techniques we used in lecture 3 to get the correct time for the playground.
+
+In Cardano, the Shelley release is the beginning of time which occurs at: 1596059091000 
+
+We can use that for slot 0 then calculate the other slots by using Ledger.TimeSlot:
+
+```
+Prelude Ledger.TimeSlot Data.Default Week03.Deploy> slotToBeginPOSIXTime def 10
+
+POSIXTime {getPOSIXTime = 1596059101000}
+
+Prelude Ledger.TimeSlot Data.Default Week03.Deploy> slotToBeginPOSIXTime def 20
+
+POSIXTime {getPOSIXTime = 1596059111000}
+
+Prelude Ledger.TimeSlot Data.Default Week03.Deploy> slotToBeginPOSIXTime def 30
+
+POSIXTime {getPOSIXTime = 1596059121000}
+```
+
+So we will use:
+
+Slot 0: 1596059091000
+Slot 10: 1596059101000
+Slot 20: 1596059111000
+Slot 30: 1596059121000
