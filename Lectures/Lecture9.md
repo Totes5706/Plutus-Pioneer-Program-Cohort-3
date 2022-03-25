@@ -1820,10 +1820,10 @@ This is what you what you would actually do on the command line with some simple
 
 - we give the names of the seller, buyer, and mediator 
 
-```--payment-deadline "$PAYMENT_DEADLINE"```
-```--complaint-deadline "$COMPLAINT_DEADLINE"```
-```--dispute-deadline "$DISPUTE_DEADLINE"```
-```--mediation-deadline "$MEDIATION_DEADLINE"```
+```--payment-deadline "$PAYMENT_DEADLINE"
+   --complaint-deadline "$COMPLAINT_DEADLINE"
+   --dispute-deadline "$DISPUTE_DEADLINE"
+   --mediation-deadline "$MEDIATION_DEADLINE"```
 
 - we list these four deadlines that are in the contract 
 
