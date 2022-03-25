@@ -2004,6 +2004,32 @@ As you know, these are real transactions. You can visit a blockchain explorer an
 Back to our example, the buyer is not going to report that there is a problem. Therefore, Thomas Middleton is saying "hey there's a problem I want my funds back". What the contract actually does at the script address is it moves the funds from the seller's account into the buyer's account. The buyer once again, can not access these, but they are in his account. The choice of which account the funds live in actually has to do with timeouts and contract design.
 
  ![Screenshot 2022-03-25 at 13-07-34 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160168202-578f51e9-be65-4554-aef1-854eb59a79ac.png)
+ 
+```
+ marlowe-cli run prepare --marlowe-file tx-2.marlowe           \
+                        --choice-name "Everything is alright" \
+                        --choice-party "Role=$BUYER_ROLE"     \
+                        --choice-number 0                     \
+                        --invalid-before "$NOW"               \
+                        --invalid-hereafter "$((NOW+4*HOUR))" \
+                        --out-file tx-3.marlowe               \
+                        --print-stats
+
+marlowe-cli run execute -testnet 1097911963                                   \                                     
+                        --socket-path "$CARDANO_NODE_SOCKET_PATH"             \
+                        --marlowe-in-file tx-2.marlowe                        \
+                        --tx-in-marlowe "$TX_2"#1                             \
+                        --tx-in-collateral "$TX_2"#0                          \
+                        --tx-in "$TX_2"#0                                     \
+                        --tx-in "$TX_2"#2                                     \
+                        --required-signer "$BUYER_PAYMENT_SKEY"               \
+                        --marlowe-out-file tx-3.marlowe                       \
+                        --tx-out "$BUYER_ADDRESS+$MINIMUM_ADA+1 $BUYER_TOKEN" \
+                        --change-address "$BUYER_ADDRESS"                     \
+                        --out-file tx-3.raw                                   \
+                        --print-stats                                         \
+                        --submit=600                                          \
+```
 
 Step 3 things get a little bit simpler here, because a lot of this prepare and execute is boilerplate code. The only thing that really changes here from the second transaction is now we're not making a deposit we're reporting a problem. 
 
@@ -2011,6 +2037,65 @@ Step 3 things get a little bit simpler here, because a lot of this prepare and e
 ![Screenshot 2022-03-25 at 13-10-56 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160168772-ce4ef8c7-c6fb-43ca-9509-8895c4698044.png)
 
 
-Transaction four is the seller disputing that there is a problem, so Francis Beaumont is making a choice here. so this is another decision diamond and another path through the contract their declaration that they're disputing it doesn't actually change  the disposition of funds  in the contract it's just notifying the contract to move along so the contract sort of peels away more of itself you just have this little red partleft and the transaction is very similar to the third transaction here it's now the seller that's the party making the choice they're making choice  number zero and they're  just saying dispute problems because they're disputing the mediator comes into the situation so they have to make their decision and in this case  they're deciding in favor  of the seller so christopher marlowe is saying I'mdismissing the claim the  seller does get their funds  so what the contract does  is puts the the script asis it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script so it's  putting basically 256 ADA  at the payout address it's ready for the seller to collect it and because the contract is over it's taking the minimum data it's actually giving that back to christopher marlowe who had supplied it when the contract was created so we're basically moving  things out of the contract  here and then there's essentially no contract left there's just this little  close statement that is the  end of the contract so this is another transaction reminiscent of numbers three and four here we're  saying dismiss claim the  mediators the party that's making the choice and they're choosing choice  number zero because that  was the one that indicatesthey're dismissing the  claim so anyway what we have  here is the final sort of cleanup steps of running the contract the seller's going to withdraw their  funds so they're pulling  out their 256 ADA to their address and this uses a different command in marla  cli this is the withdrawal  command it's very similar to the other ones but maybe a little bit simpler you just once again tell which network you're on which transaction you're operating on who you are  so the seller's withdrawing  the funds 
+Transaction four is the seller disputing that there is a problem, so Francis Beaumont is making a choice here. Their declaration that they are disputing it does not actually change the disposition of funds in the contract. It is just notifying the contract to move along. so the contract sort of peels away more of itself. 
+
+![Screenshot 2022-03-25 at 13-15-04 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169390-52385bb2-5ad2-4210-9223-557475d5d13c.png)
+
+
+The transaction is very similar to the third transaction here, it's now the seller that's the party making the choice.
+
+
+![Screenshot 2022-03-25 at 13-17-37 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169816-1c1b3842-2def-46a4-a284-d6348cc2b742.png)
+
+
+The mediator comes into the situation, so they have to make their decision and in this case  they're deciding in favor  of the seller so christopher marlowe is saying I'mdismissing the claim the  seller does get their funds  so what the contract does  is puts the the script asis it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script so it's  putting basically 256 ADA  at the payout address it's ready for the seller to collect it and because the contract is over it's taking the minimum data it's actually giving that back to christopher marlowe who had supplied it when the contract was created so we're basically moving  things out of the contract  here and then there's essentially no contract left there's just this little  close statement that is the  end of the contract 
+
+
+![Screenshot 2022-03-25 at 13-18-31 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169940-805caa62-3ace-41e0-ac9a-d7eff74916ac.png)
+
+
+
+so this is another transaction reminiscent of numbers three and four here we're  saying dismiss claim the  mediators the party that's making the choice and they're choosing choice  number zero because that  was the one that indicatesthey're dismissing the  claim 
+
+
+![Screenshot 2022-03-25 at 13-19-26 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170079-4e2b443e-648a-45c8-bdeb-6573b8cc6352.png)
+
+
+
+so anyway what we have  here is the final sort of cleanup steps of running the contract the seller's going to withdraw their  funds so they're pulling  out their 256 ADA to their address 
+
+
+![Screenshot 2022-03-25 at 13-20-50 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170310-13d77c39-ad84-48a3-bffa-5a06ca5a41cf.png)
+
+
+
+and this uses a different command in marla  cli this is the withdrawal  command it's very similar to the other ones but maybe a little bit simpler you just once again tell which network you're on which transaction you're operating on who you are  so the seller's withdrawing  the funds they're giving putting some UTxOs in most importantly that they are identifying themselves with their role tokens that rule token is kind of their passport or their identity that gives them authorization to do things with this script   and then we have collateral they have to sign it they're getting their roletoken back they're getting  their change and they'll  actually get their 256 aida when all is said and done 
+
+
+![Screenshot 2022-03-25 at 13-22-32 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170569-d3fff343-d0a3-4557-9cfe-8dcd1542942a.png)
+
+![Screenshot 2022-03-25 at 13-22-56 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170625-177e188d-4389-4ccb-8319-8b976a712034.png)
+
+
+
+
+
+similarly the mediator is withdrawing their  three data this is essentially  an identical pattern for the transaction 
+
+
+
+![Screenshot 2022-03-25 at 13-23-14 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170689-207b76e5-30ef-4ce2-8007-7f19e4cbf1d5.png)
+
+
+
+so we  had all these transactions  we had seven transactions there's actually a map of the UTxOs involved in this   I know it's a little bit hard to read but hopefully you can view it online at the Marlowe cardano GitHub website or just zoom in a little bit to these slides but we have the participants here they're  each starting with a pair  of UTxOs one that has just ADA in it and one that has their role token in it so the three folks are there when christopher marlowe creates the first transaction he's putting in ADA it's creating the  script the script now has  three ADA and its accounts reflects that he gets his change and there's a 0.28 a fee so the first transaction is kind of making this transition the second transaction thomas middleton is depositing his 256 ADA he actually has a UTxO with almost 3 000 ADA so he puts that in he gets some change from that about 200 or 2700data and then he's ADA is in the script he then reports a problem which just updates the state of the scripts you can see  the accounts have changed a  little bit it's paying a fee then francis beaumont the seller is disputing  the problem so he's passing  his rule token and some  ADA through the transactionhe's getting his roll token back he's getting some  change we're paying a 1.38  a fee and then the scriptstate has been updated and then when christopher Marlowe dismisses the claim he's putting some ADAin along with his role token  or consuming the script  UTxO and then this is an interesting transactionbecause it doesn't pay anything to the script because the script has done its job we don't need any data there it doesn't have any state it's just closed so it's actually in that transaction we'remaking two payments to the payout script one is for francis beaumont so we can get his 256 databack the other is for christopher marlowe who can get their three ADA back so these are separateUTxOs they're sitting at the payout script address and then since christopher marlowe initiated thistransaction he's paying the fee and he's getting his roll token back and some change so when hegoes to withdraw his three ADA he's using some of that same input and then he gets back his dataso he ends up here with three unspent transaction outputs similarly francis beaumont is getting his256 data in transaction  six so he's paying a little  bit of a fee he gets his ADA back there's the 256and then he gets his roll token so this is kind of the big map of what's going on under the hoodso what Marlowe is doing is it validates all these transactions on chain if you're running in Marlowerun it's hiding all this from you and you get a  nice graphical user interface  little cards that helpyou do the inputs if you're running at Marlowe cli you have to type in the inputs but you're drivingthis sort of workflow at the beginning of the talk  I mentioned the lower level  more detailed interfaceif you were doing that you would still get the same transactions so you actually see the same transactions whether you're using Marlowe run or the plutus application  backend the workflow I showed you or the low-level workflow it's just you're interacting with it you have a little more controlyou get to see a little  more of what is going on 
+
+
+![Screenshot 2022-03-25 at 13-25-14 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160171046-f94a4755-c0b3-4062-84ff-19479919eeb7.png)
+
+
+
+so  the Marlowe cli tool is  pretty much feature completeso you can run these high-level workflows you can interact with the plutus application back-end youcan do the low-level workflows we're using this for testing debugging things like that there area few enhancements we'll be adding to it something called localization of contracts which Marlowesupports but the cli does not support yet it will help us reduce contract size and then most ofthe other functions we plan to include are really convenience methods so you can take some queriesand do things like that and this is all online and available to use on the testnet so thank you.
+
 
 
