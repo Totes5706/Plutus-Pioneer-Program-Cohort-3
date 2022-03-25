@@ -407,31 +407,62 @@ Let's talk a little bit about how the system is designed in in a high-level way.
 Here's a piece of the semantics of Marlowe, and as you can see it's a Haskell function.
 
 ```haskell
-
 -- | Carry a step of the contract with no inputs
 reduceContractStep :: Environment -> State -> Contract -> ReduceStepResult
 reduceContractStep env state contract = case contract of
 
     Close -> case refundOne (accounts state) of
-        Just ((party, token, money), newAccounts) -> let
+        Just ((party, money), newAccounts) -> let
             newState = state { accounts = newAccounts }
-            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) token money)) newState Close
+            in Reduced ReduceNoWarning (ReduceWithPayment (Payment party (Party party) money)) newState Close
         Nothing -> NotReduced
 
-    Pay accId payee token val cont -> let
-        moneyToPay = evalValue env state val
-        in  if moneyToPay <= 0
-            then Reduced (ReduceNonPositivePay accId payee moneyToPay) ReduceNoPayment state cont
+    Pay accId payee tok val cont -> let
+        amountToPay = evalValue env state val
+        in  if amountToPay <= 0
+            then let
+                warning = ReduceNonPositivePay accId payee tok amountToPay
+                in Reduced warning ReduceNoPayment state cont
             else let
-                balance    = moneyInAccount accId token (accounts state) -- always positive
-                paidMoney  = min balance moneyToPay -- always positive
-                newBalance = balance - paidMoney -- always positive
-                newAccs    = updateMoneyInAccount accId token newBalance (accounts state)
-                warning = if paidMoney < moneyToPay
-                          then ReducePartialPay accId payee paidMoney moneyToPay
+                balance    = moneyInAccount accId tok (accounts state)
+                paidAmount = min balance amountToPay
+                newBalance = balance - paidAmount
+                newAccs = updateMoneyInAccount accId tok newBalance (accounts state)
+                warning = if paidAmount < amountToPay
+                          then ReducePartialPay accId payee tok paidAmount amountToPay
                           else ReduceNoWarning
-                (payment, finalAccs) = giveMoney accId payee token paidMoney newAccs
-                in Reduced warning payment (state { accounts = finalAccs }) cont
+                (payment, finalAccs) = giveMoney accId payee tok paidAmount newAccs
+                newState = state { accounts = finalAccs }
+                in Reduced warning payment newState cont
+
+    If obs cont1 cont2 -> let
+        cont = if evalObservation env state obs then cont1 else cont2
+        in Reduced ReduceNoWarning ReduceNoPayment state cont
+
+    When _ timeout cont -> let
+        startSlot = fst (timeInterval env)
+        endSlot   = snd (timeInterval env)
+        -- if timeout in future – do not reduce
+        in if endSlot < timeout then NotReduced
+        -- if timeout in the past – reduce to timeout continuation
+        else if timeout <= startSlot then Reduced ReduceNoWarning ReduceNoPayment state cont
+        -- if timeout in the time range – issue an ambiguity error
+        else AmbiguousTimeIntervalReductionError
+
+    Let valId val cont -> let
+        evaluatedValue = evalValue env state val
+        boundVals = boundValues state
+        newState = state { boundValues = Map.insert valId evaluatedValue boundVals }
+        warn = case Map.lookup valId boundVals of
+              Just oldVal -> ReduceShadowing valId oldVal evaluatedValue
+              Nothing     -> ReduceNoWarning
+        in Reduced warn ReduceNoPayment newState cont
+
+    Assert obs cont -> let
+        warning = if evalObservation env state obs
+                  then ReduceNoWarning
+                  else ReduceAssertionFailed
+        in Reduced warning ReduceNoPayment state cont
 ```
 We take an environment, the current state and a contract we executed, and based on what contract that is - a close perhaps, or a pay, we can reduce we can take some steps of computing the results of that contract.
 
@@ -698,7 +729,7 @@ computeTransaction tx state contract = let
             ApplyAllHashMismatch -> Error TEHashMismatch
         IntervalError error -> Error (TEIntervalError error)
 ```
-The entrance to the semantics is the ```computeTransaction` function. It gets the transaction input, the current state and the current contract and returns the transaction output.
+The entrance to the semantics is the ```computeTransaction``` function. It gets the transaction input, the current state and the current contract and returns the transaction output.
 
 First of all we check the time interval for errors. For example, we do not allow the time interval to contain any timeouts.
 
