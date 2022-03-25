@@ -2104,11 +2104,13 @@ We can get started by visting Marlowe Playground here: [https://marlowe-playgrou
 
 ![Screenshot 2022-03-25 at 13-28-56 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160171667-7bde8bdc-d88b-43c0-9d3c-e8cfa177c5a3.png)
 
-You can do it in Haskell, you can do it in Javascript, or you can do it in Blockly or directly in Marlowe.
+You can use the playground in Javascript, Haskell, Marlowe, or you can do it in Blockly.
 
-Blockly is very nice and you don't need any programming experience to do this. Some updates have happened since the recording of the lecture. Cardano slots have been changed with POSIXtime, so we can use the techniques we used in lecture 3 to get the correct time for the playground.
+Blockly is very nice and you do not need any programming experience to do this. 
 
-In Cardano, the Shelley release is the beginning of time which occurs at: 1596059091000 
+Some updates have happened since the recording of the lecture. Cardano slots have been changed with POSIXTime, so we can use the techniques we used in lecture 3 to get the correct time for the playground.
+
+In Cardano, the Shelley release is the beginning of time, which occurs at: 1596059091000 
 
 We can use that for slot 0 then calculate the other slots by using Ledger.TimeSlot:
 
@@ -2128,7 +2130,9 @@ POSIXTime {getPOSIXTime = 1596059121000}
 
 So we will use:
 
+```
 Slot 0: 1596059091000
 Slot 10: 1596059101000
 Slot 20: 1596059111000
 Slot 30: 1596059121000
+```
