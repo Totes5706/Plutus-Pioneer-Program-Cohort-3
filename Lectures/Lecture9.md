@@ -1897,6 +1897,34 @@ marlowe-cli run execute --testnet 1097911963                       \
 - Then you  give it both the contract and initial state we produced from the template. It wil take this information, package it all up together, and create this transaction (tx-1.marlowe file). Then to get more information, we are saying ```print-stats```` so we're going to get some statistical information about this transaction  
 
 
-Once you bundle everything together for the transaction into this Marlowe file then you can run it on the test net so we have to say a little bit about the test net its network magic number  where the cardano node is  living on the socket path and then we're going to be spending some ADA here so we need to give it an input UTxO some unspent transaction output that it can actually use to run the transaction this is as you remember we'll be depositing three data and  then the mediator is going  to get all the leftover data the mediator has to sign the transaction so they're a required signer we're giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
+Once you bundle everything together for the transaction into this Marlowe file, then you can run it on the testnet. 
+
+```--testnet 1097911963 ```
+
+- We again define testnet network magic number  
+
+```--socket-path "$CARDANO_NODE_SOCKET_PATH"```
+
+- The socket path of the cardano-node
+ 
+```--tx-in "$TX_0_MEDIATOR_ADA"```
+
+- We are going to be spending some ADA here, so we need to give it an input UTxO that it can actually use to run the transaction. 
+
+```--change-address "$MEDIATOR_ADDRESS"```
+
+- This is as you remember, we will be depositing 3 ADA and then the mediator is going to get all the leftover ADA. 
+
+```--required-signer "$MEDIATOR_PAYMENT_SKEY"```
+
+- The mediator has to sign the transaction, so they are a required signer 
+```
+ --marlowe-out-file tx-1.marlowe            
+ --out-file tx-1.raw                        
+ --print-stats                            
+ --submit=600    
+```
+
+- We are giving it this transaction one Marlowe file that had all the information we bundled together and we'll get a transaction this is a standard transaction file for Marlowe so you could actually submit this with mark mar or cardano cli you couldsubmit it on block frost you could submit it with a wallet if you wanted but the tool was submitted for you so we say we do  want to submit it and we're  going to wait up to 600  seconds for the transaction to be confirmed 
 
 
