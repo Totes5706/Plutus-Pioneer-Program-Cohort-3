@@ -1755,6 +1755,23 @@ If you built this contract in blockly this is what it would look like. We decide
 
 ![Screenshot 2022-03-25 at 08-30-43 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160121160-ef1672b8-11c6-4986-8a01-341cd92378ca.png)
 
-In Marlowe format, which is basically a Haskell format, you could design the contract this way in the playground. you would see it as just plain text but it's basically doing all the stuff we talked about before and presented as test so I mentioned that we had these different paths through the contract here for the eight ones there an additional four pass through the contract or different outcomes more which have to do with the timeouts and I'm not going to go into that today but the first one is the buyer says everything is alright so we just walk through this path or the buyer can say that things are not alright there's a problem and the seller confirms the problems we go through this highlighted area if the seller disputes then it goes down to the mediator and in the case where the mediator decides for the seller we go down here and the seller receives the funds that were deposited by the buyer the last case here is where the mediator decides for the buyer and the buyer gets a refund so these are the cases we're going to just look at one of these cases in more details we have the three roles here we've given them  names and we're going to  look at the case where the seller receives the fund  after there's a dispute and  the mediator rules for the  seller so this it's thispath here buyer reports a problem seller disputes and the media dismisses  the claim so that the funds go to the seller
+In Marlowe format, which is basically a Haskell format, you could design the contract this way in the playground. You would see it as plain text, however it is basically doing all the thngs we talked about before and presented as test.
+
+![Screenshot 2022-03-25 at 08-36-59 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160122036-71d5a365-ff8a-4441-9a37-2053428a5116.png)
+
+We mentioned that we had these different paths through the contract. Here are four out of the eight possible outcomes. There are an additional four outcomes more which have to do with the timeouts, however we are not going to go into that today.
+
+- the first one is the buyer says everything is alright 
+- the buyer can say that things are not alright there's a problem and the seller confirms the problems 
+- the seller disputes, then it goes down to the mediator and in the case where the mediator decides for the seller, we go down here and the seller receives the funds that were deposited by the buyer 
+- the last case here is where the mediator decides for the buyer and the buyer gets a refund 
+ 
+These are the cases, and we are going to just look at one of these cases in more detail.
+
+
+![Screenshot 2022-03-25 at 08-44-08 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160122984-f7e93de9-6c67-4961-8aca-3263a24cb872.png)
+
+
+we have the three roles here we've given them  names and we're going to  look at the case where the seller receives the fund  after there's a dispute and  the mediator rules for the  seller so this it's thispath here buyer reports a problem seller disputes and the media dismisses  the claim so that the funds go to the seller
 
 
