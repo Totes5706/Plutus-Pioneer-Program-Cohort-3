@@ -2372,12 +2372,12 @@ main = print . pretty $ contract
 {- Define a contract, Close is the simplest contract which just ends the contract straight away
 -}
 alice, bob, charlie :: Party
-alice   = 'Alice'
-bob     = 'Bob'
-charlie = 'Charlie'
+alice   = "Alice"
+bob     = "Bob"
+charlie = "Charlie"
 
 deposit :: Value
-deposit :: deposit
+deposit = Constant 10
 
 choiceId :: ChoiceId
 choiceId = ChoiceId "Winner" charlie   
@@ -2433,21 +2433,110 @@ contract =
         1596059101000 Close 
 ```
 
-It\'s possible to do more sophisticated things. Our contract is slightly asymmetric even though it sounds like a symmetric situation. Alice and Bob are completely symmetric, but in our contract, Alice has to deposit first.
+It's possible to do more sophisticated things. Our contract is slightly asymmetric even though it sounds like a symmetric situation. Alice and Bob are completely symmetric, but in our contract, Alice has to deposit first.
 
 What we could do is to allow Bob to deposit first as well. In the outermost When we would have two deposits - one where Alice deposits, and one where Bob deposits.
 
-Let\'s make a little helper function. It takes two Partys - the party that deposits first and the party that deposits second and then it returns a Case. We can use this to parameterise Alice and Bob as x and y in the Case. Note that we only need to do this for the deposits, the part where Charlie makes his choice can remain the same, with Alice and Bob continuing to be represented by 1 and 2 respectively.
+Let's make a little helper function. It takes two Partys - the party that deposits first and the party that deposits second and then it returns a Case. We can use this to parameterise Alice and Bob as x and y in the Case. Note that we only need to do this for the deposits, the part where Charlie makes his choice can remain the same, with Alice and Bob continuing to be represented by 1 and 2 respectively.
 
 Now we can replace the originally-pasted code with our helper function, and we can create the symmetric case where Bob deposits first as an option to the outermost When.
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+module Example where
+
+import Language.Marlowe.Extended
+
+main :: IO ()
+main = print . pretty $ contract
+
+
+{- Define a contract, Close is the simplest contract which just ends the contract straight away
+-}
+alice, bob, charlie :: Party
+alice   = "Alice"
+bob     = "Bob"
+charlie = "Charlie"
+
+deposit :: Value
+deposit = Constant 10
+
+choiceId :: ChoiceId
+choiceId = ChoiceId "Winner" charlie   
+
+contract :: Contract
+contract =
+    When
+        [ f alice bob
+        , f bob alice 
+        ]
+        1596059101000 Close 
+  where
+    f :: Party -> Party -> Case
+    f x y =
+        Case
+            (Deposit
+                x
+                x
+                ada
+                deposit
+            )
+            (When
+                [Case
+                    (Deposit
+                        y
+                        y
+                        ada
+                        deposit
+                    )
+                    (When
+                        [Case
+                            (Choice
+                                choiceId
+                                [Bound 1 2]
+                            )
+                            (If
+                                (ValueEQ
+                                    (ChoiceValue choiceId)
+                                    (Constant 1)
+                                )
+                                (Pay
+                                    bob
+                                    (Account alice)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                                (Pay
+                                    alice
+                                    (Account bob)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                            )]
+                        1596059121000 Close 
+                    )]
+                1596059111000 Close 
+            )
+```
 
 This should compile and we can now send to the simulator.
 
 Now we have two possible actions that can happen in the first step. Alice can deposit 10, or Bob can deposit 10.
 
+![Screenshot 2022-03-26 at 12-29-40 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160248648-a6be33f8-3a4d-4389-a4b6-b0c158a47918.png)
+
+
 If Bob starts...
 
+![Screenshot 2022-03-26 at 12-30-36 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160248670-e4f8c6c0-a440-46c8-ada3-409980cb07f1.png)
+
 Then now it is Alice's turn.
+
+![Screenshot 2022-03-26 at 12-31-04 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160248677-ea51e233-d13a-4be2-ac3a-df6f24b47a12.png)
+
+![Screenshot 2022-03-26 at 12-31-31 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160248698-96adaa75-56c7-47ed-b6d7-695a845ce7e4.png)
 
 So, basically, to use the Haskell editor, we write a program that produces something of type Contract and you can use all the features of Haskell like local functions or whatever to make your life easier.
 
@@ -2457,7 +2546,86 @@ Of course, there are other options when using Haskell. We could also paramterise
 
 We could also parameterise the parties and even generalise it so that the number of parties could be variable. This would be very inconvenient if we were to have to do this by hand using Blockly, but in Haskell it is quite straightforward.
 
-What is noteworthy here is that Marlowe, in contrast to Plutus, is very simply Haskell. The Marlowe team made a point of using only basic Haskell features. You don\'t need lenses, you don\'t need Template Haskell, you don\'t even need monads or type-level programming.
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+module Example where
+
+import Language.Marlowe.Extended
+
+main :: IO ()
+main = print . pretty $ contract $ Constant 50
+
+
+{- Define a contract, Close is the simplest contract which just ends the contract straight away
+-}
+alice, bob, charlie :: Party
+alice   = "Alice"
+bob     = "Bob"
+charlie = "Charlie"
+
+choiceId :: ChoiceId
+choiceId = ChoiceId "Winner" charlie   
+
+contract :: Value -> Contract
+contract deposit =
+    When
+        [ f alice bob
+        , f bob alice 
+        ]
+        1596059101000 Close 
+  where
+    f :: Party -> Party -> Case
+    f x y =
+        Case
+            (Deposit
+                x
+                x
+                ada
+                deposit
+            )
+            (When
+                [Case
+                    (Deposit
+                        y
+                        y
+                        ada
+                        deposit
+                    )
+                    (When
+                        [Case
+                            (Choice
+                                choiceId
+                                [Bound 1 2]
+                            )
+                            (If
+                                (ValueEQ
+                                    (ChoiceValue choiceId)
+                                    (Constant 1)
+                                )
+                                (Pay
+                                    bob
+                                    (Account alice)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                                (Pay
+                                    alice
+                                    (Account bob)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                            )]
+                        1596059121000 Close 
+                    )]
+                1596059111000 Close 
+            )
+```
+
+![Screenshot 2022-03-26 at 12-35-33 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160248848-da4af811-ab1c-4622-bc90-97c68e37c00d.png)
+
+What is noteworthy here is that Marlowe, in contrast to Plutus, is very simply Haskell. The Marlowe team made a point of using only basic Haskell features. You don't need lenses, you don't need Template Haskell, you don't even need monads or type-level programming.
 
 Marlowe is not always appropriate because it is specifically for financial contracts, but if it is appropriate then it is a very nice option due to all the safety assurances that Simon mentioned and because it is much simpler and easy to get right than Plutus.
 
