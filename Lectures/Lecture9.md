@@ -2269,15 +2269,26 @@ And this should be enough for our contract.
 
 Now we can, for example, look at the pure Marlowe. This is the value of the Marlowe data type called Contract.
 
+
+![Screenshot 2022-03-26 at 11-43-50 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246907-6b0d0945-3762-4ca1-ac0f-16ec14725dd7.png)
+
+
 And we can send it to the simulator.
+
+![Screenshot 2022-03-26 at 11-44-41 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246936-d0f6fb00-cf35-4783-b9ac-8b99502715de.png)
 
 We can start the simulation.
 
 Now, whenever there is a When, we get prompted for which of the available actions to take. In our case we only ever have one available action at each point.
 
+![Screenshot 2022-03-26 at 11-45-14 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246956-f8c7d876-d787-45de-9210-4f584b2b4e9d.png)
+
+
 So in the first When, either Alice makes her deposit, or the timeout is reached.
 
 If we wait for the timeout it is very boring. The contract is reduced to Close, and nothing happened.
+
+![Screenshot 2022-03-26 at 11-46-01 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246991-c4b27396-f771-498f-8ccf-79cacaffd223.png)
 
 If, however, she makes the deposit, then this contract simplifies - it reduces to what happens after she makes the deposit.
 
