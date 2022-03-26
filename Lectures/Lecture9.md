@@ -2360,6 +2360,7 @@ We can also simplify Charlie's ChoiceId.
 
 Now it is already cleaned up quite a bit.
 
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 module Example where
 
@@ -2368,7 +2369,6 @@ import Language.Marlowe.Extended
 main :: IO ()
 main = print . pretty $ contract
 
-```haskell
 {- Define a contract, Close is the simplest contract which just ends the contract straight away
 -}
 alice, bob, charlie :: Party
