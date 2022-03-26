@@ -2292,23 +2292,40 @@ If we wait for the timeout it is very boring. The contract is reduced to Close, 
 
 If, however, she makes the deposit, then this contract simplifies - it reduces to what happens after she makes the deposit.
 
-And now we can see we are in the second When, where we are waiting for Bob\'s deposit. Again, he can choose not to deposit. If he does that, then we can see the actions in the transaction log that Alice deposited 10 Ada and the contract pays this back to Alice upon close.
+
+![Screenshot 2022-03-26 at 11-48-15 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247088-847ffe07-a262-4198-9645-5699fdae988c.png)
+
+And now we can see we are in the second When, where we are waiting for Bob's deposit. Again, he can choose not to deposit. If he does that, then we can see the actions in the transaction log that Alice deposited 10 Ada and the contract pays this back to Alice upon close.
+
+![Screenshot 2022-03-26 at 11-49-12 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247128-f0da3491-bb45-4c43-b356-13f90d448842.png)
 
 It is more interesting though if Bob also makes his deposit.
 
+![Screenshot 2022-03-26 at 11-49-45 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247144-0c97c04e-cc74-480e-8f03-a54fa25c50b7.png)
+
 Now the contract has simplified again. Now we are in the When where the only available action is that Charlie chooses a winner.
 
-If Charlie doesn\'t do anything and the contract times out, Bob and Alice both get their money back.
+If Charlie doesn't do anything and the contract times out, Bob and Alice both get their money back.
+
+![Screenshot 2022-03-26 at 11-50-32 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247179-f6a6fa71-84e0-45ad-99b6-4cd1950f0e8d.png)
+
 
 If Charlie picks Alice (choice 1), then we see that the contract pays 20 Ada to Alice.
 
+![Screenshot 2022-03-26 at 11-51-01 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247198-cc7aa195-34b4-443d-b0d7-314aec900392.png)
+
+
 If instead he picks choice 2, then the contract pays 20 Ada to Bob.
 
-Let\'s now reset the contract.
+![Screenshot 2022-03-26 at 11-51-50 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247240-10b0d86e-3eb9-4206-b479-17da737b4bd6.png)
+
+Let's now reset the contract.
 
 We will copy the Marlowe code to the clipboard, then create a new Haskell project.
 
 In the Haskell editor there is a template.
+
+![Screenshot 2022-03-26 at 11-55-56 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247420-ed8972a7-4d94-4045-88c5-6232345518de.png)
 
 All this program does is to take a Marlowe contract, and then pretty prints it. This is then used to, for example, run in the simulator.
 
@@ -2316,21 +2333,105 @@ Instead of Close, we can paste what we just copied to the clipboard.
 
 We can then compile this, and send it to the simulator and it should behave exactly as before.
 
-There we don\'t really see the benefit of doing it in Haskell, we could just as well do it in Blockly, although you may find that Blockly is really only useful for learning and writing extremely simple contracts. We have just written a simple contract and already it was starting to get quite unwieldy in the Blockly editor. If you do something more complicated it can start to get very confusing in the editor.
+![Screenshot 2022-03-26 at 11-56-41 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160247459-5caeee98-fcee-40d4-9dfb-6faac445e8f5.png)
 
-But, we can do other things in this Haskell program. We don\'t have to literally define a contract. We can use the whole power of Haskell to help us to write the contract.
+There we don't really see the benefit of doing it in Haskell, we could just as well do it in Blockly, although you may find that Blockly is really only useful for learning and writing extremely simple contracts. We have just written a simple contract and already it was starting to get quite unwieldy in the Blockly editor. If you do something more complicated it can start to get very confusing in the editor.
+
+But, we can do other things in this Haskell program. We don't have to literally define a contract. We can use the whole power of Haskell to help us to write the contract.
 
 For example, we can see a lot of repetition because we always have the Alice, Bob and Charlie roles. We could define these separately.
+
+```haskell
+{- Define a contract, Close is the simplest contract which just ends the contract straight away
+-}
+alice, bob, charlie :: Party
+alice   = 'Alice'
+bob     = 'Bob'
+charlie = 'Charlie'
+```
 
 Note that we can use overloaded string literals here because the fromString function uses the Role constructor for Party.
 
 We can also define a constant for the deposit of 10 Ada.
 
-For (Token \"\" \"\"), we can replace this with the ada abbreviation.
+For (Token "" ""), we can replace this with the ada abbreviation.
 
-We can also simplify Charlie\'s ChoiceId.
+We can also simplify Charlie's ChoiceId.
 
 Now it is already cleaned up quite a bit.
+
+{-# LANGUAGE OverloadedStrings #-}
+module Example where
+
+import Language.Marlowe.Extended
+
+main :: IO ()
+main = print . pretty $ contract
+
+```haskell
+{- Define a contract, Close is the simplest contract which just ends the contract straight away
+-}
+alice, bob, charlie :: Party
+alice   = 'Alice'
+bob     = 'Bob'
+charlie = 'Charlie'
+
+deposit :: Value
+deposit :: deposit
+
+choiceId :: ChoiceId
+choiceId = ChoiceId "Winner" charlie   
+
+contract :: Contract
+contract =
+    When
+        [Case
+            (Deposit
+                alice
+                alice
+                ada
+                deposit
+            )
+            (When
+                [Case
+                    (Deposit
+                        bob
+                        bob
+                        ada
+                        deposit
+                    )
+                    (When
+                        [Case
+                            (Choice
+                                choiceId
+                                [Bound 1 2]
+                            )
+                            (If
+                                (ValueEQ
+                                    (ChoiceValue choiceId)
+                                    (Constant 1)
+                                )
+                                (Pay
+                                    bob
+                                    (Account alice)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                                (Pay
+                                    alice
+                                    (Account bob)
+                                    ada
+                                    deposit
+                                    Close 
+                                )
+                            )]
+                        1596059121000 Close 
+                    )]
+                1596059111000 Close 
+            )]
+        1596059101000 Close 
+```
 
 It\'s possible to do more sophisticated things. Our contract is slightly asymmetric even though it sounds like a symmetric situation. Alice and Bob are completely symmetric, but in our contract, Alice has to deposit first.
 
