@@ -1262,12 +1262,6 @@ setupMarloweParams owners roles = mapError (review _MarloweError) $ do
         tell $ Just $ EndpointSuccess reqId ApplyInputsResponse
         logInfo $ "MarloweApp contract input-application confirmed for inputs " <> show inputs <> "."
         marlowePlutusContract
-    applyNonmerkleized = endpoint @"apply-inputs-nonmerkleized" $ \(reqId, params, timeInterval, inputs) -> catchError reqId "apply-inputs-nonmerkleized" $ do
-        let typedValidator = mkMarloweTypedValidator params
-        _ <- applyInputs params typedValidator timeInterval $ ClientInput <$> inputs
-        tell $ Just $ EndpointSuccess reqId ApplyInputsResponse
-        logInfo $ "MarloweApp contract input-application confirmed for inputs " <> show inputs <> "."
-        marlowePlutusContract
 ```
 
 The apply endpoint is very simple. We call the ```applyInputs``` function.
