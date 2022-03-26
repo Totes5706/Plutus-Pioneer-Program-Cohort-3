@@ -2629,6 +2629,8 @@ What is noteworthy here is that Marlowe, in contrast to Plutus, is very simply H
 
 Marlowe is not always appropriate because it is specifically for financial contracts, but if it is appropriate then it is a very nice option due to all the safety assurances that Simon mentioned and because it is much simpler and easy to get right than Plutus.
 
+## Homework
+
 
 
 
