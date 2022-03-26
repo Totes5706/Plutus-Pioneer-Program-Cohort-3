@@ -2125,7 +2125,7 @@ POSIXTime {getPOSIXTime = 1596059121000}
 So we will use:
 
 ```
-Slot 0: 1596059091000
+Slot 0:  1596059091000
 Slot 10: 1596059101000
 Slot 20: 1596059111000
 Slot 30: 1596059121000
@@ -2208,9 +2208,14 @@ Now we want Charlie to make a choice, and this is again an external action, so a
 ![Screenshot 2022-03-26 at 11-17-10 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245904-70561a46-1265-4edd-b138-cd8923543cc3.png)
 
 
-Now we need a different action. Where earlier we had Deposit, now we pick the Choice action. We can give it a name, let\'s say Winner. We must say who makes the choice, so that\'s will be Charlie, and now we must specify what values this choice can have.
+Now we need a different action. Where earlier we had Deposit, now we pick the Choice action. We can give it a name, let's say Winner. We must say who makes the choice, so that's will be Charlie, and now we must specify what values this choice can have.
 
-That\'s numeric so because Charlie is supposed to choose between Alice and Bobs, which is two choices, I can pick arbitrary values like one and two. One for Alice, two for Bob. That\'s already the default so that\'s fine.
+![Screenshot 2022-03-26 at 11-21-20 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246037-26104ef0-5ae5-4840-979d-3d99e25081d9.png)
+
+
+That's numeric so because Charlie is supposed to choose between Alice and Bobs, which is two choices, we can pick arbitrary values like one and two. One for Alice, two for Bob. That's already the default so that's fine.
+
+![Screenshot 2022-03-26 at 11-22-32 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246082-b9a34610-c2bc-4c1b-a1d3-48fa26473267.png)
 
 This allows Charlie to choose one or two.
 
@@ -2218,23 +2223,47 @@ Then if and when Charlie makes a choice, we continue, and it now depends on the 
 
 So we will add an If conditional.
 
+
+![Screenshot 2022-03-26 at 11-24-58 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246170-4b3cbd45-f2a3-47f2-b4f6-e6a885c3ccbf.png)
+
+
 Then we will add an observation to check if Alice is the winner. The observation we add is the value is equal to observation.
 
-To see if it is Alice, we will use the Choice by option to ask if Charlie\'s Winner name is equal to Alice.
+![Screenshot 2022-03-26 at 11-26-09 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246217-621958f3-4051-457d-9d61-1ea034257674.png)
 
-In the then branch we now take a pay contract. The payee is who gets the money - it can be an internal account or it can be an external party. In this case it doesn\'t matter, because when we close, all the parties get the money from the internal accounts as well.
+To see if it is Alice, we will use the Choice by option to ask if Charlie's Winner name is equal to Alice.
 
-So, we\'ll just pick Alice\'s internal account.
+![Screenshot 2022-03-26 at 11-27-40 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246270-518c21e8-c263-4095-a530-36bd772d1d85.png)
+
+In the then branch we now take a pay contract. The payee is who gets the money - it can be an internal account or it can be an external party. In this case it doesn't matter, because when we close, all the parties get the money from the internal accounts as well.
+
+
+![Screenshot 2022-03-26 at 11-30-43 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246369-e6200377-c0bd-4e9f-9af4-d4f4b2f1fbcc.png)
+
+
+So, we'll just pick Alice's internal account.
+
+![Screenshot 2022-03-26 at 11-31-28 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246389-d6fab981-ff9a-4015-ba6f-88450ecf26e8.png)
 
 We will pay 10 Ada.
 
-So who pays? It must be an internal account because this pay contract is something that the contract has control over, so it is not an external action. So, payments are triggered from internal accounts and in this case, it is Bob\'s account.
+![Screenshot 2022-03-26 at 11-32-04 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246411-e307c7b8-53b6-49cf-b58b-f287a7941a99.png)
 
-So this now says: If Charlie picked 1, then pay from Bob\'s internal account 10 Ada to Alice\'s internal account.
+
+So who pays? It must be an internal account because this pay contract is something that the contract has control over, so it is not an external action. So, payments are triggered from internal accounts and in this case, it is Bob's account.
+
+![Screenshot 2022-03-26 at 11-32-58 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246453-3a20fcae-2be6-448e-867c-f03b6bc6d41a.png)
+
+So this now says: If Charlie picked 1, then pay from Bob's internal account 10 Ada to Alice's internal account.
 
 After this we can just close. And when we close, all the internal accounts will be paid to the external owners. At this point, Alices internal account will have 20 Ada, and when we close, she will get the 20 Ada paid to her.
 
+![Screenshot 2022-03-26 at 11-33-56 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246491-28887a31-5043-4bb7-8191-f361d324b978.png)
+
+
 And, if Charlie did not choose Alice, then we must pay to Bob. We can copy paste the previous Pay contract for this and make the necessary modifications.
+
+![Screenshot 2022-03-26 at 11-38-42 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160246738-9c96717b-245a-4dca-bc7b-b5774ecdf90a.png)
 
 And this should be enough for our contract.
 
