@@ -2130,3 +2130,201 @@ Slot 10: 1596059101000
 Slot 20: 1596059111000
 Slot 30: 1596059121000
 ```
+### Blockly
+
+Let's start with "Start in Blockly".
+
+![Screenshot 2022-03-26 at 10-59-43 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245224-a5479a9c-9e61-42f3-b80b-2ae7cda1e05e.png)
+
+This is a graphical editor. We can just click and drop a Marlowe contract together.
+
+As an example let's write a contract where there are three parties - Alice, Bob and Charlie.
+
+The idea is that Alice and Bob deposit an amount of Ada into the contract, let's say 10 Ada, and then Charlie decides whether Alice or Bob gets the total amount. Depending on Charlie's decision either Alice gets 20 or Bob gets 20.
+
+There's always the possibility that one of the three doesn't play along; Alice doesn't make her deposit, Bob doesn't make his deposit, or Charlie doesn't make his choice. In this case everybody should just get reimbursed.
+
+When we start with Blockly, there is a contract and it's just a Close contract, which in this case doesn't do anything. If there was money in internal accounts it would pay back the money to the owners of the accounts.
+
+We want to do something else, so let's first wait for a deposit by Alice.
+
+Because that's an external action that's triggered by one of the parties, in this case Alice, we need the When construct that Simon mentioned.
+
+We can remove the Close contract, slide the When one into its place.
+
+![Screenshot 2022-03-26 at 11-03-20 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245402-c8df9cc9-442a-467b-9f08-796271ebd7cb.png)
+
+Here we see all the slots where other things need to go. We see some fields that we have to set.
+
+We can set a timeout so let's say this deposit by Alice has to happen by slot 10 or in our case POSIX 1596059101000.
+
+![Screenshot 2022-03-26 at 11-06-22 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245524-329194d0-8644-4a74-ac61-274bdc576b96.png)
+
+If it doesn't happen, we can say what should happen afterwards, and there is not really a good choice to do anything except close in that case, so in that case nothing will happen.
+
+![Screenshot 2022-03-26 at 11-07-20 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245560-4f5219fc-e63e-494b-af8e-6841798aa4c1.png)
+
+Here we say what external actions we wait for. Let's say we only wait for one action, namely that Alice makes a deposit.
+
+So we can check for actions and pick the deposit one and slide it in.
+
+![Screenshot 2022-03-26 at 11-08-20 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245602-80c4a469-2a18-46cb-a3b0-5d60f73ff380.png)
+
+We see some slots that we have to fill. First of all, a party who has to make the deposit, and there are two choices - a public key or role.
+
+Let's take role because then we can just say Alice. Normally this would be the name of the role token, so whoever owns that token can incorporate that role.
+
+![Screenshot 2022-03-26 at 11-09-50 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245667-6608a66e-ad7f-4566-8421-5064362bccd7.png)
+
+So Alice makes a deposit. Now the amount. That's a Value and let's say we just pick a constant amount of 10 Ada.
+
+The amount is 10, and the fact that it is Ada must be specified in the currency slot.
+
+![Screenshot 2022-03-26 at 11-10-42 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245706-6cde7f96-e011-4d7c-a449-a1b3f7c4d70d.png)
+
+There's also the option to use tokens than Ada, but let's stick with Ada.
+
+![Screenshot 2022-03-26 at 11-11-43 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245747-fdef5ebc-0380-4f53-804b-32c2bf97d46d.png)
+
+Now there are these internal accounts that also belong to one of the parties, so let's say Alice pays it into her own internal account.
+
+That can be copy/pasted rather than getting it from the Party menu again.
+
+![Screenshot 2022-03-26 at 11-12-42 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245775-eade7161-3b6b-4bee-9a86-d8f02b2454e4.png)
+
+
+Now we must say what happens next, if Alice makes this deposit. Afterwards we want Bob to make a deposit, so we can start by just copying the whole When block.
+
+![Screenshot 2022-03-26 at 11-13-22 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245800-afd30dae-67f6-4458-8f65-d3b8230a1729.png)
+
+First of all we change the timeout to 20 (POSIXTime 1596059111000) so as to give Bob also 10 slots to do something, and then wherever we have Alice, we now put Bob.
+
+![Screenshot 2022-03-26 at 11-14-49 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245846-67f95c43-59d1-419f-ab14-4a93e193af95.png)
+
+So at this point, if both these actions happen, Alice has deposited 10 into her internal account and Bob has deposited 10 into his external account.
+
+Now we want Charlie to make a choice, and this is again an external action, so again we need a When, but this time it's not a deposit so let's delete the deposit. Then let's change the timeout to 30 (POSIXTime 1596059121000) to give Charlie 10 slots to make his choice.
+
+![Screenshot 2022-03-26 at 11-17-10 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160245904-70561a46-1265-4edd-b138-cd8923543cc3.png)
+
+
+Now we need a different action. Where earlier we had Deposit, now we pick the Choice action. We can give it a name, let\'s say Winner. We must say who makes the choice, so that\'s will be Charlie, and now we must specify what values this choice can have.
+
+That\'s numeric so because Charlie is supposed to choose between Alice and Bobs, which is two choices, I can pick arbitrary values like one and two. One for Alice, two for Bob. That\'s already the default so that\'s fine.
+
+This allows Charlie to choose one or two.
+
+Then if and when Charlie makes a choice, we continue, and it now depends on the choice that he has made. If he chose Alice then Alice must get all the money, if he chose Bob then Bob must get all the money.
+
+So we will add an If conditional.
+
+Then we will add an observation to check if Alice is the winner. The observation we add is the value is equal to observation.
+
+To see if it is Alice, we will use the Choice by option to ask if Charlie\'s Winner name is equal to Alice.
+
+In the then branch we now take a pay contract. The payee is who gets the money - it can be an internal account or it can be an external party. In this case it doesn\'t matter, because when we close, all the parties get the money from the internal accounts as well.
+
+So, we\'ll just pick Alice\'s internal account.
+
+We will pay 10 Ada.
+
+So who pays? It must be an internal account because this pay contract is something that the contract has control over, so it is not an external action. So, payments are triggered from internal accounts and in this case, it is Bob\'s account.
+
+So this now says: If Charlie picked 1, then pay from Bob\'s internal account 10 Ada to Alice\'s internal account.
+
+After this we can just close. And when we close, all the internal accounts will be paid to the external owners. At this point, Alices internal account will have 20 Ada, and when we close, she will get the 20 Ada paid to her.
+
+And, if Charlie did not choose Alice, then we must pay to Bob. We can copy paste the previous Pay contract for this and make the necessary modifications.
+
+And this should be enough for our contract.
+
+Now we can, for example, look at the pure Marlowe. This is the value of the Marlowe data type called Contract.
+
+And we can send it to the simulator.
+
+We can start the simulation.
+
+Now, whenever there is a When, we get prompted for which of the available actions to take. In our case we only ever have one available action at each point.
+
+So in the first When, either Alice makes her deposit, or the timeout is reached.
+
+If we wait for the timeout it is very boring. The contract is reduced to Close, and nothing happened.
+
+If, however, she makes the deposit, then this contract simplifies - it reduces to what happens after she makes the deposit.
+
+And now we can see we are in the second When, where we are waiting for Bob\'s deposit. Again, he can choose not to deposit. If he does that, then we can see the actions in the transaction log that Alice deposited 10 Ada and the contract pays this back to Alice upon close.
+
+It is more interesting though if Bob also makes his deposit.
+
+Now the contract has simplified again. Now we are in the When where the only available action is that Charlie chooses a winner.
+
+If Charlie doesn\'t do anything and the contract times out, Bob and Alice both get their money back.
+
+If Charlie picks Alice (choice 1), then we see that the contract pays 20 Ada to Alice.
+
+If instead he picks choice 2, then the contract pays 20 Ada to Bob.
+
+Let\'s now reset the contract.
+
+We will copy the Marlowe code to the clipboard, then create a new Haskell project.
+
+In the Haskell editor there is a template.
+
+All this program does is to take a Marlowe contract, and then pretty prints it. This is then used to, for example, run in the simulator.
+
+Instead of Close, we can paste what we just copied to the clipboard.
+
+We can then compile this, and send it to the simulator and it should behave exactly as before.
+
+There we don\'t really see the benefit of doing it in Haskell, we could just as well do it in Blockly, although you may find that Blockly is really only useful for learning and writing extremely simple contracts. We have just written a simple contract and already it was starting to get quite unwieldy in the Blockly editor. If you do something more complicated it can start to get very confusing in the editor.
+
+But, we can do other things in this Haskell program. We don\'t have to literally define a contract. We can use the whole power of Haskell to help us to write the contract.
+
+For example, we can see a lot of repetition because we always have the Alice, Bob and Charlie roles. We could define these separately.
+
+Note that we can use overloaded string literals here because the fromString function uses the Role constructor for Party.
+
+We can also define a constant for the deposit of 10 Ada.
+
+For (Token \"\" \"\"), we can replace this with the ada abbreviation.
+
+We can also simplify Charlie\'s ChoiceId.
+
+Now it is already cleaned up quite a bit.
+
+It\'s possible to do more sophisticated things. Our contract is slightly asymmetric even though it sounds like a symmetric situation. Alice and Bob are completely symmetric, but in our contract, Alice has to deposit first.
+
+What we could do is to allow Bob to deposit first as well. In the outermost When we would have two deposits - one where Alice deposits, and one where Bob deposits.
+
+Let\'s make a little helper function. It takes two Partys - the party that deposits first and the party that deposits second and then it returns a Case. We can use this to parameterise Alice and Bob as x and y in the Case. Note that we only need to do this for the deposits, the part where Charlie makes his choice can remain the same, with Alice and Bob continuing to be represented by 1 and 2 respectively.
+
+Now we can replace the originally-pasted code with our helper function, and we can create the symmetric case where Bob deposits first as an option to the outermost When.
+
+This should compile and we can now send to the simulator.
+
+Now we have two possible actions that can happen in the first step. Alice can deposit 10, or Bob can deposit 10.
+
+If Bob starts...
+
+Then now it is Alice's turn.
+
+So, basically, to use the Haskell editor, we write a program that produces something of type Contract and you can use all the features of Haskell like local functions or whatever to make your life easier.
+
+When using Blockly, if we had wanted to give Bob the option of being the first to deposit, we would have had no choice but to have copy and pasted the whole When construct.
+
+Of course, there are other options when using Haskell. We could also paramterise the contract, for example, we could pass in the deposit value as an argument.
+
+We could also parameterise the parties and even generalise it so that the number of parties could be variable. This would be very inconvenient if we were to have to do this by hand using Blockly, but in Haskell it is quite straightforward.
+
+What is noteworthy here is that Marlowe, in contrast to Plutus, is very simply Haskell. The Marlowe team made a point of using only basic Haskell features. You don\'t need lenses, you don\'t need Template Haskell, you don\'t even need monads or type-level programming.
+
+Marlowe is not always appropriate because it is specifically for financial contracts, but if it is appropriate then it is a very nice option due to all the safety assurances that Simon mentioned and because it is much simpler and easy to get right than Plutus.
+
+
+
+
+
+
+
+
+
