@@ -2640,6 +2640,31 @@ Marlowe is not always appropriate because it is specifically for financial contr
 
 ## Homework
 
+The objective for the homework this week, is to alter the contract we created in the lecture. We need to change the contract such that:
+
+- Charlie makes the first deposit, for an amount of 20 ADA
+- If Charlie does not make choice before the contract times out, he needs to pay Alice and Bob 10 ADA each from his deposit
+
+
+![Screenshot 2022-03-28 at 10-42-52 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160423680-10cbecb7-7960-4555-99f2-4898d7bf351f.png)
+
+
+We first need to add the desposit Charlie is making, which in this case would be 20 ADA.
+
+![Screenshot 2022-03-28 at 10-45-42 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160424268-ab2f69cc-8762-42c1-b44a-901f27da6ffb.png)
+
+
+Next, we need to add the case of a timeout. Which means that Charlie needs to pay both Alice and Bob since he did not act. So after slot 40 (POSIXTime 1596059131000), we can add that Charlie will pay both Bob and Alice 10 ADA. The main contract is exactly the same as the lecture, we can just add the time out clause after adding in the rest of the contract from the lecture
+
+The whole contract should look like:
+
+
+![Screenshot 2022-03-28 at 10-46-22 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160424365-99e6739b-b4b9-4545-b591-ca800f8b77b1.png)
+
+
+![Screenshot 2022-03-28 at 10-47-00 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160424502-0673897b-0276-434b-8b94-aa6c131b31bf.png)
+
+![Screenshot 2022-03-28 at 10-47-45 https __marlowe-playground-staging plutus aws iohkdev io](https://user-images.githubusercontent.com/59018247/160424607-cb76f55b-8f24-4609-8241-c932137952e8.png)
 
 
 
