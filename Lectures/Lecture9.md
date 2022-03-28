@@ -2042,7 +2042,7 @@ The transaction is very similar to the third transaction here, it's now the sell
 ![Screenshot 2022-03-25 at 13-17-37 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169816-1c1b3842-2def-46a4-a284-d6348cc2b742.png)
 
 
-The mediator comes into the situation, so they have to make their decision. In this case they are deciding in favor of the seller, so Christopher Marlowe is saying "I am dismissing the claim". The seller does get their funds so what the contract does is it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script. It is putting 256 ADA at the payout address, and it's ready for the seller to collect it. However, since the contract is over, it is taking the minimum data and is giving that back to Christopher Marlowe who had supplied it when the contract was created. We are moving things out of the contract and then there is essentially no contract left,there is just this close statement that is the  end of the contract.
+The mediator comes into the situation, so they have to make their decision. In this case they are deciding in favor of the seller, so Christopher Marlowe is saying "I am dismissing the claim". The seller does get their funds so what the contract does is it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script. It is putting 256 ADA at the payout address, and it's ready for the seller to collect it. However, since the contract is over, it is taking the minimum ADA and is giving that back to Christopher Marlowe who had supplied it when the contract was created. We are moving things out of the contract and then there is essentially no contract left,there is just this close statement that is the  end of the contract.
 
 
 ![Screenshot 2022-03-25 at 13-18-31 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169940-805caa62-3ace-41e0-ac9a-d7eff74916ac.png)
@@ -2078,22 +2078,27 @@ This uses a different command in the Marlowe-CLI; this is the withdrawal command
 
 ![Screenshot 2022-03-25 at 13-22-56 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170625-177e188d-4389-4ccb-8319-8b976a712034.png)
 
-similarly the mediator is withdrawing their  three data this is essentially  an identical pattern for the transaction 
+Similarly the mediator is withdrawing their 3 ADA, this is essentially an identical pattern for the transaction 
 
 
 
 ![Screenshot 2022-03-25 at 13-23-14 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170689-207b76e5-30ef-4ce2-8007-7f19e4cbf1d5.png)
 
 
-
-so we  had all these transactions  we had seven transactions there's actually a map of the UTxOs involved in this   I know it's a little bit hard to read but hopefully you can view it online at the Marlowe cardano GitHub website or just zoom in a little bit to these slides but we have the participants here they're  each starting with a pair  of UTxOs one that has just ADA in it and one that has their role token in it so the three folks are there when christopher marlowe creates the first transaction he's putting in ADA it's creating the  script the script now has  three ADA and its accounts reflects that he gets his change and there's a 0.28 a fee so the first transaction is kind of making this transition the second transaction thomas middleton is depositing his 256 ADA he actually has a UTxO with almost 3 000 ADA so he puts that in he gets some change from that about 200 or 2700data and then he's ADA is in the script he then reports a problem which just updates the state of the scripts you can see  the accounts have changed a  little bit it's paying a fee then francis beaumont the seller is disputing  the problem so he's passing  his rule token and some  ADA through the transactionhe's getting his roll token back he's getting some  change we're paying a 1.38  a fee and then the scriptstate has been updated and then when christopher Marlowe dismisses the claim he's putting some ADAin along with his role token  or consuming the script  UTxO and then this is an interesting transactionbecause it doesn't pay anything to the script because the script has done its job we don't need any data there it doesn't have any state it's just closed so it's actually in that transaction we'remaking two payments to the payout script one is for francis beaumont so we can get his 256 databack the other is for christopher marlowe who can get their three ADA back so these are separateUTxOs they're sitting at the payout script address and then since christopher marlowe initiated thistransaction he's paying the fee and he's getting his roll token back and some change so when hegoes to withdraw his three ADA he's using some of that same input and then he gets back his dataso he ends up here with three unspent transaction outputs similarly francis beaumont is getting his256 data in transaction  six so he's paying a little  bit of a fee he gets his ADA back there's the 256and then he gets his roll token so this is kind of the big map of what's going on under the hoodso what Marlowe is doing is it validates all these transactions on chain if you're running in Marlowerun it's hiding all this from you and you get a  nice graphical user interface  little cards that helpyou do the inputs if you're running at Marlowe cli you have to type in the inputs but you're drivingthis sort of workflow at the beginning of the talk  I mentioned the lower level  more detailed interfaceif you were doing that you would still get the same transactions so you actually see the same transactions whether you're using Marlowe run or the plutus application  backend the workflow I showed you or the low-level workflow it's just you're interacting with it you have a little more controlyou get to see a little  more of what is going on 
+In summary, we had 7 transactions and this is actually a map of the UTxOs involved.
 
 
 ![Screenshot 2022-03-25 at 13-25-14 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160171046-f94a4755-c0b3-4062-84ff-19479919eeb7.png)
 
 
+The Marlowe-CLI tool is pretty much feature complete, so you can run these high-level workflows and can interact with the plutus application back-end. You can also do the low-level workflows, we are using this for testing and debugging. 
 
-so  the Marlowe cli tool is  pretty much feature completeso you can run these high-level workflows you can interact with the plutus application back-end youcan do the low-level workflows we're using this for testing debugging things like that there area few enhancements we'll be adding to it something called localization of contracts which Marlowesupports but the cli does not support yet it will help us reduce contract size and then most ofthe other functions we plan to include are really convenience methods so you can take some queriesand do things like that and this is all online and available to use on the testnet so thank you.
+There are a few enhancements we will be adding to it, something called localization of contracts:
+
+- this is something Marlowe supports but the CLI does not support yet
+- it will help us reduce contract size 
+
+Most of the other functions we plan to include, are really convenience methods.
 
 ## Marlowe Playground Demo
 
