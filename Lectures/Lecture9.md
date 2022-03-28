@@ -2042,37 +2042,41 @@ The transaction is very similar to the third transaction here, it's now the sell
 ![Screenshot 2022-03-25 at 13-17-37 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169816-1c1b3842-2def-46a4-a284-d6348cc2b742.png)
 
 
-The mediator comes into the situation, so they have to make their decision and in this case  they're deciding in favor  of the seller so christopher marlowe is saying I'mdismissing the claim the  seller does get their funds  so what the contract does  is puts the the script asis it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script so it's  putting basically 256 ADA  at the payout address it's ready for the seller to collect it and because the contract is over it's taking the minimum data it's actually giving that back to christopher marlowe who had supplied it when the contract was created so we're basically moving  things out of the contract  here and then there's essentially no contract left there's just this little  close statement that is the  end of the contract 
+The mediator comes into the situation, so they have to make their decision. In this case they are deciding in favor of the seller, so Christopher Marlowe is saying "I am dismissing the claim". The seller does get their funds so what the contract does is it puts the funds back in the seller's account and then it actually transfers the funds out of the Marlowe script into the payout script. It is putting 256 ADA at the payout address, and it's ready for the seller to collect it. However, since the contract is over, it is taking the minimum data and is giving that back to Christopher Marlowe who had supplied it when the contract was created. We are moving things out of the contract and then there is essentially no contract left,there is just this close statement that is the  end of the contract.
 
 
 ![Screenshot 2022-03-25 at 13-18-31 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160169940-805caa62-3ace-41e0-ac9a-d7eff74916ac.png)
 
 
 
-so this is another transaction reminiscent of numbers three and four here we're  saying dismiss claim the  mediators the party that's making the choice and they're choosing choice  number zero because that  was the one that indicatesthey're dismissing the  claim 
+This is another transaction reminiscent of numbers three and four. Here we are saying:
+ 
+- dismiss claim
+- the mediator is the party that is making the choice
+- they are choosing choice number zero, because that was the one that indicates they are dismissing the claim 
 
 
 ![Screenshot 2022-03-25 at 13-19-26 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170079-4e2b443e-648a-45c8-bdeb-6573b8cc6352.png)
 
-
-
-so anyway what we have  here is the final sort of cleanup steps of running the contract the seller's going to withdraw their  funds so they're pulling  out their 256 ADA to their address 
+What we have here is the final sort of cleanup steps of running the contract. The seller is going to withdraw their funds, so they are pulling out their 256 ADA to their address.
 
 
 ![Screenshot 2022-03-25 at 13-20-50 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170310-13d77c39-ad84-48a3-bffa-5a06ca5a41cf.png)
 
+This uses a different command in the Marlowe-CLI; this is the withdrawal command and it's very similar to the other ones. 
 
-
-and this uses a different command in marla  cli this is the withdrawal  command it's very similar to the other ones but maybe a little bit simpler you just once again tell which network you're on which transaction you're operating on who you are  so the seller's withdrawing  the funds they're giving putting some UTxOs in most importantly that they are identifying themselves with their role tokens that rule token is kind of their passport or their identity that gives them authorization to do things with this script   and then we have collateral they have to sign it they're getting their roletoken back they're getting  their change and they'll  actually get their 256 aida when all is said and done 
+- once again tell which network you're on which transaction you're operating on 
+- who you are, so the seller's withdrawing the funds 
+- they are putting some UTxOs in, most importantly that they are identifying themselves with their role tokens. 
+- that role token is kind of their passport or their identity that gives them authorization to do things with this script
+- then we have collateral 
+- they have to sign it
+- they are getting their role token back, they are getting their change so they actually get their 256 ADA when all is said and done 
 
 
 ![Screenshot 2022-03-25 at 13-22-32 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170569-d3fff343-d0a3-4557-9cfe-8dcd1542942a.png)
 
 ![Screenshot 2022-03-25 at 13-22-56 PPP 030904 - Brian Bush The Marlowe CLI](https://user-images.githubusercontent.com/59018247/160170625-177e188d-4389-4ccb-8319-8b976a712034.png)
-
-
-
-
 
 similarly the mediator is withdrawing their  three data this is essentially  an identical pattern for the transaction 
 
