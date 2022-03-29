@@ -4,9 +4,10 @@ Head to the plutus-start github to get started:
 
 Click on the green "Use this template" button to clone the template into your own personal repo:
 
+![Screenshot 2022-03-29 at 16-12-42 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698741-00a59420-e4a1-40b5-b112-024836ee8695.png)
+
 ![Screenshot 2022-03-29 at 16-12-12 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698703-a983ccbc-7f6f-4acf-ab11-1cb615556430.png)
 
-![Screenshot 2022-03-29 at 16-12-42 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698741-00a59420-e4a1-40b5-b112-024836ee8695.png)
 
 Select a name for your new Cardano project/repo:
 
