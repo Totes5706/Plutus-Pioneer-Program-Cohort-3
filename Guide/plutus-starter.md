@@ -1,6 +1,18 @@
 # How to build your own Plutus Project on Cardano
 
+## Introduction
+
 I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator). I used a fake example name NFT-Maker when making this tuturial, however my real project name is cardano-alonzo-nft-creator.
+
+## Table of Contents
+
+- [How to build your own Plutus Project on Cardano](#how-to-build-your-own-plutus-project-on-cardano)
+  - [Table of Contents](#table-of-contents)
+  - [1: Create the Template](#1-create-the-template)
+  - [2: Modify the Cabal Files](#2-modify-the-cabal-files)
+  - [3: Import haskell files into the project](#3-import-haskell-files-into-the-project)
+  - [4: Optional: Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
+  - [5: Build and Run Project](5-build-and-run-project]
 
 Head to the plutus-start github to get started:
 
