@@ -176,7 +176,7 @@ executable token-name
                      , NFT-Maker
 ```
 
-## Once that is saved, open up cabal.project and edit the packages name to now include the cabal file we just edited:
+## Once that is saved, open up cabal.project and edit the packages field to now include the cabal file named we just saved:
 
 ![Screenshot 2022-03-29 at 22-35-32 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160739594-027e9325-87aa-46ac-a6ce-38cf9ff49d5f.png)
 
