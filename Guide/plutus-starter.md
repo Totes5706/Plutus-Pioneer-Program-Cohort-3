@@ -1,4 +1,4 @@
-# How to use Plutus-Start to build your own Plutus Project on Cardano
+# How to use Plutus-Starter to build your own Plutus Project on Cardano
 
 Contributed By: [Joe Totes](https://github.com/Totes5706)
 
@@ -10,7 +10,7 @@ I used a fake example name "NFT-Maker" just to make this tutorial, however my re
 
 ## Table of Contents
 
-- [How to build your own Plutus Project on Cardano](#how-to-build-your-own-plutus-project-on-cardano)
+- [How to use Plutus-Starter to build your own Plutus Project on Cardano](#how-to-use-plutus-starter-to-build-your-own-plutus-project-on-cardano)
   - [Table of Contents](#table-of-contents)
   - [1: Create the Template](#1-create-the-template)
   - [2: Import Haskell Files into the Project](#2-import-haskell-files-into-the-project)
