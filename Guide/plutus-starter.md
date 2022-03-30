@@ -59,7 +59,7 @@ maintainer:         totinj@gmail.com
 
 ![Screenshot 2022-03-29 at 22-08-39 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160736548-57c98335-c1fb-4129-a970-f24251e64e21.png)
 
-Example:
+## Example with comments:
 
 ```haskell
 
@@ -130,6 +130,49 @@ executable token-name
   ghc-options:         -threaded
   
 {- My executable files have no imports, therefore I only need to include base >= 4.9 && < 5, and the project name  -} 
+  build-depends:       base >= 4.9 && < 5
+                    , NFT-Maker
+```
+
+## Example without comments
+
+```haskell
+library
+  import: lang
+  hs-source-dirs:      src
+  exposed-modules:     Token.OnChain
+                       Utils                   
+  build-depends:       base >= 4.9 && < 5
+                     , aeson
+                     , bytestring
+                     , cardano-api
+                     , containers
+                     , data-default
+                     , freer-extras
+                     , openapi3
+                     , playground-common
+                     , plutus-contract
+                     , plutus-ledger
+                     , plutus-ledger-api
+                     , plutus-tx-plugin
+                     , plutus-tx
+                     , plutus-use-cases
+                     , serialise
+                     , text
+
+executable token-policy
+  import: lang
+  main-is: token-policy.hs
+  hs-source-dirs:      app
+  ghc-options:         -threaded
+  build-depends:       base >= 4.9 && < 5
+                     , NFT-Maker
+
+executable token-name
+  import: lang
+  main-is: token-name.hs
+  hs-source-dirs:      app
+  ghc-options:         -threaded
   build-depends:       base >= 4.9 && < 5
                     , NFT-Maker
 ```
