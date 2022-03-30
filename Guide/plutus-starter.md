@@ -342,6 +342,27 @@ git clone https://github.com/Totes5706/cardano-alonzo-nft-creator.git
 ```
 nix-shell
 ```
+**Note: If you did step 4 properly, you should have access to cardano-node and CLI. Check it here**
+
+- Directory: ```[nix-shell:~/cardano-alonzo-nft-creator]$```
+```
+cardano-node --version
+
+cardano-node 1.34.1 - linux-x86_64 - ghc-8.10
+git rev 0000000000000000000000000000000000000000
+
+```
+
+- Directory: ```[nix-shell:~/cardano-alonzo-nft-creator]$```
+```
+cardano-cli --version
+
+cardano-cli 1.34.1 - linux-x86_64 - ghc-8.10
+git rev 0000000000000000000000000000000000000000
+
+```
+
+**Now it should be ready to update and build:**
 
 - Directory: ```[nix-shell:~/cardano-alonzo-nft-creator]$```
 ```
