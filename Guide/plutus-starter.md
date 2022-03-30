@@ -24,17 +24,17 @@ Head to the plutus-start github to get started:
 
 ![Screenshot 2022-03-29 at 16-12-42 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698741-00a59420-e4a1-40b5-b112-024836ee8695.png)
 
-### Click on the green "Use this template" button in the top right corner of the page to clone the template into your own personal repo:
+**Click on the green "Use this template" button in the top right corner of the page to clone the template into your own personal repo:**
 
 
 ![Screenshot 2022-03-29 at 16-12-12 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698703-a983ccbc-7f6f-4acf-ab11-1cb615556430.png)
 
 
-### Select a name for your new Cardano project/repo:
+**Select a name for your new Cardano project/repo:**
 
 ![Screenshot 2022-03-29 at 16-13-25 Build software better together](https://user-images.githubusercontent.com/59018247/160698849-2758b939-63df-40e5-ba17-af1b392789ea.png)
 
-### Remove the examples, scripts, and pab directories; they will be replaced with out project files
+**Remove the examples, scripts, and pab directories; they will be replaced with out project files**
 
 ![Screenshot 2022-03-29 at 21-57-02 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160735287-c8d71878-b634-4e4e-bbfd-72f0fbbe0453.png)
 
@@ -44,9 +44,9 @@ Head to the plutus-start github to get started:
 
 ## 2: Import Haskell Files into the Project
 
-### Now it is time to import my files into the project. It is good practice to have at least two main folders; an app directory for executable files and an src directory for the onchain and utility files. 
+**Now it is time to import my files into the project. It is good practice to have at least two main folders; an app directory for executable files and an src directory for the onchain and utility files.**
 
-### My project has two executable files, a utilty file, and an onchain haskell file. First we will add the executable (main :: io()) files and create a directory called app:
+**My project has two executable files, a utilty file, and an onchain haskell file. First we will add the executable (main :: io()) files and create a directory called app:**
 
 ![Screenshot 2022-03-30 at 14-19-44 Totes5706_cardano-alonzo-nft-creator A bash script that will make real NFTs using a Haskell_Plutus on-chain validator on the Cardano Blockchain](https://user-images.githubusercontent.com/59018247/160904254-72c483e9-9821-404c-b71b-94bd7cd8c44c.png)
 
@@ -64,7 +64,7 @@ Head to the plutus-start github to get started:
 ![Screenshot 2022-03-29 at 22-42-49 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740375-bfd351da-4317-40b9-80b0-b806cb0eb47c.png)
 
 
-### Now we can create the src folder that will contain the onchain code and utility functions that will get called by the executable:
+**Now we can create the src folder that will contain the onchain code and utility functions that will get called by the executable:**
 
 ### Utils.hs
 
@@ -76,15 +76,15 @@ Head to the plutus-start github to get started:
 
 ![Screenshot 2022-03-29 at 22-47-45 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740989-0f24e9ab-4917-4e19-88fb-e56bfe3f5744.png)
 
-### Lastly, I will be importing an env file for the node cardano socket, and  also my make-nft.bash script.
+**Lastly, I will be importing an env file for the node cardano socket, and  also my make-nft.bash script.**
 
 ![Screenshot 2022-03-29 at 22-53-26 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741618-aea8bd7f-cb06-42ee-bf21-0295f9e83356.png)
 
 ![Screenshot 2022-03-29 at 22-53-43 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741654-afd32749-7b27-4a77-8407-901f2aefd1df.png)
 
-### Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.
+**Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.**
 
-Example inside my bash script:
+**Example inside my bash script:**
 ```
 ...
 #Send these three parameters to the on-chain code of Token.Onchain.hs to validate, then create the policy for the NFT
@@ -94,19 +94,19 @@ cabal exec token-policy $policyFile $oref $tn
 
 ## 3: Modify the Cabal Files
 
-### Open the plutus-starter.cabal file, we can start by renaming this to our project:
+**Open the plutus-starter.cabal file, we can start by renaming this to our project:**
 
 ![Screenshot 2022-03-29 at 21-59-07 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160735487-193dc04b-510b-45a0-86a3-7a5aa6a7b746.png)
 
-### Change the name to your project name at the top
+**Change the name to your project name at the top**
 
 ![Screenshot 2022-03-29 at 21-59-48 Editing NFT-Maker_NFT-Maker cabal at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160735578-3479ce69-a92a-4ad6-8c8f-b2be2e0085b7.png)
 
-### Change the name, the author and the maintainer in this file: 
+**Change the name, the author and the maintainer in this file:** 
 
 ![Screenshot 2022-03-29 at 22-01-46 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160735767-c992dae8-4d60-42a2-a915-658ef85d83ec.png)
 
-Example:
+**Example:**
 
 ```haskell
 cabal-version:      2.4
@@ -128,11 +128,11 @@ author:             Joe Totes
 maintainer:         totinj@gmail.com
 ...
 ```
-### Scroll to the bottom, we will be editing the Haskell files being linked here with our own: 
+**Scroll to the bottom, we will be editing the Haskell files being linked here with our own:** 
 
 ![Screenshot 2022-03-29 at 22-08-39 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160736548-57c98335-c1fb-4129-a970-f24251e64e21.png)
 
-### Example of my NFT project with comments:
+**Example of my NFT project with comments:**
 
 ```haskell
 
@@ -206,7 +206,7 @@ executable token-name
                     , NFT-Maker
 ```
 
-### Example without comments
+**Example without comments**
 
 ```haskell
 library
@@ -249,13 +249,13 @@ executable token-name
                      , NFT-Maker
 ```
 
-### Once that is saved, open up cabal.project and edit the packages field to now include the cabal file named we just saved:
+**Once that is saved, open up cabal.project and edit the packages field to now include the cabal file named we just saved:**
 
 ![Screenshot 2022-03-29 at 22-35-32 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160739594-027e9325-87aa-46ac-a6ce-38cf9ff49d5f.png)
 
 ![Screenshot 2022-03-29 at 22-36-03 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160739649-642f8490-961e-4612-b176-90a8bfc544f5.png)
 
-### Example
+**Example**
 
 ```haskell
 index-state: 2021-08-14T00:00:00Z
@@ -328,5 +328,5 @@ in
 
 ## 5: Build and Run Project
 
-### Now that everything is complete, we can build the project in nix-shell
+**Now that everything is complete, we can build the project in nix-shell**
 
