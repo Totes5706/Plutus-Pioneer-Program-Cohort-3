@@ -1,6 +1,6 @@
 # How to build your own Plutus Project on Cardano
 
-I will be using my NFT project as an example: [https://github.com/Totes5706/NFT-Maker](https://github.com/Totes5706/NFT-Maker)
+I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator)
 
 Head to the plutus-start github to get started:
 
