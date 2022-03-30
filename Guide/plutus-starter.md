@@ -175,3 +175,25 @@ executable token-name
   build-depends:       base >= 4.9 && < 5
                      , NFT-Maker
 ```
+
+## Once that is saved, open up cabal.project and edit the packages name to now include the cabal file we just edited:
+
+![Screenshot 2022-03-29 at 22-35-32 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160739594-027e9325-87aa-46ac-a6ce-38cf9ff49d5f.png)
+
+![Screenshot 2022-03-29 at 22-36-03 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160739649-642f8490-961e-4612-b176-90a8bfc544f5.png)
+
+## Example
+
+```haskell
+index-state: 2021-08-14T00:00:00Z
+
+packages: NFT-Maker.cabal
+
+-- You never, ever, want this.
+write-ghc-environment-files: never
+
+-- Always build tests and benchmarks.
+tests: true
+benchmarks: true
+...
+```
