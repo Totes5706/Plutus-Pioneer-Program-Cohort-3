@@ -11,8 +11,8 @@ I used a fake example name NFT-Maker when making this tutorial, however my real 
 - [How to build your own Plutus Project on Cardano](#how-to-build-your-own-plutus-project-on-cardano)
   - [Table of Contents](#table-of-contents)
   - [1: Create the Template](#1-create-the-template)
-  - [2: Modify the Cabal Files](#2-modify-the-cabal-files)
-  - [3: Import haskell files into the project](#3-import-haskell-files-into-the-project)
+  - [2: Import haskell files into the project](#3-import-haskell-files-into-the-project)
+  - [3: Modify the Cabal Files](#2-modify-the-cabal-files)
   - [4: Optional: Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
   - [5: Build and Run Project](5-build-and-run-project]
 
@@ -23,6 +23,7 @@ Head to the plutus-start github to get started:
 [https://github.com/input-output-hk/plutus-starter](https://github.com/input-output-hk/plutus-starter)
 
 ![Screenshot 2022-03-29 at 16-12-42 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698741-00a59420-e4a1-40b5-b112-024836ee8695.png)
+
 ### Click on the green "Use this template" button in the top right corner of the page to clone the template into your own personal repo:
 
 
@@ -40,6 +41,45 @@ Head to the plutus-start github to get started:
 ![Screenshot 2022-03-29 at 22-49-48 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160741219-2947a154-8b11-4eba-a21b-4525232a9cef.png)
 
 ![Screenshot 2022-03-29 at 21-57-28 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160735333-c449ea3e-8ce7-43e2-a2de-51e56d151387.png)
+
+## 2: Import haskell files into the project
+
+### Now it is time to import my files into the project. First we will do the executable files and create a directory called app:
+
+### token-policy.hs
+
+![Screenshot 2022-03-29 at 22-41-08 Editing NFT-Maker_token-policy hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740210-509736f5-e4f2-45e0-8e85-262bd30d35a7.png)
+
+### token-name.hs
+
+![Screenshot 2022-03-29 at 22-42-25 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740328-1a53c7a2-2271-49b9-a3cb-d7ef034d5d89.png)
+
+
+![Screenshot 2022-03-29 at 22-42-49 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740375-bfd351da-4317-40b9-80b0-b806cb0eb47c.png)
+
+
+### Now we can create the src folder that will contain the onchain code and utility functions that will get called by the executable:
+
+### Utils.hs
+
+![Screenshot 2022-03-29 at 22-45-56 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740783-70ad82ee-8be6-492a-968b-3c5dd8e16367.png)
+
+### Token.Onchain.hs
+
+![Screenshot 2022-03-29 at 22-46-28 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740860-441276dd-e817-415b-8ce4-4fa5acd768d9.png)
+
+![Screenshot 2022-03-29 at 22-47-45 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740989-0f24e9ab-4917-4e19-88fb-e56bfe3f5744.png)
+
+### Lastly, I will be importing an env file for the node cardano socket, and  also my make-nft.bash script.
+
+![Screenshot 2022-03-29 at 22-53-26 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741618-aea8bd7f-cb06-42ee-bf21-0295f9e83356.png)
+
+![Screenshot 2022-03-29 at 22-53-43 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741654-afd32749-7b27-4a77-8407-901f2aefd1df.png)
+
+### Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.
+
+
+## 3: Modify the Cabal Files
 
 ### Open the plutus-starter.cabal file, we can start by renaming this to our project:
 
@@ -75,7 +115,7 @@ author:             Joe Totes
 maintainer:         totinj@gmail.com
 ...
 ```
-### Scroll to the bottom, we will be editing the Haskell files being linked here: 
+### Scroll to the bottom, we will be editing the Haskell files being linked here with our own: 
 
 ![Screenshot 2022-03-29 at 22-08-39 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160736548-57c98335-c1fb-4129-a970-f24251e64e21.png)
 
@@ -217,40 +257,6 @@ tests: true
 benchmarks: true
 ...
 ```
-
-### Now it is time to import my files into the project. First we will do the executable files and create a directory called app:
-
-### token-policy.hs
-
-![Screenshot 2022-03-29 at 22-41-08 Editing NFT-Maker_token-policy hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740210-509736f5-e4f2-45e0-8e85-262bd30d35a7.png)
-
-### token-name.hs
-
-![Screenshot 2022-03-29 at 22-42-25 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740328-1a53c7a2-2271-49b9-a3cb-d7ef034d5d89.png)
-
-
-![Screenshot 2022-03-29 at 22-42-49 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740375-bfd351da-4317-40b9-80b0-b806cb0eb47c.png)
-
-
-### Now we can create the src folder that will contain the onchain code and utility functions that will get called by the executable:
-
-### Utils.hs
-
-![Screenshot 2022-03-29 at 22-45-56 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740783-70ad82ee-8be6-492a-968b-3c5dd8e16367.png)
-
-### Token.Onchain.hs
-
-![Screenshot 2022-03-29 at 22-46-28 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740860-441276dd-e817-415b-8ce4-4fa5acd768d9.png)
-
-![Screenshot 2022-03-29 at 22-47-45 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740989-0f24e9ab-4917-4e19-88fb-e56bfe3f5744.png)
-
-### Lastly, I will be importing an env file for the node cardano socket, and  also my make-nft.bash script.
-
-![Screenshot 2022-03-29 at 22-53-26 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741618-aea8bd7f-cb06-42ee-bf21-0295f9e83356.png)
-
-![Screenshot 2022-03-29 at 22-53-43 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741654-afd32749-7b27-4a77-8407-901f2aefd1df.png)
-
-### Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.
 
 Example:
 ```
