@@ -328,5 +328,25 @@ in
 
 ## 5: Build and Run Project
 
-**Now that everything is complete, we can build the project in nix-shell**
+**Now that everything is complete, we can build the project in nix-shell. First clone it locally:**
 
+
+- Directory: ```totinj@penguin:~$```
+```
+git clone https://github.com/Totes5706/cardano-alonzo-nft-creator.git
+```
+
+- Directory: ```totinj@penguin:~/cardano-alonzo-nft-creator$```
+```
+nix-shell
+```
+
+- Directory: ```[nix-shell:~/cardano-alonzo-nft-creator]$```
+```
+cabal update
+```
+```
+cabal build
+```
+
+**Now you call your script or cabal executable here**
