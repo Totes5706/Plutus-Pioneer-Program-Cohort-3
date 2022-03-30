@@ -59,7 +59,7 @@ maintainer:         totinj@gmail.com
 
 ![Screenshot 2022-03-29 at 22-08-39 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160736548-57c98335-c1fb-4129-a970-f24251e64e21.png)
 
-## Example with comments:
+## Example of my NFT project with comments:
 
 ```haskell
 
