@@ -272,7 +272,7 @@ benchmarks: true
 ```
 ## 4: Optional: Add Cardano Node and CLI into Nix
 
-### By default, the Plutus-Starter package does not include the Cardano-Node and CLI inside the nix-shell when you build the project. After some reverse engineering, this is what needs to be added to the shell. nix file:
+**By default, the Plutus-Starter package does not include the Cardano-Node and CLI inside the nix-shell when you build the project. After some reverse engineering, this is what needs to be added to the shell. nix file:**
 
 ![Screenshot 2022-03-30 at 14-28-56 Totes5706_cardano-alonzo-nft-creator A bash script that will make real NFTs using a Haskell_Plutus on-chain validator on the Cardano Blockchain](https://user-images.githubusercontent.com/59018247/160905874-c43debbb-6ee1-49f6-bcec-97d86853c473.png)
 
