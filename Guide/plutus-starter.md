@@ -13,7 +13,7 @@ I used a fake example name NFT-Maker when making this tutorial, however my real 
   - [1: Create the Template](#1-create-the-template)
   - [2: Import Haskell Files into the Project](#2-import-haskell-files-into-the-project)
   - [3: Modify the Cabal Files](#3-modify-the-cabal-files)
-  - [4: Optional: Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
+  - [4: Optional Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
   - [5: Build and Run Project](5-build-and-run-project)
 
 ## 1: Create the Template
@@ -270,7 +270,7 @@ tests: true
 benchmarks: true
 ...
 ```
-## 4: Optional: Add Cardano Node and CLI into Nix
+## 4: Optional Add Cardano Node and CLI into Nix
 
 **By default, the Plutus-Starter package does not include the Cardano-Node and CLI inside the nix-shell when you build the project. After some reverse engineering, this is what needs to be added to the shell. nix file:**
 
