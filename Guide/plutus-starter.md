@@ -228,3 +228,21 @@ benchmarks: true
 
 ![Screenshot 2022-03-29 at 22-47-45 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740989-0f24e9ab-4917-4e19-88fb-e56bfe3f5744.png)
 
+### Lastly, I will be importing an env file for the node cardano socket, and  also my make-nft.bash script.
+
+![Screenshot 2022-03-29 at 22-53-26 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741618-aea8bd7f-cb06-42ee-bf21-0295f9e83356.png)
+
+![Screenshot 2022-03-29 at 22-53-43 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160741654-afd32749-7b27-4a77-8407-901f2aefd1df.png)
+
+## Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.
+
+Example:
+```
+...
+#Send these three parameters to the on-chain code of Token.Onchain.hs to validate, then create the policy for the NFT
+cabal exec token-policy $policyFile $oref $tn
+...
+```
+
+## Now that everything is complete, we can build the project in nix-shell
+
