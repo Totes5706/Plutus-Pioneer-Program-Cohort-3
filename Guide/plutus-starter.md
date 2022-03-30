@@ -61,11 +61,10 @@ maintainer:         totinj@gmail.com
 
 Example:
 
-```haskell
-
+```
 library
   import: lang
-  hs-source-dirs:      src             -{ This is the directory location where our onchain code files will go, and also a utility function for my project
+  hs-source-dirs:      src             # This is the directory location where our onchain code files will go, and also a utility function for my project
   exposed-modules:     Token.OnChain
                        Utils                   
   build-depends:       base >= 4.9 && < 5
