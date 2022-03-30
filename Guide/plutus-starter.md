@@ -2,7 +2,7 @@
 
 ## Introduction
 
-I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator). We will use the [Plutus-Starter](https://github.com/input-output-hk/plutus-starter) package to create a cardano project that can be built as a standalone project using nix.
+I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator). We will use the [Plutus-Starter](https://github.com/input-output-hk/plutus-starter) package to create a Cardano project that can be built as a standalone project using nix.
 
 I used a fake example name NFT-Maker when making this tutorial, however my real project name is cardano-alonzo-nft-creator.
 
