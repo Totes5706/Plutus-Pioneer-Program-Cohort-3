@@ -270,7 +270,7 @@ tests: true
 benchmarks: true
 ...
 ```
-## 4: Optional Add Cardano Node and CLI into Nix
+## 4: Optional Add Cardano Node and CLI into Nix Shell
 
 **By default, the Plutus-Starter package does not include the Cardano-Node and CLI inside the nix-shell when you build the project. After some reverse engineering, this is what needs to be added to the shell. nix file:**
 
