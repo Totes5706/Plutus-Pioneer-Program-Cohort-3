@@ -326,7 +326,7 @@ in
 ```
 
 
-
+## 5: Build and Run Project
 
 ### Now that everything is complete, we can build the project in nix-shell
 
