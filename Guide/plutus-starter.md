@@ -44,7 +44,9 @@ Head to the plutus-start github to get started:
 
 ## 2: Import haskell files into the project
 
-### Now it is time to import my files into the project. It is good practice to have at least two main folders; an app directory for executable files and an src directory for the onchain and utility files. First we will do the executable files and create a directory called app:
+### Now it is time to import my files into the project. It is good practice to have at least two main folders; an app directory for executable files and an src directory for the onchain and utility files. 
+
+### My project has two executable files, a utilty file, and an onchain haskell file. First we will add the executable (main :: io()) files and create a directory called app:
 
 ![Screenshot 2022-03-30 at 14-19-44 Totes5706_cardano-alonzo-nft-creator A bash script that will make real NFTs using a Haskell_Plutus on-chain validator on the Cardano Blockchain](https://user-images.githubusercontent.com/59018247/160904254-72c483e9-9821-404c-b71b-94bd7cd8c44c.png)
 
