@@ -116,7 +116,6 @@ executable token-policy
 {- This is the second executable file that will get called from the cabal exec command, and will be the main :: IO () files for our project -} 
 executable token-name
 
-
 {- Include this to import the ghc-options and language above -}
   import: lang
 
