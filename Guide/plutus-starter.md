@@ -11,7 +11,7 @@ I used a fake example name NFT-Maker when making this tutorial, however my real 
 - [How to build your own Plutus Project on Cardano](#how-to-build-your-own-plutus-project-on-cardano)
   - [Table of Contents](#table-of-contents)
   - [1: Create the Template](#1-create-the-template)
-  - [2: Import haskell files into the project](#3-import-haskell-files-into-the-project)
+  - [2: Import Haskell Files into the Project](#3-import-haskell-files-into-the-project)
   - [3: Modify the Cabal Files](#2-modify-the-cabal-files)
   - [4: Optional: Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
   - [5: Build and Run Project](5-build-and-run-project)
@@ -42,7 +42,7 @@ Head to the plutus-start github to get started:
 
 ![Screenshot 2022-03-29 at 21-57-28 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160735333-c449ea3e-8ce7-43e2-a2de-51e56d151387.png)
 
-## 2: Import haskell files into the project
+## 2: Import Haskell Files into the Project
 
 ### Now it is time to import my files into the project. It is good practice to have at least two main folders; an app directory for executable files and an src directory for the onchain and utility files. 
 
