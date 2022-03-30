@@ -174,5 +174,5 @@ executable token-name
   hs-source-dirs:      app
   ghc-options:         -threaded
   build-depends:       base >= 4.9 && < 5
-                    , NFT-Maker
+                     , NFT-Maker
 ```
