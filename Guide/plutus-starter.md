@@ -2,7 +2,9 @@
 
 ## Introduction
 
-I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator). I used a fake example name NFT-Maker when making this tuturial, however my real project name is cardano-alonzo-nft-creator.
+I will be using my NFT project as an example: [https://github.com/Totes5706/cardano-alonzo-nft-creator](https://github.com/Totes5706/cardano-alonzo-nft-creator). We will use the [Plutus-Starter](https://github.com/input-output-hk/plutus-starter) package to create a cardano project that can be built as a standalone project using nix.
+
+I used a fake example name NFT-Maker when making this tutorial, however my real project name is cardano-alonzo-nft-creator.
 
 ## Table of Contents
 
@@ -14,12 +16,14 @@ I will be using my NFT project as an example: [https://github.com/Totes5706/card
   - [4: Optional: Add Cardano Node and CLI into Nix](4-optional-add-cardano-node-and-cli-into-nix)
   - [5: Build and Run Project](5-build-and-run-project]
 
+## 1: Create the Template
+
 Head to the plutus-start github to get started:
 
 [https://github.com/input-output-hk/plutus-starter](https://github.com/input-output-hk/plutus-starter)
 
 ![Screenshot 2022-03-29 at 16-12-42 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698741-00a59420-e4a1-40b5-b112-024836ee8695.png)
-## Click on the green "Use this template" button in the top right corner of the page to clone the template into your own personal repo:
+### Click on the green "Use this template" button in the top right corner of the page to clone the template into your own personal repo:
 
 
 ![Screenshot 2022-03-29 at 16-12-12 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160698703-a983ccbc-7f6f-4acf-ab11-1cb615556430.png)
