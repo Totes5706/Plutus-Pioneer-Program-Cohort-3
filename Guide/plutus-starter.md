@@ -1,5 +1,7 @@
 # How to build your own Plutus Project on Cardano
 
+I will be using my NFT project as an example: [https://github.com/Totes5706/NFT-Maker](https://github.com/Totes5706/NFT-Maker)
+
 Head to the plutus-start github to get started:
 
 [https://github.com/input-output-hk/plutus-starter](https://github.com/input-output-hk/plutus-starter)
@@ -197,3 +199,30 @@ tests: true
 benchmarks: true
 ...
 ```
+
+## Now it is time to import my files into the project. First we will do the executable files and create a directory called app:
+
+### token-policy.hs
+
+![Screenshot 2022-03-29 at 22-41-08 Editing NFT-Maker_token-policy hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740210-509736f5-e4f2-45e0-8e85-262bd30d35a7.png)
+
+### token-name.hs
+
+![Screenshot 2022-03-29 at 22-42-25 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740328-1a53c7a2-2271-49b9-a3cb-d7ef034d5d89.png)
+
+
+![Screenshot 2022-03-29 at 22-42-49 Editing NFT-Maker_token-name hs at main · Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740375-bfd351da-4317-40b9-80b0-b806cb0eb47c.png)
+
+
+## Now we can create the src folder that will contain the onchain code and utility functions that will get called by the executable:
+
+### Utils.hs
+
+![Screenshot 2022-03-29 at 22-45-56 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740783-70ad82ee-8be6-492a-968b-3c5dd8e16367.png)
+
+### Token.Onchain.hs
+
+![Screenshot 2022-03-29 at 22-46-28 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740860-441276dd-e817-415b-8ce4-4fa5acd768d9.png)
+
+![Screenshot 2022-03-29 at 22-47-45 Totes5706_NFT-Maker](https://user-images.githubusercontent.com/59018247/160740989-0f24e9ab-4917-4e19-88fb-e56bfe3f5744.png)
+
