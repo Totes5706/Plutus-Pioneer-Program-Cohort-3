@@ -84,6 +84,13 @@ Head to the plutus-start github to get started:
 
 ### Important to note here, my project uses a bash script to call the cabal exectuable files in this project. If you are creating a pure haskell/plutus project, you will not need a script to start your project. You would instead called cabal exec or cabal run depending on the project structure.
 
+Example inside my bash script:
+```
+...
+#Send these three parameters to the on-chain code of Token.Onchain.hs to validate, then create the policy for the NFT
+cabal exec token-policy $policyFile $oref $tn
+...
+```
 
 ## 3: Modify the Cabal Files
 
@@ -263,14 +270,63 @@ tests: true
 benchmarks: true
 ...
 ```
+## 4: Optional: Add Cardano Node and CLI into Nix
 
-Example:
+### By default, the Plutus-Starter package does not include the Cardano-Node and CLI inside the nix-shell when you build the project. After some reverse engineering, this is what needs to be added to the shell. nix file:
+
+![Screenshot 2022-03-30 at 14-28-56 Totes5706_cardano-alonzo-nft-creator A bash script that will make real NFTs using a Haskell_Plutus on-chain validator on the Cardano Blockchain](https://user-images.githubusercontent.com/59018247/160905874-c43debbb-6ee1-49f6-bcec-97d86853c473.png)
+
+The original shell .nix looks like this:
+
+![Screenshot 2022-03-30 at 14-30-34 input-output-hk_plutus-starter A starter project for Plutus apps](https://user-images.githubusercontent.com/59018247/160906147-3f1bf743-1651-4ea3-a14e-aecbc18f6325.png)
+
+We will modify it to now include the Cardano-Node and CLI by changing to this:
+
+```haskell
+{ pure ? false
+, source-repo-override ? { } }:
+let
+  packages = import ./. { inherit source-repo-override; };
+  inherit (packages) pkgs plutus-apps plutus-starter;
+  inherit (plutus-starter) haskell;
+  
+  cardano-node = import
+   (pkgs.fetchgit {
+     url = "https://github.com/input-output-hk/cardano-node";
+     # A standard release compatible with the cardano-wallet commit above is always preferred.
+     rev = "1.34.1";
+     sha256 = "1hh53whcj5y9kw4qpkiza7rmkniz18r493vv4dzl1a8r5fy3b2bv";
+   })
+   { };
+
+in
+  haskell.project.shellFor {
+    withHoogle = false;
+    
+    
+    nativeBuildInputs = with plutus-starter; [
+      hlint
+      cabal-install
+      cardano-node.cardano-cli
+      cardano-node.cardano-node
+      haskell-language-server
+      stylish-haskell
+      pkgs.niv
+      cardano-repo-tool
+      pkgs.ghcid
+      # HACK: This shouldn't need to be here.
+      pkgs.lzma.dev
+    ] ++ (pkgs.lib.optionals pure [
+      pkgs.git
+      pkgs.cacert
+      pkgs.curl
+      pkgs.jq
+    ]);
+  }
 ```
-...
-#Send these three parameters to the on-chain code of Token.Onchain.hs to validate, then create the policy for the NFT
-cabal exec token-policy $policyFile $oref $tn
-...
-```
+
+
+
 
 ### Now that everything is complete, we can build the project in nix-shell
 
