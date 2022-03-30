@@ -1,4 +1,4 @@
-# How to build your own Plutus Project on Cardano
+# How to use Plutus-Start to build your own Plutus Project on Cardano
 
 Contributed By: [Joe Totes](https://github.com/Totes5706)
 
