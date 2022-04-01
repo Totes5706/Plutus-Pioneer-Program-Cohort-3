@@ -25,6 +25,54 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
   
 ## Preparation for Lecture 10
 
+Before we can get started in lecture 10, we first must get our development environment up to date. You can copy and paste any of the code in this guide directly into your terminal or IDE.
+
+First, head to the plutus-pioneer-program directory to grab the lecture week 10 contents. Execute: 
+
+```
+totinj@penguin:~/plutus-pioneer-program$ git pull --recurse-submodules
+```
+**This week is slightly different because we need to git pull from multiple repos. Go into the week 10 folder and then execute:**
+
+```
+totinj@penguin:~/plutus-pioneer-program/code/week10$ git pull --recurse-submodules
+```
+
+Open the cabal.project file:
+
+```
+totinj@penguin:~/plutus-pioneer-program/code/week10$ cat cabal.project
+```
+
+Grab the plutus-apps tag inside the cabal.project file:
+
+```
+location: https://github.com/input-output-hk/plutus-apps.git
+  tag:14bed17e8608162ee81969e482c1815fb78bd7b0
+```
+Head back to the plutus-apps directory. Now we can update plutus-apps to the current git tag:
+
+```
+totinj@penguin:~/plutus-apps$ git checkout main
+```
+```
+totinj@penguin:~/plutus-apps$ git pull
+```
+```
+totinj@penguin:~/plutus-apps$ git checkout 14bed17e8608162ee81969e482c1815fb78bd7b0
+```
+**We will need to account for a bug here before we run nix-shell. In the main plutus-apps directory, open shell.nix and remove line 111 regarding the Cardano wallet and click save:**
+
+![Screenshot 2022-04-01 at 13-35-56 input-output-hk_plutus-apps The Plutus application platform](https://user-images.githubusercontent.com/59018247/161313995-f59c5d4b-6431-4fbd-87c6-10edb4a28fcd.png)
+
+You should now be up to date and can run nix-shell in this directory. Run nix-shell:
+
+```
+totinj@penguin:~/plutus-apps$ nix-shell
+```
+
+You should now be able to start the lecture.
+
 ## Introduction
 
 In previous iterations of this course, in the tenth lecture, we did another walkthrough where we showed how to create a smart contract, test it, write on-chain and off-chain code and then finally deploy it with the PAB. However, that was before the Alonzo hard fork, so we could not try things on the real blockchain. We instead just used the PAB simulator.
@@ -36,3 +84,7 @@ Some of you asked about staking in Plutus, so we decided to do that instead whic
 The second problem is that on the testnet and the mainnet things take quite a lot of time. If you, for example, delegate to a stake pool then it takes many days before you receive your first rewards. Also because an epoch on the mainnet and on the testnet lasts five days, it would take a couple weeks to see results. For obvious reasons we didn't think that that was suitable for this lecture.
 
 Luckily, there is also the option to run a private testnet. The advantage of doing that is that you can use different parameters from the mainnet. So in particular, you can make epochs much shorter, so that it is much easier to try something staking related because you do not have to wait for five days before anything happens. So in this lecture we will do that; we will take a very simple example, how to use Plutus in relation to staking and demonstrate it using a private testnet with much shorter epochs.
+
+## The Private Testnet
+
+
