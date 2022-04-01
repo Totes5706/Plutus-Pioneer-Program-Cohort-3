@@ -58,7 +58,37 @@ totinj@penguin:~/plutus-apps$ git checkout 14bed17e8608162ee81969e482c1815fb78bd
 ```
 **We will need to account for a bug here before we run nix-shell. In the main plutus-apps directory, open shell.nix and remove line 111 regarding the Cardano wallet and click save:**
 
-![Screenshot 2022-04-01 at 13-35-56 input-output-hk_plutus-apps The Plutus application platform](https://user-images.githubusercontent.com/59018247/161313995-f59c5d4b-6431-4fbd-87c6-10edb4a28fcd.png)
+```haskell
+ # local build inputs ( -> ./nix/pkgs/default.nix )
+  localInputs = (with plutus-apps; [
+    cabal-install
+    cardano-node.cardano-cli
+    cardano-node.cardano-node
+    cardano-wallet.cardano-wallet   -- DELETE THIS LINE XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX   
+    cardano-repo-tool
+    docs.build-and-serve-docs
+    fixPngOptimization
+    fix-purs-tidy
+    fixStylishHaskell
+    haskell-language-server
+    haskell-language-server-wrapper
+    hie-bios
+    hlint
+    pab-nami-demo.generate-purescript
+    pab-nami-demo.start-backend
+    plutus-playground.generate-purescript
+    plutus-playground.start-backend
+    psa
+    purescript-language-server
+    purs
+    purs-tidy
+    spago
+    spago2nix
+    stylish-haskell
+    updateMaterialized
+    updateClientDeps
+  ]);
+```
 
 You should now be up to date and can run nix-shell in this directory. Run nix-shell:
 
