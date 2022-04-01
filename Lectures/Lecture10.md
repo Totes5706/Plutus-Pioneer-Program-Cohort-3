@@ -29,7 +29,6 @@ Before we can get started in lecture 10, we first must get our development envir
 
 First, head to the plutus-pioneer-program directory to grab the lecture week 10 contents. </br>
 **This week is slightly different because we need to git pull from multiple repos. Go into the week 10 folder and then execute:**
-Execute: 
 
 ```
 totinj@penguin:~/plutus-pioneer-program$ git pull --recurse-submodules
