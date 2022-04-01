@@ -126,7 +126,7 @@ As always you can find the code for this lecture in the GitHub repo in the folde
 
 So the repository we including into our course repository via git submodule is woof pool's cardano private testnet setup.There is nice collection of scripts that make it extremely easy to quickly run your own private testnet. So there are lots of options and very nice explanations but we are just using the default setup. This will run three nodes, one stake pool, and creates one user.
 
-In this week's code folder, there is a scripts subfolder with lots of scripts and one of the scripts is called **start-private-testnet.sh**.
+In this week's code folder, there is a scripts subfolder with lots of scripts; one of these scripts is called **start-private-testnet.sh**.
 
 
 ```bash
