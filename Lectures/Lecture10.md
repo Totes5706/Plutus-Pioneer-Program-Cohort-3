@@ -13,7 +13,7 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
 
 ## Table of Contents
 
-- [Lecture 9: Marlowe](#lecture-9-marlowe)
+- [Lecture 10: Staking and the Private Testnet](#lecture-10-staking-and-the-private-testnet)
   - [Table of Contents](#table-of-contents)
   - [Preparation for Lecture 10](#preparation-for-lecture-10)
   - [Introduction](#introduction)
