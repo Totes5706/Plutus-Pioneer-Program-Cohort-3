@@ -56,7 +56,7 @@ totinj@penguin:~/plutus-apps$ git pull
 ```
 totinj@penguin:~/plutus-apps$ git checkout 14bed17e8608162ee81969e482c1815fb78bd7b0
 ```
-**We will need to account for a bug here before we run nix-shell. In the main plutus-apps directory, open shell.nix and remove line 111 regarding the Cardano wallet and click save:**
+**We will need to account for a bug here before we run nix-shell. In the main plutus-apps directory, open shell.nix and delete the line ```cardano-wallet.cardano-wallet``` and click save:**
 
 ```haskell
  # local build inputs ( -> ./nix/pkgs/default.nix )
