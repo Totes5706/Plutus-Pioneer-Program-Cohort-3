@@ -193,8 +193,19 @@ Output:
     "slot": 9071,
     "block": 879
 }
+```
+
+As I mentioned before, a lot of things are already automatically created for us, in particular in this folder cardano private testnet setup private testnet addresses are various artifacts.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ls cardano-private-testnet-setup/private-testnet/addresses/
+
+
+Output:
+pool-owner1-stake.addr      pool-owner1-stake.vkey  pool-owner1.vkey        user1-stake.reg.cert  user1.addr
+pool-owner1-stake.reg.cert  pool-owner1.addr        user1-stake.addr        user1-stake.skey      user1.skey
+pool-owner1-stake.skey      pool-owner1.skey        user1-stake.deleg.cert  user1-stake.vkey      user1.vkey
 
 ```
 
-
-As I mentioned before, a lot of things are already automatically created for us, in particular in this folder cardano private testnet setup private testnet addresses are various artifacts.But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address.If you recall from last time, we talked about the cardano cli, there's a very useful query command, query UTxO to get the UTxO at an address.So using again the correct node socket path and the correct testnet magic and taking the address that I just showed you, so user1 address, I have this script.And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.So if we execute that, we see we have one stake pool already and this is its stake pool id.There's another query command, stake address info.Which takes a stake address and then gives us information about that stake address.So as we saw, the user1 stake address has been created for us.Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
+But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address.If you recall from last time, we talked about the cardano cli, there's a very useful query command, query UTxO to get the UTxO at an address.So using again the correct node socket path and the correct testnet magic and taking the address that I just showed you, so user1 address, I have this script.And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.So if we execute that, we see we have one stake pool already and this is its stake pool id.There's another query command, stake address info.Which takes a stake address and then gives us information about that stake address.So as we saw, the user1 stake address has been created for us.Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
