@@ -231,4 +231,52 @@ Output:
 ```
 
 
-And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.So if we execute that, we see we have one stake pool already and this is its stake pool id.There's another query command, stake address info.Which takes a stake address and then gives us information about that stake address.So as we saw, the user1 stake address has been created for us.Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
+And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.
+
+
+Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.
+
+```
+#!/bin/bash
+export CARDANO_NODE_SOCKET_PATH=cardano-private-testnet-setup/private-testnet/node-bft1/node.sock
+cardano-cli query stake-pools --testnet-magic 42
+```
+
+So if we execute that, we see we have one stake pool already and this is its stake pool id.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-stake-pools.sh
+
+
+Output:
+pool1evpz7a0jpn0pj3v3d8uwg6w2x94lj658mcpf6ltqpnhhjmxl9hv
+```
+
+There's another query command, stake address info.
+
+```
+#!/bin/bash
+export CARDANO_NODE_SOCKET_PATH=cardano-private-testnet-setup/private-testnet/node-bft1/node.sock
+cardano-cli query stake-address-info \
+    --testnet-magic 42 \
+    --address $(cat cardano-private-testnet-setup/private-testnet/addresses/user1-stake.addr)
+```
+
+Which takes a stake address and then gives us information about that stake address. So as we saw, the user1 stake address has been created for us. 
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-stake-address-info-user1.sh
+
+
+Output:
+[
+    {
+        "delegation": "pool1evpz7a0jpn0pj3v3d8uwg6w2x94lj658mcpf6ltqpnhhjmxl9hv",
+        "address": "stake_test1uplxmdgzyaa6tlsvg8ga44drrt779m9rneqfvzvzqn2f8hq2jhyv4",
+        "rewardAccountBalance": 1849873538
+    }
+]
+
+```
+
+Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
