@@ -141,3 +141,41 @@ cd cardano-private-testnet-setup
 scripts/automate.sh
 ```
 
+What that does is first, it creates a temp directory for all the artifacts that we will create during our experiments. It first checks whether that folder already exists, if it does it then deletes it then it freshly created it. If it’s an empty folder, it changes directory into cardano-private-testnet-setup and then calls the automate script in that repository.
+
+So let's do that now. So from this week's code folder I just call that script in script start private testnet.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/start-private-testnet.sh
+
+
+Output:
+...
+Nodes are running in era: "Alonzo", major protocol version: 5
+
+Congrats! Your network is ready for use!
+
+```
+Now the testnet is created, and the stake pool is set up. Now everything is running. We should keep this running in a separate tab of our terminal so we can easily interact with it.
+
+So in particular we have a node socket here and we can use that to interact with this testnet node with one of the tested nodes.
+
+```
+...
+wait until socket is detected, socket: private-testnet/node-bft1/node.sock
+...
+```
+
+As we said, we kept the default parameters of this private testnet. In particular there is one parameter kes, also known as key skeys. They have to be renewed every now and again a certain period for security reasons. Here it is configured for 91 epochs since the private testnet is running so fast after an hour or so, you actually reach that 91st epoch and then things stop if you don't renew your key skey. So if you take too much time then that could happen.
+
+Of course you can always restart the testnet. In order to restart it, you can just interrupt it and then you should kill all cardano nodes that are still running. Afterwards, you can just restart the testnet. 
+
+Now we can interact with it just as we would with the mainnet or the testnet. The only difference is that we must set the Cardano node socket path correctly. We must also use the correct testnet magic, which in this case is 42. All the normal Cardano-CLI commands work, let's just correctly set the node socket and the testnet magic. So looking at the script **query-tip.sh**  also in the scripts folder.
+
+```
+#!/bin/bash
+export CARDANO_NODE_SOCKET_PATH=cardano-private-testnet-setup/private-testnet/node-bft1/node.sock
+cardano-cli query tip --testnet-magic 42
+```
+
+Queries the tip of the blockchain.If we do that now, then we see that in my machine right now I'm already in epoch23, in slot 11957 and in block 1145.As I mentioned before, a lot of things are already automatically created for us, in particular in this folder cardano private testnet setup private testnet addresses are various artifacts.But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address.If you recall from last time, we talked about the cardano cli, there's a very useful query command, query UTxO to get the UTxO at an address.So using again the correct node socket path and the correct testnet magic and taking the address that I just showed you, so user1 address, I have this script.And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.So if we execute that, we see we have one stake pool already and this is its stake pool id.There's another query command, stake address info.Which takes a stake address and then gives us information about that stake address.So as we saw, the user1 stake address has been created for us.Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
