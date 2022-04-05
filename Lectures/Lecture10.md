@@ -21,7 +21,6 @@ Offical Video by Lars Brünjes: [PPP-Cohort3-Lecture9](https://youtube.com/playl
   - [Plutus and Staking](#plutus-and-staking)
   - [Trying it on the Testnet](#trying-it-on-the-testnet)
   - [Conclusion](#conclusion)
-  - [Homework](#homework)
   
 ## Preparation for Lecture 10
 
