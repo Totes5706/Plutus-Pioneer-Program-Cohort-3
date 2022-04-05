@@ -279,4 +279,101 @@ Output:
 
 ```
 
-Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA.So how can we withdraw those rewards?So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two.So this is the argument.Next I look up the amount that we can 
+Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA. So how can we withdraw those rewards?
+
+
+```
+#!/bin/bash
+
+txin=$1
+amt=$(scripts/query-stake-address-info-user1.sh | jq .[0].rewardAccountBalance)
+raw=tmp/tx.raw
+signed=tmp/tx.signed
+
+echo "txin = $1"
+echo "amt = $amt"
+
+export CARDANO_NODE_SOCKET_PATH=cardano-private-testnet-setup/private-testnet/node-bft1/node.sock
+
+cardano-cli transaction build \
+    --testnet-magic 42 \
+    --change-address $(cat cardano-private-testnet-setup/private-testnet/addresses/user1.addr) \
+    --out-file $raw \
+    --tx-in $txin \
+    --withdrawal "$(cat cardano-private-testnet-setup/private-testnet/addresses/user1-stake.addr)+$amt" \
+
+cardano-cli transaction sign \
+    --testnet-magic 42 \
+    --tx-body-file $raw \
+    --out-file $signed \
+    --signing-key-file cardano-private-testnet-setup/private-testnet/addresses/user1.skey \
+    --signing-key-file cardano-private-testnet-setup/private-testnet/addresses/user1-stake.skey
+
+cardano-cli transaction submit \
+    --testnet-magic 42 \
+    --tx-file $signed
+```
+
+
+
+
+So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two. So this is the argument. Next I look up the amount that we can withdraw.There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards.So you can't do partial withdrawals.So we must know exactly how many rewards have been accumulated when we execute this command.So I use the script I showed you before, this query-stake-addresses-info-user1.And then I use the jq tool, standard linux tool to analyze json values and extract this reward account balance field.So amount now holds the available rewards.Then raw and signed are just file names for the unsigned transaction and the signed transaction.And just log for debugging purposes this txin an the amount.Set the node socket path and now I built the transaction, sign the transaction, submit it.So to build it testnet magic then I must provide the change address, I again use user's address the same one where I also take the input from.I must specify the out file for the unsigned transaction.I must specify at least one UTxO as input, I use this argument I passed in.And finally this is a field we haven't seen before in the previous transactions we built, I use this withdrawal option.And that takes an address and an amount.So as address I use the stake address, so user1 stake address.And amount the one I computed earlier the available rewards.Then I sign as always so that's the same that we saw before, magic the filename of the unsigned transaction, file for the signed transaction.Then I need my payment signing key, because I'm spending this UTxO here.And I can only do that by proving that it's mine, so I must sign with my payment signing key.However, I'm also withdrawing so I touched rewards sitting at the stake address, so in order to prove that I have the right to do that, I need the signing key for that stake address.Therefore I need two signatures, two signing key files.And finally I submit, so just with magic and providing the file name of the file to submit.
+
+
+```
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7     0        450000000000 lovelace + TxOutDatumNone
+2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7     1        449999000000 lovelace + TxOutDatumNone
+```
+
+
+So in order to try that I need a UTxO as argument, so I can pick one of these two, let's pick the second one. The transaction id and the index.So this is the first one if I had used hash one instead it would be the second UTxO.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/withdraw-user1.sh 2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7#1
+
+
+Output:
+txin = 2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7#1
+amt = 2242740150
+Estimated transaction fee: Lovelace 171441
+Transaction successfully submitted.
+```
+
+I execute it.And it seems to have gone well.Here we see this debugging information, so while I was explaining we got even more rewards so now it's two 2608 ADA.That seems to have worked.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1.sh
+
+Output:
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7     0        450000000000 lovelace + TxOutDatumNone
+7883b4137d93db90b4bed1d806b0d5de2deb460c7d05a188a1d2d9be6450a307     0        452241568709 lovelace + TxOutDatumNone
+
+```
+
+So we can now check UTxOs again.And we see this has changed.So this one here is now that one, so that remained untouched.But this one was spent and the new one was created here.And we see that the original 450 000 ADA are now 452 608 ADA, so the rewards  have indeed been added.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-stake-address-info-user1.sh
+
+
+Output:
+[
+    {
+        "delegation": "pool1evpz7a0jpn0pj3v3d8uwg6w2x94lj658mcpf6ltqpnhhjmxl9hv",
+        "address": "stake_test1uplxmdgzyaa6tlsvg8ga44drrt779m9rneqfvzvzqn2f8hq2jhyv4",
+        "rewardAccountBalance": 251322789
+    }
+]
+
+
+```
+
+
+If we check the stake info, then we see that because we withdrew the amounts, they are gone.But because I spent some time explaining, we already accumulated another 52ADA in the rewards in the meantime.
+
+So we have seen how we can interact with the private testnet and in particular try out staking related things.And it's very nice and convenient, because epochs pass so fast, so we don't have to wait long for rewards to accumulate.But of course, none of what I've explained so far has anything to do with Plutus.So next we want to look at how to combine Plutus with staking.So in particular, instead of using a stake address that's based on a public private keypair, on a verification key and the signing key.We will create a stake address that's based on a Plutus script.So then instead of providing the signing key for the stake address, for example for withdrawal, we will provide the script file, the Plutus script.And then we can put arbitrary logic as always into the Plutus script which will then governed under which conditions we can, for example, do a withdrawal of rewards.So we will look at that next.
+
