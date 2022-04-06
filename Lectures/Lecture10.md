@@ -873,7 +873,39 @@ We define various file names:
 - ```raw``` for the unsigned transaction 
 - ```signed``` for the signed transaction.
 
-I set the node socket path.Now we run our executable and as arguments we give this script file that we  defined and our new address.So this will now parameterize our Plutus contract by this address and write the resulting to the score script to this file.Now that we have this script file we can take it and build the stake address from it.So there's the stake address built cardano cli command for this.Takes the magic, the location of the script file and the name of the out file.I log this new stake address.Now we want to build the new address for user1 where the...as we said, the payment component is the verification key of user1, butthe stake component is our new script.So we use the address build command testnet magic.Here the payment verification key file is the one belonging to user1, but thestake part is given by a stake script file our new script file that we generated.And we write the result to script payment address.I log it.Now we can generate the certificates, so there is cardano cli stake address  registration certificate.It just takes the name of the script file and the output file.Then we use cardano cli stake address delegation certificate, which takes again the script file.Then the stake pool id we want to delegate to, so we get that from the command we looked at earlier, the query stake pools.And write the resulting certificate to the delegation file.Now we need the protocol parameters we saw that before, there's this query protocol parameters command.And finally we can build my transaction.So takes the magic, as change address we use the new payment address for user we do that so that that address also is funded and can then accumulate rewards.Of course, we could do that in a separate transaction, but why use two transactions if we can do it in one.So we just use this new address as the change address.Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
+```
+cabal run write-stake-validator -- $script $addr
+```
+
+Now we run our executable, and as arguments we give this script file that we defined along with our new address. This will now parameterize our Plutus contract by this address, and write the result of the core script to this file. Now that we have this script file we can take it and build the stake address from it.
+
+```
+cardano-cli stake-address build \
+    --testnet-magic 42 \
+    --stake-script-file $script \
+    --out-file $script_stake_addr
+     
+echo "stake address: $(cat $script_stake_addr)"
+```
+There is the stake address build Cardano-CLI command for this.
+
+- It take the magic
+- The location of the script file
+- The name of the out file.
+
+We log this new stake address.
+
+```
+cardano-cli address build \
+    --testnet-magic 42 \
+    --payment-verification-key-file=cardano-private-testnet-setup/private-testnet/addresses/user1.vkey \
+    --stake-script-file=$script \
+    --out-file $script_payment_addr
+
+echo "payment address: $(cat $script_payment_addr)"
+```
+
+Now we want to build the new address for user1 where the...as we said, the payment component is the verification key of user1, butthe stake component is our new script.So we use the address build command testnet magic.Here the payment verification key file is the one belonging to user1, but thestake part is given by a stake script file our new script file that we generated.And we write the result to script payment address.I log it.Now we can generate the certificates, so there is cardano cli stake address  registration certificate.It just takes the name of the script file and the output file.Then we use cardano cli stake address delegation certificate, which takes again the script file.Then the stake pool id we want to delegate to, so we get that from the command we looked at earlier, the query stake pools.And write the resulting certificate to the delegation file.Now we need the protocol parameters we saw that before, there's this query protocol parameters command.And finally we can build my transaction.So takes the magic, as change address we use the new payment address for user we do that so that that address also is funded and can then accumulate rewards.Of course, we could do that in a separate transaction, but why use two transactions if we can do it in one.So we just use this new address as the change address.Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
 
 
 
