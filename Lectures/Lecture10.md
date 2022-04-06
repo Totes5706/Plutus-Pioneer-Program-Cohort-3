@@ -937,8 +937,8 @@ Now we can generate the certificates, so there is Cardano-CLI stake address regi
 
 Then we use Cardano-CLI stake address delegation certificate.
 
-- First, takes the script file
-- Then the stake-pool=id we want to delegate to (we get that from the command we looked at earlier, the query stake pools)
+- First, it takes the script file
+- Second, the stake-pool-id we want to delegate to (we get that from the command we looked at earlier, the query stake pools)
 - Lastly, write the resulting certificate to the delegation file.
  
 Then we need the protocol parameters we saw that before, which there is this query protocol parameters command.
