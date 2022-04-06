@@ -322,7 +322,7 @@ cardano-cli transaction submit \
 
 So we wrote a script for that, which will create a appropriate transaction and that script takes one argument, a UTxO as input. As we saw there are two,  we can pick any of the two.
 
-- Nextwelook up the amount that we can withdraw. There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards. You cannot do partial withdrawals. This means that we must know exactly how many rewards have been accumulated when we execute this command. We use the script we used before, the **query-stake-addresses-info-user1.sh** and then we use the jq tool (standard linux tool to analyze json values and extract this reward account balance field). So amount now holds the available rewards.
+- Next we look up the amount that we can withdraw. There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards. You cannot do partial withdrawals. This means that we must know exactly how many rewards have been accumulated when we execute this command. We use the script we used before, the **query-stake-addresses-info-user1.sh** and then we use the jq tool (standard linux tool to analyze json values and extract this reward account balance field). So amount now holds the available rewards.
 - Then raw and signed are just file names for the unsigned transaction and the signed transaction.
 - Then just log for debugging purposes where txin an the amount.
 - Set the node socket path and now we build the transaction, sign the transaction, submit it.
@@ -416,7 +416,7 @@ Rewarding StakingCredential
 Certifying DCert
 ```
 
-If you recall, the script context that our Plutus scripts always receive as one of the arguments contains a field of typescript purpose.And during this lecture so far, we have only looked at the first two purposes.The arguably most important one is Spending TxOutRef.
+If you recall, the script context that our Plutus scripts always receive as one of the arguments contains a field of typescript purpose. During this lecture so far, we have only looked at the first two purposes. The one arguably most important is Spending TxOutRef.
 
 ```
 data TxOutRef
@@ -431,18 +431,18 @@ TxOutRef
 
     Index into the referenced transaction's outputs
 ```
-So when we are spending a UTxO sitting at the script address, this UTxO isidentified by its tx out reference.Then the corresponding Plutus script is executed and it receives the datum of the UTxO we want to spend, the redeemer and the script context. And then we can put arbitrary logic in the script to determine whether spending this UTxO is valid.Then we had the minting script purpose, which is for minting and burning native tokens.
+When we are spending a UTxO sitting at the script address, this UTxO is identified by its tx out reference. Then the corresponding Plutus script is executed and it receives the datum of the UTxO we want to spend, the redeemer, and the script context. Then we can put arbitrary logic in the script to determine whether spending this UTxO is valid. Following that, we had the minting script purpose; which is for minting and burning native tokens.
 
-So whenever a transaction mints or burns a token, then the minting script corresponding to the currency symbol of the token is executed.And again we can use arbitrary logic, the script receives a redeemer and the script context.And we can determine whether minting or burning for this transaction is valid or not.
+So whenever a transaction mints or burns a token, then the minting script corresponding to the currency symbol of the token is executed. We can use arbitrary logic; the script receives a redeemer and the script context. Then we can determine whether minting or burning for this transaction is valid or not.
 
 ```
 Rewarding StakingCredential	 
 Certifying DCert
 ```
 
-But we haven't talked about  rewarding and certifying it and those two are related  to Plutus and staking.So aswebriefly mentioned before, instead of using a public private key pair to create a stake address, we can instead use a Plutus script.And then the hash of that Plutus script will give a stake address, a script stake address.And where as we saw in the previous example, ifwewant to withdraw my rewards for example,for a normal stake address,we have to as witness that I'm allowed to do that provide the signing key for this stake address.So if we use a script stake address, then instead the corresponding script will be executed.It will receive the redeemer and the script context and againwecan use arbitrary logic to determine whether this transaction is allowed to actually withdraw those rewards.
+But we haven't talked about rewarding and certifying; as those two are related to Plutus and staking. As we briefly mentioned before, instead of using a public private key pair to create a stake address, we can instead use a Plutus script. Then the hash of that Plutus script will give a script stake address. Where as we saw in the previous example, if we want to withdraw my rewards for example for a normal stake address, we have to as witnessthat I'm allowed to do that provide the signing key for this stake address.So if we use a script stake address, then instead the corresponding script will be executed.It will receive the redeemer and the script context and againwecan use arbitrary logic to determine whether this transaction is allowed to actually withdraw those rewards.
 
-Similarly Certifying DCert.So there are various certifications thatwecan attach to a transaction.In particular, important for staking out registration delegation and deregistration certificates.So ifwenewly create a stake address,wefirst have to register it by creating a transaction that contains a registration certificate for this stake address.Then ifwewant to delegate to a pool or change an existing validationwehave to use a transaction that contains a delegation certificate.And that certificate then contains the poolwewant to delegate to.And finally we can also unregister a stake address again and get the original deposit back that Ihad to pay when we registered the stake address.So for those then if we do  a delegation for example, then again the corresponding  script will be executed and can contain arbitrary logic to determine whether this delegation for  example is legal or not.
+Similarly Certifying DCert.So there are various certifications that we can attach to a transaction.In particular, important for staking out registration delegation and deregistration certificates.So if we newly create a stake address, we first have to register it by creating a transaction that contains a registration certificate for this stake address.Then ifwewant to delegate to a pool or change an existing validationwehave to use a transaction that contains a delegation certificate.And that certificate then contains the pool we want to delegate to.And finally we can also unregister a stake address again and get the original deposit back that Ihad to pay when we registered the stake address.So for those then if we do  a delegation for example, then again the corresponding  script will be executed and can contain arbitrary logic to determine whether this delegation for  example is legal or not.
 
 
 So we want to concentrate on the rewarding purpose in this lecture.
