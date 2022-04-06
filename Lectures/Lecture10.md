@@ -589,5 +589,90 @@ type WrappedStakeValidatorType = BuiltinData -> BuiltinData -> ()
 wrapStakeValidator :: UnsafeFromData r => (r -> ScriptContext -> Bool) -> WrappedStakeValidatorType
 ```
 
-And provided we have a redeemer type that can be converted to built-in data and we have something of this type, which fits well to what we have defined in the example.So redeemer script context going to bool, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.So using that, given an address we can use the function we just defined, apply the address to it.Then we get something of this type unit to script context to bool, which is exactly what we can pass to wrap stake validator.So the result of applying wrap stake validator to that is of type built-indata to built-in data to unit.So the whole thing together with the address is then of type address to built-in data to built-in data to unit.I compile this and we lift the given address and apply it to this compiled Plutus script so then we end up with something of the right type namely built-in data to built-in data to unit.So this is very similar to what we did with typed validators for spending orminting it's just a little bit different how to apply this wrap stake validator.And out comes a stake validator and that's all we need, so it's refreshingly short actually.Now of course to use this in the cardano cli, we have to serialize the script to disk and this is very similar to what we did before.So this write stake validator we basically just copied the function from week03 where we showed this same for spending validator for normal Plutus spending script.It's almost exactly the same, so we first apply stake validator to the address to get my stake validator and now we have to unwrap that to get to the underlying script and there's a function called get stake validator.So that was different for  spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before.So this will write the validator to disk given the address.And in order to conveniently do that we also need the ability to take the address in the format that the cli uses and convert it to a Plutus address and we had the same problem before in week06.So we basically just copy pasted the code we had there so these two helper functions credential ledger to Plutus and stake reference ledger to plutus and then this try read address function.So let's just copy it from week06.So given a string it passes that into a Plutus address or tries to pass it into a Plutus address.Finally, we 
-defined an  executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
+And provided we have a redeemer type that can be converted to built-in data and we have something of this type, which fits well to what we have defined in the example.So redeemer script context going to bool, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.
+
+```haskell
+stakeValidator :: Address -> StakeValidator
+stakeValidator addr = mkStakeValidatorScript $
+    $$(PlutusTx.compile [|| wrapStakeValidator . mkStakingValidator ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode addr
+```
+So using that, given an address we can use the function we just defined, apply the address to it.Then we get something of this type unit to script context to bool, which is exactly what we can pass to wrap stake validator.So the result of applying wrap stake validator to that is of type built-indata to built-in data to unit. So the whole thing together with the address is then of type address to built-in data to built-in data to unit.I compile this and we lift the given address and apply it to this compiled Plutus script so then we end up with something of the right type namely built-in data to built-in data to unit.So this is very similar to what we did with typed validators for spending orminting it's just a little bit different how to apply this wrap stake validator.And out comes a stake validator and that's all we need, so it's refreshingly short actually.
+
+```haskell
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE TypeApplications  #-}
+
+module Week10.Deploy
+    ( writeStakeValidator
+    , tryReadAddress
+    ) where
+
+import           Cardano.Api                 as API
+import           Cardano.Api.Shelley         (Address (..), PlutusScript (..))
+import           Cardano.Crypto.Hash.Class   (hashToBytes)
+import           Cardano.Ledger.Credential   as Ledger
+import           Cardano.Ledger.Crypto       (StandardCrypto)
+import           Cardano.Ledger.Hashes       (ScriptHash (..))
+import           Cardano.Ledger.Keys         (KeyHash (..))
+import           Codec.Serialise             (serialise)
+import qualified Data.ByteString.Lazy        as LBS
+import qualified Data.ByteString.Short       as SBS
+import           Data.Text                   (pack)
+import           Plutus.V1.Ledger.Credential as Plutus
+import           Plutus.V1.Ledger.Crypto     as Plutus
+import           PlutusTx.Builtins           (toBuiltin)
+import qualified Ledger                      as Plutus
+
+import           Week10.Staking
+
+writeStakeValidator :: FilePath -> Plutus.Address -> IO (Either (FileError ()) ())
+writeStakeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file Nothing . PlutusScriptSerialised . SBS.toShort . LBS.toStrict . serialise . Plutus.getStakeValidator . stakeValidator
+
+credentialLedgerToPlutus :: Ledger.Credential a StandardCrypto -> Plutus.Credential
+credentialLedgerToPlutus (ScriptHashObj (ScriptHash h)) = Plutus.ScriptCredential $ Plutus.ValidatorHash $ toBuiltin $ hashToBytes h
+credentialLedgerToPlutus (KeyHashObj (KeyHash h))       = Plutus.PubKeyCredential $ Plutus.PubKeyHash $ toBuiltin $ hashToBytes h
+
+stakeReferenceLedgerToPlutus :: Ledger.StakeReference StandardCrypto -> Maybe Plutus.StakingCredential
+stakeReferenceLedgerToPlutus (StakeRefBase x)                   = Just $ StakingHash $ credentialLedgerToPlutus x
+stakeReferenceLedgerToPlutus (StakeRefPtr (Ptr (SlotNo x) y z)) = Just $ StakingPtr (fromIntegral x) (fromIntegral y) (fromIntegral z)
+stakeReferenceLedgerToPlutus StakeRefNull                       = Nothing
+
+tryReadAddress :: String -> Maybe Plutus.Address
+tryReadAddress x = case deserialiseAddress AsAddressAny $ pack x of
+    Nothing                                      -> Nothing
+    Just (AddressByron _)                        -> Nothing
+    Just (AddressShelley (ShelleyAddress _ p s)) -> Just Plutus.Address
+        { Plutus.addressCredential        = credentialLedgerToPlutus p
+        , Plutus.addressStakingCredential = stakeReferenceLedgerToPlutus s
+        }
+```
+
+Now of course to use this in the cardano cli, we have to serialize the script to disk and this is very similar to what we did before.
+
+```haskell
+writeStakeValidator :: FilePath -> Plutus.Address -> IO (Either (FileError ()) ())
+writeStakeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file Nothing . PlutusScriptSerialised . SBS.toShort . LBS.toStrict . serialise . Plutus.getStakeValidator . stakeValidator
+```
+So this write stake validator we basically just copied the function from week03 where we showed this same for spending validator for normal Plutus spending script.It's almost exactly the same, so we first apply stake validator to the address to get my stake validator and now we have to unwrap that to get to the underlying script and there's a function called get stake validator.So that was different for  spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before.So this will write the validator to disk given the address.
+
+And in order to conveniently do that we also need the ability to take the address in the format that the cli uses and convert it to a Plutus address and we had the same problem before in week06.So we basically just copy pasted the code we had there so these two helper functions credential ledger to Plutus and stake reference ledger to plutus and then this try read address function.So let's just copy it from week06.So given a string it passes that into a Plutus address or tries to pass it into a Plutus address.
+
+```haskell
+import System.Environment (getArgs)
+import Text.Printf        (printf)
+import Week10.Deploy      (tryReadAddress, writeStakeValidator)
+
+main :: IO ()
+main = do
+    [file, addr'] <- getArgs
+    let Just addr = tryReadAddress addr'
+    printf "file: %s\naddr: %s\n" file (show addr)
+    e <- writeStakeValidator file addr
+    case e of
+        Left err -> print err
+        Right () -> printf "wrote stake validator to %s\n" file
+```
+
+Finally, we defined an  executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
