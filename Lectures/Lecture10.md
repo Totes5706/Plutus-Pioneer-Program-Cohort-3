@@ -340,11 +340,12 @@ So we wrote a script for that, which will create a appropriate transaction and t
 
 ### Transaction Sign
 
-- Then I sign as always so that's the same that we saw before, magic the filename of the unsigned transaction, file for the signed transaction.Then I need my payment signing key, because I'm spending this UTxO here.And I can only do that by proving that it's mine, so I must sign with my payment signing key.However, I'm also withdrawing so I touched rewards sitting at the stake address, so in order to prove that I have the right to do that, I need the signing key for that stake address.Therefore I need two signatures, two signing key files.
+- Then we sign the transaction as always, by providing the magic, filename of the unsigned transaction, and file for the signed transaction.
+- We need our payment signing key, because we are spending this UTxO here. We can only do that by proving that it's ours, so we must sign with our payment signing key. However, we are also withdrawing, so we grabbed rewards sitting at the stake address. In order to prove that we have the right to do that, we need the signing key for that stake address as well. Therefore we need two signatures here; two signing key files.
 
 ### Transaction Submit
 
-- And finally I submit, so just with magic and providing the file name of the file to submit.
+- Finally we submit the transaction, by providing the magic and the file name of the file to submit.
 
 
 ```
@@ -355,7 +356,7 @@ So we wrote a script for that, which will create a appropriate transaction and t
 ```
 
 
-So in order to try that I need a UTxO as argument, so I can pick one of these two, let's pick the second one. The transaction id and the index.So this is the first one if I had used hash one instead it would be the second UTxO.
+In order to try that we need a UTxO as argument, so we can pick one of these two; let's pick the second one. 
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/withdraw-user1.sh 2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7#1
@@ -368,7 +369,7 @@ Estimated transaction fee: Lovelace 171441
 Transaction successfully submitted.
 ```
 
-I execute it.And it seems to have gone well.Here we see this debugging information, so while I was explaining we got even more rewards so now it's two 2608 ADA.That seems to have worked.
+We execute it, and it seems to have gone well. Here we see this debugging information, so while explaining this tutorial, we received even more rewards so now it is at 2242 ADA. That seems to have worked.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1.sh
@@ -381,7 +382,7 @@ Output:
 
 ```
 
-So we can now check UTxOs again.And we see this has changed.So this one here is now that one, so that remained untouched.But this one was spent and the new one was created here.And we see that the original 450 000 ADA are now 452 608 ADA, so the rewards  have indeed been added.
+We can now check UTxOs again, and here we see this has changed. As expected, the second one was spent and the new one was created here. We see that the original 449,999 ADA are now 452,241 ADA, so the rewards have indeed been added.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-stake-address-info-user1.sh
@@ -400,7 +401,9 @@ Output:
 ```
 
 
-If we check the stake info, then we see that because we withdrew the amounts, they are gone.But because I spent some time explaining, we already accumulated another 52ADA in the rewards in the meantime.
+If we check the stake info, then we see that because we withdrew the amounts, they are gone. However, because we spent some time explaining, we already accumulated another 251 ADA in the rewards in the meantime.
 
-So we have seen how we can interact with the private testnet and in particular try out staking related things.And it's very nice and convenient, because epochs pass so fast, so we don't have to wait long for rewards to accumulate.But of course, none of what I've explained so far has anything to do with Plutus.So next we want to look at how to combine Plutus with staking.So in particular, instead of using a stake address that's based on a public private keypair, on a verification key and the signing key.We will create a stake address that's based on a Plutus script.So then instead of providing the signing key for the stake address, for example for withdrawal, we will provide the script file, the Plutus script.And then we can put arbitrary logic as always into the Plutus script which will then governed under which conditions we can, for example, do a withdrawal of rewards.So we will look at that next.
+So we have seen how we can interact with the private testnet and in particular, try out staking related functions. It is very nice and convenient, because epochs pass so fast, so we do not have to wait long for rewards to accumulate. 
+
+But of course, none of what was explained so far has anything to do with Plutus. Next we want to look at how to combine Plutus with staking. In particular, instead of using a stake address that's based on a public private keypair, we will instead create a stake address that's based on a Plutus script. Therefore, instead of providing the signing key for the stake address, we will  provide the script file, the Plutus script. Then we can put arbitrary logic as always into the Plutus script which will then governed under which conditions we can, for example, do a withdrawal of rewards. So we will look at that next.
 
