@@ -206,7 +206,7 @@ Output:
 }
 ```
 
-As I mentioned before, a lot of things are already automatically created for us, in particular in this folder cardano private testnet setup private testnet addresses are various artifacts.
+As we mentioned before, a lot of things are already automatically created for us, in particular in this folder cardano private testnet setup private testnet addresses are various artifacts.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ls cardano-private-testnet-setup/private-testnet/addresses/
@@ -219,7 +219,7 @@ pool-owner1-stake.skey      pool-owner1.skey        user1-stake.deleg.cert  user
 
 ```
 
-But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address.If you recall from last time, we talked about the cardano cli, there's a very useful query command, query UTxO to get the UTxO at an address.
+But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address. If you recall from last time, we talked about the Cardano-CLI, there is a very useful query command, query UTxO to get the UTxO at an address. Looking at **query-utxo-user1.sh**:
 
 ```
 #!/bin/bash
@@ -229,7 +229,7 @@ cardano-cli query utxo \
     --address $(cat cardano-private-testnet-setup/private-testnet/addresses/user1.addr)
 ```
 
-So using again the correct node socket path and the correct testnet magic and taking the address that I just showed you, so user1 address, I have this script.
+So using again the correct node socket path and the correct testnet magic and taking the address that we just showed you, so user1 address, we have this script.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1.sh
@@ -242,10 +242,10 @@ Output:
 ```
 
 
-And if I execute it, I see that conveniently this user already has lots of funds.So if we count zeros, so we have 450 000 ADA and this UTxO and almost 450 000ADA in that UTxO, so almost 900 000 ADA.
+And if we execute it, we see that conveniently this user already has lots of funds. So we have 450,000 ADA and the first UTxO and almost 450,000 ADA in the second UTxO, in total almost 900,000 ADA.
 
 
-Another query command the cardano cli provides is query stake pools, which is the name suggests lists all stake pools.
+Another query command the Cardano-CLI provides is query stake pools, which is the name suggests lists all stake pools. Looking at **query-stake-pools.sh**:
 
 ```
 #!/bin/bash
@@ -263,7 +263,7 @@ Output:
 pool1evpz7a0jpn0pj3v3d8uwg6w2x94lj658mcpf6ltqpnhhjmxl9hv
 ```
 
-There's another query command, stake address info.
+There's another query command, stake address info. Looking at **query-stake-address-info-user1.sh**:
 
 ```
 #!/bin/bash
@@ -290,8 +290,7 @@ Output:
 
 ```
 
-Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is.This is the stake address in question and we see that we already have quite a lot of accumulated rewards.So if I count digits correctly it's at the moment 2189 ADA. So how can we withdraw those rewards?
-
+Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is. This is the stake address in question and we see that we already have quite a lot of accumulated rewards. If we count digits correctly it's at the moment 1,849 ADA. So how can we withdraw those rewards? Looking at **withdraw-user1.sh**:
 
 ```
 #!/bin/bash
@@ -325,10 +324,27 @@ cardano-cli transaction submit \
     --tx-file $signed
 ```
 
+So we wrote a script for that, which will create a appropriate transaction and that script takes one argument, a UTxO as input. As we saw there are two,  we can pick any of the two.
 
+- Next I look up the amount that we can withdraw. There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards. You cannot do partial withdrawals. This means that we must know exactly how many rewards have been accumulated when we execute this command. We use the script we used before, the **query-stake-addresses-info-user1.sh** and then we use the jq tool (standard linux tool to analyze json values and extract this reward account balance field). So amount now holds the available rewards.
+- Then raw and signed are just file names for the unsigned transaction and the signed transaction.
+- Then just log for debugging purposes where txin an the amount.
+- Set the node socket path and now we build the transaction, sign the transaction, submit it.
 
+### Transaction Build
 
-So I wrote a script for that, which will create a appropriate transaction and thatscript takes one argument, a UTxO as input.As we saw there are two,  we can pick any of the two. So this is the argument. Next I look up the amount that we can withdraw.There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards.So you can't do partial withdrawals.So we must know exactly how many rewards have been accumulated when we execute this command.So I use the script I showed you before, this query-stake-addresses-info-user1.And then I use the jq tool, standard linux tool to analyze json values and extract this reward account balance field.So amount now holds the available rewards.Then raw and signed are just file names for the unsigned transaction and the signed transaction.And just log for debugging purposes this txin an the amount.Set the node socket path and now I built the transaction, sign the transaction, submit it.So to build it testnet magic then I must provide the change address, I again use user's address the same one where I also take the input from.I must specify the out file for the unsigned transaction.I must specify at least one UTxO as input, I use this argument I passed in.And finally this is a field we haven't seen before in the previous transactions we built, I use this withdrawal option.And that takes an address and an amount.So as address I use the stake address, so user1 stake address.And amount the one I computed earlier the available rewards.Then I sign as always so that's the same that we saw before, magic the filename of the unsigned transaction, file for the signed transaction.Then I need my payment signing key, because I'm spending this UTxO here.And I can only do that by proving that it's mine, so I must sign with my payment signing key.However, I'm also withdrawing so I touched rewards sitting at the stake address, so in order to prove that I have the right to do that, I need the signing key for that stake address.Therefore I need two signatures, two signing key files.And finally I submit, so just with magic and providing the file name of the file to submit.
+- In order to build it we meed testnet magic then we must provide the change address, we again use user's address; the same one where we also take the input from. 
+- We must specify the outfile for the unsigned transaction.  
+- We must specify at least one UTxO as input, we use this argument we passed in.
+- Finally this is a field we have not seen before in the previous transactions we built, we use this withdrawal option. That takes an address and an amount. So as address we use the  user1 stake address. For the amount the one we computed earlier, the available rewards.
+
+### Transaction Sign
+
+- Then I sign as always so that's the same that we saw before, magic the filename of the unsigned transaction, file for the signed transaction.Then I need my payment signing key, because I'm spending this UTxO here.And I can only do that by proving that it's mine, so I must sign with my payment signing key.However, I'm also withdrawing so I touched rewards sitting at the stake address, so in order to prove that I have the right to do that, I need the signing key for that stake address.Therefore I need two signatures, two signing key files.
+
+### Transaction Submit
+
+- And finally I submit, so just with magic and providing the file name of the file to submit.
 
 
 ```
