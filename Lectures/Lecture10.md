@@ -105,13 +105,10 @@ You should now be up to date and can run nix-shell in this directory. Run nix-sh
 totinj@penguin:~/plutus-apps$ nix-shell
 ```
 
-Head back to the week10 folder to start running the cabal commands:
+Head back to the week10 folder:
 
 ```
-[nix-shell:~/plutus-pioneer-program/code/week10]$ cabal update
-```
-```
-[nix-shell:~/plutus-pioneer-program/code/week10]$ cabal build
+[nix-shell:~/plutus-pioneer-program/code/week10]$ 
 ```
 
 You should now be able to start the lecture.
