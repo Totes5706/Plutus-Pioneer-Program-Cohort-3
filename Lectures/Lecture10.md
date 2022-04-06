@@ -30,9 +30,20 @@ First, head to the plutus-pioneer-program directory to grab the lecture week 10 
 **This week is slightly different because we need to git pull from multiple repos. Go into the week 10 folder and then execute:**
 
 ```
-totinj@penguin:~/plutus-pioneer-program$ git pull --recurse-submodules
+totinj@penguin:~/plutus-pioneer-program$ git pull 
 ```
-Head into he week10 subfolder and open the cabal.project file:
+
+Head into he week10 subfolder and clone the woofpool private testnet:
+
+```
+totinj@penguin:~/plutus-pioneer-program/code/week10$ rmdir cardano-private-testnet-setup
+```
+
+```
+totinj@penguin:~/plutus-pioneer-program/code/week10$ git clone https://github.com/woofpool/cardano-private-testnet-setup.git
+```
+
+Open the cabal.project file:
 
 ```
 totinj@penguin:~/plutus-pioneer-program/code/week10$ cat cabal.project
