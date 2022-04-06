@@ -982,37 +982,138 @@ Finally, we can build our transaction.
 
 Lastly, we just sign the transaction; so the payment input for this transaction comes from our old user1 address. User1 needs to sign it, so we assign it with the signing key of user1, and finally we submit.
 
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1.sh
 
+Output:
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f     0        450000000000 lovelace + TxOutDatumNone
+9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f     1        449999000000 lovelace + TxOutDatumNone
+
+```
 
 So first we look at the UTxOs of user1 because we need one of those as input for my script.So we are back to the original distribution of funds, the 450 000 ADA and the almost 450 000 ADA split between two UTxOs.
 
+We now can call our script, and we must provide one of the two UTxOs as input. Let's take the first UTxO again.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/register-and-delegate.sh 9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f#0
 
 
-So with this we now can call my script and we must provide this one of the two UTxOs as input to this script.Let's take the first one again.And it was successfully submitted.So now we have created this script-based stake address.We can see it here logged, so this is this new script stake address,that's now based on our Plutus script.I created this new payment address.Recall, the payment component is user1 but the stake component is now thePlutus script and we submitted that.
+Output:
+addr: addr_test1vqksv8gkzcleuxxtrejqzdz6rtm76rc33u2sau2cfvftg5cyj649w
+txin: 9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f#0
+Up to date
+file: tmp/stake-validator.script
+addr: Address {addressCredential = PubKeyCredential 2d061d16163f9e18cb1e6401345a1af7ed0f118f150ef1584b12b453, addressStakingCredential = Nothing}
+wrote stake validator to tmp/stake-validator.script
+stake address: stake_test17qrjx2jy7rn29w73s7j9s88kxzl2zvyj6ph959t469pdhssn8l26x
+payment address: addr_test1yzl769zsaa4y9vanvcxz9d05wy5ldcyupwl89nad0ffrg5q8yv4yfu8x52aarpaytqw0vv975ycf95rwtg2ht52zm0pq7wlxqm
+Estimated transaction fee: Lovelace 332449
+Transaction successfully submitted.
+```
+
+We see here it was successfully submitted. Now we can see in the logs the script based stake address, along with the new payment address. 
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1-script.sh
+
+Output:
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+4c4660aa60beea8a4e50dc18aad3fe4e69fa25f18cd9d452ea64fd091afd57d5     0        449999667551 lovelace + TxOutDatumNone
+```
+
+We can follow up with another script we wrote, which looks at the UTxOs at this new address. We see that there are funds there now, and this is because we used this address as a change address.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-stake-address-info-user1-script.sh
 
 
+Output:
+[
+    {
+        "delegation": "pool1gg686k53xr32uj0enwmvk8pzmyfk4g6k56v326sm5du7u3hdnmw",
+        "address": "stake_test17qrjx2jy7rn29w73s7j9s88kxzl2zvyj6ph959t469pdhssn8l26x",
+        "rewardAccountBalance": 77249311
+    }
+]
+```
+
+We also provided the script to get the stake address info. This so we see that there is some info so the delegation was successful with our new address. 
+Since we waited a bit, we see that there are now 77 ADA in rewards already accumulated.
+
+Now we want to withdraw. We created a script called **withdraw-user1-script.sh** which we saw before, when we talked about Plutus and modified it accordingly.
+```
+#!/bin/bash
+
+txin=$1
+amt1=$(scripts/query-stake-address-info-user1-script.sh | jq .[0].rewardAccountBalance)
+amt2=$(expr $amt1 / 2 + 1)
+pp=tmp/protocol-params.json
+raw=tmp/tx.raw
+signed=tmp/tx.signed
+
+echo "txin = $1"
+echo "amt1 = $amt1"
+echo "amt2 = $amt2"
+
+export CARDANO_NODE_SOCKET_PATH=cardano-private-testnet-setup/private-testnet/node-bft1/node.sock
+
+cardano-cli query protocol-parameters \
+    --testnet-magic 42 \
+    --out-file $pp
+
+cardano-cli transaction build \
+    --testnet-magic 42 \
+    --change-address $(cat tmp/user1-script.addr) \
+    --out-file $raw \
+    --tx-in $txin \
+    --tx-in-collateral $txin \
+    --tx-out "$(cat tmp/user2.addr)+$amt2 lovelace" \
+    --withdrawal "$(cat tmp/user1-script-stake.addr)+$amt1" \
+    --withdrawal-script-file tmp/stake-validator.script \
+    --withdrawal-redeemer-file unit.json \
+    --protocol-params-file $pp
+
+cardano-cli transaction sign \
+    --testnet-magic 42 \
+    --tx-body-file $raw \
+    --out-file $signed \
+    --signing-key-file cardano-private-testnet-setup/private-testnet/addresses/user1.skey
+
+cardano-cli transaction submit \
+    --testnet-magic 42 \
+    --tx-file $signed
+```
+
+Now lets execute the script. As input we can use we have to use the UTxO #0, since it's the only one sitting at this address.
+
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/withdraw-user1-script.sh 4c4660aa60beea8a4e50dc18aad3fe4e69fa25f18cd9d452ea64fd091afd57d5#0
 
 
-So now we can also use another script we wrote, which looks at the UTxOs at this new address.And we see that there are funds there now.And that is because we use this address as a change address.So we consumed this first UTxO of the original address to pay for transaction fees and deposit fees registration fees for the certificate and the change went to this new address so we already have funds there.
+Output:
+txin = 4c4660aa60beea8a4e50dc18aad3fe4e69fa25f18cd9d452ea64fd091afd57d5#0
+amt1 = 350856817
+amt2 = 175428409
+Estimated transaction fee: Lovelace 338448
+Transaction successfully submitted.
+```
 
+Now the transaction was successfully submitted.
 
+```
+[nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1-script.sh
 
-I also provided the script to get the stake address info.This so we see that there is some info so the delegation was successful with our new address but at the moment there are no rewards yet because recall it always takes two  or three epochs after you delegate before you first  receive rewards so we have to wait a little bit until we get rewards there.
+Output:
+                           TxHash                                 TxIx        Amount
+--------------------------------------------------------------------------------------
+6dfff40f3bede1936ec7272d3e582416e04dbb77a8c20446b63797919f14dd15     0        450174757511 lovelace + TxOutDatumNone
 
+```
 
-
-Now we waited a bit and we see that there are now 406 ADA in rewards already accumulated.
-
-
-
-
-Now we want to withdraw.And we created a script called withdraw user1 script which we first copy pasted from the withdrawal script we saw before we talked about Plutus and we modified it accordingly.So again it takes an argument a toxin to pay for a transaction fees.It again looks up the amount of available rewards using the script we just showed you and then picking out the appropriate field the reward account balance field as before.But now we call it amount 1 because we also have an amount 2 which is half of that.So we use this expression linux tool to do computation so we divide this amount by 2 and we addons because if this is odd the round down and then we would have too little so we need at least half.So if it's an even number  then we basically give one lovelace too much but of  course that doesn't matter.Protocol parameter file unsigned transaction signed transaction we log for debugging.Query protocol parameters so that's all very similar.So now for the transaction.So testnet magic change address we use the user1 script address this new payment address for user1.Out file as input we use the specified parameter now we also need collateral because now ourPlutus script will be executed again because it's a withdrawal action so we use the same that we use as input also as collateral.Now this is where we make sure that validation will succeed we pay the appropriate amount as amount 2 to user2.Recall, we mean that's how we parameterize our script we parameterized it by this address byuser2 address, so withdraw it will only be legal if we pay at least half of the rewards to user2.Then withdrawal as before now that's amount one.And now we as witness must provide the script file and redeemer file redeemer isagain unit and the protocol parameters.Now for signing when we did that without Plutus with a normal stake address we needed to provide two signatures one for the payment part one for the staking part we still need the one for the payment part which is again user1 signing key but now we don't need the one for the taking part because this is now replaced by here the script and the redeemer and finally we submit.But before we try that we want to show how it fails so to prove that it actually works and enforces that the specified address in this case this user2 address indeed gets paid half the rewards.So let me just for the moment delete this line so we just don't pay user2.
-
-
-Now let me try what happens.So as input we can use this UTxO actually we have to use that UTxO because it's the only one sitting at this address.Okay and we see it doesn't succeed and we also see that we get debugging logs insufficient reward sharing.If you recall that comes from our trace of false in the Plutus code so the condition is not satisfied that we paid at least half  to the provided address.
-
-
-Now let me add that line  again, execute this again.Now the transaction was successfully submitted.If we look at the UTxO.Earlier we had a bit less than 450 000 ADA.Now we have more, 450 275.You can also check user2.Recall when we did that earlier after we created user2 there was no UTxO there.But now our transaction sent half the rewards there so we have 276 ADA there, so it works.I could withdraw but only if we satisfied the condition that user2 got at least half ofthe rewards, which is a strong indication that our Plutus script works as expected.
+If we looked at the UTxO earlier, we had a bit less than 450,000 ADA. Now we have more, 450,174 ADA. Recall when we did that earlier after we created user2, there was no UTxO there. But now our transaction sent half the rewards there so we have 174 ADA there, so it works. We could withdraw but only if we satisfied the condition that user2 got at least half ofthe rewards, which is a strong indication that our Plutus script works as expected.
 
 ## Conclusion
 
