@@ -687,9 +687,11 @@ Now of course to use this in the Cardano-CLI, we have to serialize the script to
 writeStakeValidator :: FilePath -> Plutus.Address -> IO (Either (FileError ()) ())
 writeStakeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file Nothing . PlutusScriptSerialised . SBS.toShort . LBS.toStrict . serialise . Plutus.getStakeValidator . stakeValidator
 ```
-So this write stake validator we basically just copied the function from week03 where we showed this same for spending validator for normal Plutus spending script.It's almost exactly the same, so we first apply stake validator to the address to get my stake validator and now we have to unwrap that to get to the underlying script and there's a function called get stake validator.So that was different for  spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before.So this will write the validator to disk given the address.
+So this ```writeStakeValidator``` we basically just copied the function from week 03 where we showed this same for spending validator for normal Plutus spending script. It is almost exactly the same, so we first apply stake validator to the address to get my stake validator and now we have to unwrap that to get to the underlying script; there is a function called getStakeValidator. That was different for spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before. So this will write the validator to disk given the address.
 
-And in order to conveniently do that we also need the ability to take the address in the format that the cli uses and convert it to a Plutus address and we had the same problem before in week06.So we basically just copy pasted the code we had there so these two helper functions credential ledger to Plutus and stake reference ledger to plutus and then this try read address function.So let's just copy it from week06.So given a string it passes that into a Plutus address or tries to pass it into a Plutus address.
+In order to conveniently do that, we also need the ability to take the address in the format that the CLI uses and convert it to a Plutus address; which we had the same problem before in week 06.
+
+So we basically just copy pasted the code we had, these three helper functions ```credentialLedgerToPlutus``` , ```stakeReferenceLedgerToPlutus```, and ```tryReadAddress```. Given a string, it passes that into a Plutus address.
 
 ```haskell
 import System.Environment (getArgs)
@@ -707,7 +709,9 @@ main = do
         Right () -> printf "wrote stake validator to %s\n" file
 ```
 
-Finally, we defined an executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
+Finally, we defined an executable **write-stake-valiator.hs**, which receives two command line parameters, a file name and an address.
+
+Then it uses this ```writeStakeValidator``` with the provided file and the past address to compute the stake validator, parameterized by this address and serialize it to this file. This is already all the Haskell or Plutus code that we need, so now we can try this out in the private testnet.
 
 ## Trying it on the Testnet
 
