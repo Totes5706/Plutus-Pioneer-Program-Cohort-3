@@ -405,7 +405,7 @@ But of course, none of what was explained so far has anything to do with Plutus.
 
 So how does the interaction between Plutus and staking work? We have talked about script purposes.
 
-```haskell
+```
 data ScriptPurpose
 
 Purpose of the script that is currently running
