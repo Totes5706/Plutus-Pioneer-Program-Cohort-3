@@ -982,6 +982,9 @@ Finally, we can build our transaction.
 
 Lastly, we just sign the transaction; so the payment input for this transaction comes from our old user1 address. User1 needs to sign it, so we assign it with the signing key of user1, and finally we submit.
 
+
+First, we look at the UTxOs of user1 because we need one of those as input for our script.
+
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user1.sh
 
@@ -992,10 +995,9 @@ Output:
 9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f     1        449999000000 lovelace + TxOutDatumNone
 
 ```
+As you can see, we are back to the original distribution of funds; the 450,000 ADA and the 449,999 ADA split between two UTxOs.
 
-So first we look at the UTxOs of user1 because we need one of those as input for my script.So we are back to the original distribution of funds, the 450 000 ADA and the almost 450 000 ADA split between two UTxOs.
-
-We now can call our script, and we must provide one of the two UTxOs as input. Let's take the first UTxO again.
+We now can call our script, and we must provide one of the two UTxOs as input. Let's take the first UTxO.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/register-and-delegate.sh 9b10623c15cd78a4e605500007142370bb2dc5d3847ba86ea2d1fd77e516719f#0
