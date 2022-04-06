@@ -760,6 +760,7 @@ Output:
                            TxHash                                 TxIx        Amount
 --------------------------------------------------------------------------------------
 ```
+
 As expected, there are currently no UTxOs showing; we just created the address so there have not been any transactions that could possibly send any funds to that address.
 
 Looking at **register-and-delegate.sh**:
@@ -843,7 +844,7 @@ addr=$(cat tmp/user2.addr) \
 txin=$1
 echo "addr: $addr"
 echo "txin: $txin"
-``
+```
 One step at the time: 
 
 - ```addr``` is the newly created address
