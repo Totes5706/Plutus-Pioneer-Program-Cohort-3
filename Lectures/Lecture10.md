@@ -715,7 +715,7 @@ Then it uses this ```writeStakeValidator``` with the provided file and the past 
 
 ## Trying it on the Testnet
 
-To try our Plutus staking script in the testnet, first lets restart the testnet and create a new user, because we want this user to receive half of all the rewards. Looking at **make-user2.sh**:
+To try our Plutus staking script on the testnet, first lets restart the testnet and create a new user. We want this user to receive half of all the rewards. Looking at **make-user2.sh**:
 
 ```
 #!/bin/bash
@@ -733,14 +733,16 @@ cardano-cli address build \
     --out-file tmp/user2.addr
 ```
 
-- So we just pick file names for the verification key and the signing key. 
-- And then we use the cardano cli address keygen command where we just specify these two file names.So this will create a key pair and
-- then we use the address build command where that command as parameter gets the payment verification key file, that's the file where we just wrote the newly created verification key  to and creates an address.Optionally, we could also  specify a starting component for this address, but we  don't do this in this case.So this is a pure payment address without a staking component.
+- We pick file names for the verification key and the signing key. 
+- Then we use the Cardano-CLI address keygen command where we specify these two file names; this will create a key pair
+- Lastly, we use the address build command where that command as parameter gets the payment verification key file. Optionally, we could also specify a starting component for this address, but chose not to do this. 
+
+This is a pure payment address without a staking component.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/make-user2.sh
 ```
-we can run that.And then if we look in the temp folder we see that these three files have been created.
+We can now execute the script, and then if we look in the temp folder, we will see these three files have been created.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ls tmp
@@ -749,7 +751,7 @@ Output:
 user2.addr user2.skey user2.vkey
 ```
 
-We also created the script that checks the UTxOs at the address that we just created, called **query-utxo-user2.sh**:
+We also made a script that checks the UTxOs at the address that we just created, called **query-utxo-user2.sh**:
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user2.sh
@@ -758,7 +760,7 @@ Output:
                            TxHash                                 TxIx        Amount
 --------------------------------------------------------------------------------------
 ```
-And as expected at the moment there is no UTxO there, we just created the address so there haven't been any transactions that could possibly send any funds to that address.
+As expected, there are currently no UTxOs showing; we just created the address so there have not been any transactions that could possibly send any funds to that address.
 
 Looking at **register-and-delegate.sh**:
 
@@ -834,9 +836,43 @@ cardano-cli transaction submit \
     --tx-file $signed
 ```
 
-So the address we just created is the one we want to use to parameterize our Plutus script.And once I've done that we get the serialized script and can use that as a staking address.And then we want to register that stacking address and delegate to the one pool we have.
+The address we just created is the one we want to use to parameterize our Plutus script. Once we have done that, we get the serialized script and can use that as a staking address. Then we want to register that staking address and delegate to the one pool we have.
 
-So one step at the time, so this is the newly created address.I need one argument, a toxin to pay for the transaction, we log that, Define various file names, so this here receives the serialized Plutus script.This will receive the staking address that corresponds to the script.Then we will generate a new address where the payment path is the payment path of user1 sothe given by the verification key and sign the key of user1, but the stalking path is now our new stake address given by our script.Then find them for the registration certificate, find them for the delegation certificate.I also need the protocol parameters so file name for that and then again one file for the unsigned transaction one for the sign transaction.I set the node socket path.Now we run our executable and as arguments we give this script file that we  defined and our new address.So this will now parameterize our Plutus contract by this address and write the resulting to the score script to this file.Now that we have this script file we can take it and build the stake address from it.So there's the stake address built cardano cli command for this.Takes the magic, the location of the script file and the name of the out file.I log this new stake address.Now we want to build the new address for user1 where the...as we said, the payment component is the verification key of user1, butthe stake component is our new script.So we use the address build command testnet magic.Here the payment verification key file is the one belonging to user1, but thestake part is given by a stake script file our new script file that we generated.And we write the result to script payment address.I log it.Now we can generate the certificates, so there is cardano cli stake address  registration certificate.It just takes the name of the script file and the output file.Then we use cardano cli stake address delegation certificate, which takes again the script file.Then the stake pool id we want to delegate to, so we get that from the command we looked at earlier, the query stake pools.And write the resulting certificate to the delegation file.Now we need the protocol parameters we saw that before, there's this query protocol parameters command.And finally we can build my transaction.So takes the magic, as change address we use the new payment address for user we do that so that that address also is funded and can then accumulate rewards.Of course, we could do that in a separate transaction, but why use two transactions if we can do it in one.So we just use this new address as the change address.Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
+```
+addr=$(cat tmp/user2.addr) \
+txin=$1
+echo "addr: $addr"
+echo "txin: $txin"
+``
+One step at the time: 
+
+- ```addr``` is the newly created address
+- ```txin``` is to to pay for the transaction
+-  We log those 
+
+```
+script=tmp/stake-validator.script
+script_stake_addr=tmp/user1-script-stake.addr
+script_payment_addr=tmp/user1-script.addr
+registration=tmp/registration.cert
+delegation=tmp/delegation.cert
+pp=tmp/protocol-params.json
+raw=tmp/tx.raw
+signed=tmp/tx.signed
+```
+
+We define various file names: 
+
+- ```script``` receives the serialized Plutus script
+- ```script_stake_addr``` will receive the staking address that corresponds to the script
+- ```script_payment_addr``` will generate a new address where the payment path is the payment path of user1 
+- ```registration``` for the registration certificate
+- ```delegation``` for the delegation certificate
+- ```pp``` for the file of protocol parameters 
+- ```raw``` for the unsigned transaction 
+- ```signed``` for the signed transaction.
+
+I set the node socket path.Now we run our executable and as arguments we give this script file that we  defined and our new address.So this will now parameterize our Plutus contract by this address and write the resulting to the score script to this file.Now that we have this script file we can take it and build the stake address from it.So there's the stake address built cardano cli command for this.Takes the magic, the location of the script file and the name of the out file.I log this new stake address.Now we want to build the new address for user1 where the...as we said, the payment component is the verification key of user1, butthe stake component is our new script.So we use the address build command testnet magic.Here the payment verification key file is the one belonging to user1, but thestake part is given by a stake script file our new script file that we generated.And we write the result to script payment address.I log it.Now we can generate the certificates, so there is cardano cli stake address  registration certificate.It just takes the name of the script file and the output file.Then we use cardano cli stake address delegation certificate, which takes again the script file.Then the stake pool id we want to delegate to, so we get that from the command we looked at earlier, the query stake pools.And write the resulting certificate to the delegation file.Now we need the protocol parameters we saw that before, there's this query protocol parameters command.And finally we can build my transaction.So takes the magic, as change address we use the new payment address for user we do that so that that address also is funded and can then accumulate rewards.Of course, we could do that in a separate transaction, but why use two transactions if we can do it in one.So we just use this new address as the change address.Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
 
 
 
