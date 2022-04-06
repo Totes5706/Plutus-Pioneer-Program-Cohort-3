@@ -713,7 +713,7 @@ Output:
 user2.addr user2.skey user2.vkey
 ```
 
-we also created the script that checks the UTxOs at the address that we just created.
+We also created the script that checks the UTxOs at the address that we just created, called **query-utxo-user2.sh**:
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/query-utxo-user2.sh
