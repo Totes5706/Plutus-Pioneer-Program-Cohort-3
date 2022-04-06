@@ -1,6 +1,6 @@
 # Lecture 10: Staking and the Private Testnet
 
-Plutus Pioneer Program - Cohort 3 
+Plutus Pioneer Program - Cohort 3 </br >
 March 30th, 2022
 
 Contributed By:
