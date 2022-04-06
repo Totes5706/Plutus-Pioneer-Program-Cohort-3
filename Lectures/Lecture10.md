@@ -1,4 +1,3 @@
-
 # Lecture 10: Staking and the Private Testnet
 
 Plutus Pioneer Program - Cohort 3 
@@ -154,7 +153,7 @@ scripts/automate.sh
 
 What that does is first, it creates a temp directory for all the artifacts that we will create during our experiments. It first checks whether that folder already exists, if it does it then deletes it then it freshly created it. If it’s an empty folder, it changes directory into cardano-private-testnet-setup and then calls the automate script in that repository.
 
-So let's do that now. So from this week's code folder I just call that script in script start private testnet.
+So let's do that now. So from this week's code folderwejust call that script in script start private testnet.
 
 ```
 [nix-shell:~/plutus-pioneer-program/code/week10]$ ./scripts/start-private-testnet.sh
@@ -323,7 +322,7 @@ cardano-cli transaction submit \
 
 So we wrote a script for that, which will create a appropriate transaction and that script takes one argument, a UTxO as input. As we saw there are two,  we can pick any of the two.
 
-- Next I look up the amount that we can withdraw. There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards. You cannot do partial withdrawals. This means that we must know exactly how many rewards have been accumulated when we execute this command. We use the script we used before, the **query-stake-addresses-info-user1.sh** and then we use the jq tool (standard linux tool to analyze json values and extract this reward account balance field). So amount now holds the available rewards.
+- Nextwelook up the amount that we can withdraw. There's a peculiarity with withdrawals in Cardano, so you can only ever withdraw the whole accumulated rewards. You cannot do partial withdrawals. This means that we must know exactly how many rewards have been accumulated when we execute this command. We use the script we used before, the **query-stake-addresses-info-user1.sh** and then we use the jq tool (standard linux tool to analyze json values and extract this reward account balance field). So amount now holds the available rewards.
 - Then raw and signed are just file names for the unsigned transaction and the signed transaction.
 - Then just log for debugging purposes where txin an the amount.
 - Set the node socket path and now we build the transaction, sign the transaction, submit it.
@@ -441,12 +440,12 @@ Rewarding StakingCredential
 Certifying DCert
 ```
 
-But we haven't talked about  rewarding and certifying it and those two are related  to Plutus and staking.So as I briefly mentioned before, instead of using a public private key pair to create a stake address, we can instead use a Plutus script.And then the hash of that Plutus script will give a stake address, a script stake address.And where as we saw in the previous example, if I want to withdraw my rewards for example,for a normal stake address, I have to as witness that I'm allowed to do that provide the signing key for this stake address.So if I use a script stake address, then instead the corresponding script will be executed.It will receive the redeemer and the script context and again I can use arbitrary logic to determine whether this transaction is allowed to actually withdraw those rewards.
+But we haven't talked about  rewarding and certifying it and those two are related  to Plutus and staking.So aswebriefly mentioned before, instead of using a public private key pair to create a stake address, we can instead use a Plutus script.And then the hash of that Plutus script will give a stake address, a script stake address.And where as we saw in the previous example, ifwewant to withdraw my rewards for example,for a normal stake address,we have to as witness that I'm allowed to do that provide the signing key for this stake address.So if we use a script stake address, then instead the corresponding script will be executed.It will receive the redeemer and the script context and againwecan use arbitrary logic to determine whether this transaction is allowed to actually withdraw those rewards.
 
-Similarly Certifying DCert.So there are various certifications that I can attach to a transaction.In particular, important for staking out registration delegation and deregistration certificates.So if I newly create a stake address, I first have to register it by creating a transaction that contains a registration certificate for this stake address.Then if I want to delegate to a pool or change an existing validation I have to use a transaction that contains a delegation certificate.And that certificate then contains the pool I want to delegate to.And finally I can also unregister a stake address again and get the original deposit back that Ihad to pay when I registered the stake address.So for those then if I do  a delegation for example, then again the corresponding  script will be executed and can contain arbitrary logic to determine whether this delegation for  example is legal or not.
+Similarly Certifying DCert.So there are various certifications thatwecan attach to a transaction.In particular, important for staking out registration delegation and deregistration certificates.So ifwenewly create a stake address,wefirst have to register it by creating a transaction that contains a registration certificate for this stake address.Then ifwewant to delegate to a pool or change an existing validationwehave to use a transaction that contains a delegation certificate.And that certificate then contains the poolwewant to delegate to.And finally we can also unregister a stake address again and get the original deposit back that Ihad to pay when we registered the stake address.So for those then if we do  a delegation for example, then again the corresponding  script will be executed and can contain arbitrary logic to determine whether this delegation for  example is legal or not.
 
 
-So I want to concentrate on the rewarding purpose in this lecture.
+So we want to concentrate on the rewarding purpose in this lecture.
 
 ```
 data TxInfo
@@ -476,4 +475,119 @@ So if we look at the tx info field we have seen examples of various of the field
  txInfoWdrl :: Map StakingCredential Integer           Withdrawals
 ```
 
-But we haven't looked at these two fields here.So here we have a field with all the certificates that are attached to the transaction.And now relevant for this lecture, we have a list of pairs containing of staking credentials and integers for withdrawals.So each pair corresponds to the withdrawal of rewards from the state address given by the staking credential.So the staking credential corresponds to our staking address given by a Plutus script.And the integer is the amount of lovelace we are withdrawing.So whenever we withdraw rewards from a script staking address.Then the corresponding Plutus script will be executed and we receive this credentials argument in the script purpose.I created module week 10.Staking to provide an example.And it's probably not a very useful realistic example.So the idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address.So anybody can withdraw rewards from the staking address.But half of the rewards always have to go to a previously specified address.So let's look how we can do this.So it's a parameterized contract, so the first argument is the parameter, theaddress, that will always receive half.Next comes the redeemer so  I just use unit and then as always for Plutus scripts, the script context.And the result is a boolean indicating whether this is okay or not.So I call the address addr, unit is always unit, context ctx.And I do a case distinction on the script context purpose, the purpose of the context.So if it's certifying, I just say true.So that means I allow arbitrary delegation and the registration.For minting and spending it's false, but the interesting case is rewarding, so rewarding credential.And here I must check that what I said is satisfied so this specified address addr receives at least half of the rewards.So if not then I log this error, a trace's error, insufficient reward sharing.And I check that this here will be the amount, the amount I'm withdrawing, the total rewards.And twice of what I pay to the specified address must be greater or equal to the total rewards which the other way around means that paid to address is at least half of the total amount.So this is the logic and now I just have to compute the various things.So as often before I define info which is the tx info field sitting in the script context.Now to get the amount, the total reward amount, given the staking credentials and those I receive here in the purpose and then I can use them as an argument here.So giving the staking credentials, I have this helper function that receive a list of pairs of staking credentials and integers.And I call that with the field we just looked at in the tx info this txinfo wdrl field, which contains such pairs.So if it's the empty list, then I didn't find the correct withdrawal and I trace an error.And if it's not empty so there is at least one pair with some credential and some amount, Check whether the credential is the one I'm interested in, the one I'm validating right now.And if so, then I have found my amount so I return that.And otherwise I recursively look at the tail of the list.So this amount function will give me the number of withdrawn lovelace.And the paid to address is  supposed to be the total number of lovelace paid to the specified address.So I use a fold left which is defined in the Plutus prelude, it starts with an accumulator value of zero and the idea is I just loop over all the outputs and if they go to this address,I extract the amount of lovelace contained in that output and added to the accumulator.So this here is the list of all outputs and this function now defines how to accumulate.So first argument is the previous value of the accumulator, then the output I'm focusing innow and the updated value of the accumulator.So I call this previous value n and the output o.I look at the address of that output and if it's the given address then I add to my old accumulator the number of lovelace contained in the value of this output.And otherwise I just keep the value of the old accumulator.So the effect will be as sum up all the lovelace values contained in all the outputs that go to the specified address.And that's already it, that's the logic of my validator.Now I have to compile it to Plutus core script.And this is similar to what we have seen before.So you notice that this is a typed script, so I'm not using built-in data, I'm usingHaskell types unit and script context.And we saw how to handle that for spending purposes and for minting purposes.For staking it's, for whatever reason done a bit differently.So if we look at module Ledger.Type.Scripts, there's this function wrap stake validator.And provided we have a redeemer type that can be converted to built-in data and we have something of this type, which fits well to what we have defined in the example.So redeemer script context going to bool, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.So using that, given an address I can use the function I just defined, apply the address to it.Then I get something of this type unit to script context to bool, which is exactly what I can pass to wrap stake validator.So the result of applying wrap stake validator to that is of type built-indata to built-in data to unit.So the whole thing together with the address is then of type address to built-in data to built-in data to unit.I compile this and I lift the given address and apply it to this compiled Plutus script so then I end up with something of the right type namely built-in data to built-in data to unit.So this is very similar to what we did with typed validators for spending orminting it's just a little bit different how to apply this wrap stake validator.And out comes a stake validator and that's all we need, so it's refreshingly short actually.Now of course to use this in the cardano cli, we have to serialize the script to disk and this is very similar to what I did before.So this write stake validator I basically just copied the function from week03 where I showed this same for spending validator for normal Plutus spending script.It's almost exactly the same, so I first apply stake validator to the address to get my stake validator and now I have to unwrap that to get to the underlying script and there's a function called get stake validator.So that was different for  spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before.So this will write the validator to disk given the address.And in order to conveniently do that I also need the ability to take the address in the format that the cli uses and convert it to a Plutus address and we had the same problem before in week06.So I basically just copy pasted the code we had there so these two helper functions credential ledger to Plutus and stake reference ledger to plutus and then this try read address function.So let's just copy it from week06.So given a string it passes that into a Plutus address or tries to pass it into a Plutus address.Finally, I defined an  executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
+But we haven't looked at these two fields here. So here we have a field with all the certificates that are attached to the transaction. And now relevant for this lecture, we have a list of pairs containing of staking credentials and integers for withdrawals.So each pair corresponds to the withdrawal of rewards from the state address given by the staking credential.So the staking credential corresponds to our staking address given by a Plutus script.And the integer is the amount of lovelace we are withdrawing. So whenever we withdraw rewards from a script staking address.Then the corresponding Plutus script will be executed and we receive this credentials argument in the script purpose.
+
+
+We created module week 10.Staking to provide an example:
+
+```haskell
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+
+module Week10.Staking
+    ( stakeValidator
+    ) where
+
+import           Ledger
+import           Ledger.Typed.Scripts        as Scripts
+import           Plutus.V1.Ledger.Ada        (Ada (..), fromValue)
+import           Plutus.V1.Ledger.Credential (StakingCredential)
+import qualified PlutusTx
+import           PlutusTx.Prelude
+
+{-# INLINABLE mkStakingValidator #-}
+mkStakingValidator :: Address -> () -> ScriptContext -> Bool
+mkStakingValidator addr () ctx = case scriptContextPurpose ctx of
+    Certifying _   -> True
+    Rewarding cred -> traceIfFalse "insufficient reward sharing" $ 2 * paidToAddress >= amount cred
+    _              -> False
+  where
+    info :: TxInfo
+    info = scriptContextTxInfo ctx
+
+    amount :: StakingCredential -> Integer
+    amount cred = go $ txInfoWdrl info
+      where
+        go :: [(StakingCredential, Integer)] -> Integer
+        go [] = traceError "withdrawal not found"
+        go ((cred', amt) : xs)
+            | cred' == cred = amt
+            | otherwise     = go xs
+
+    paidToAddress :: Integer
+    paidToAddress = foldl f 0 $ txInfoOutputs info
+      where
+        f :: Integer -> TxOut -> Integer
+        f n o
+            | txOutAddress o == addr = n + getLovelace (fromValue $ txOutValue o)
+            | otherwise              = n
+
+stakeValidator :: Address -> StakeValidator
+stakeValidator addr = mkStakeValidatorScript $
+    $$(PlutusTx.compile [|| wrapStakeValidator . mkStakingValidator ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode addr
+```
+And it's probably not a very useful realistic example.So the idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address.So anybody can withdraw rewards from the staking address.But half of the rewards always have to go to a previously specified address.
+
+```haskell
+{-# INLINABLE mkStakingValidator #-}
+mkStakingValidator :: Address -> () -> ScriptContext -> Bool
+mkStakingValidator addr () ctx = case scriptContextPurpose ctx of
+    Certifying _   -> True
+    Rewarding cred -> traceIfFalse "insufficient reward sharing" $ 2 * paidToAddress >= amount cred
+    _              -> False
+```
+
+So let's look how we can do this.So it's a parameterized contract, so the first argument is the parameter, theaddress, that will always receive half.Next comes the redeemer so  we just use unit and then as always for Plutus scripts, the script context.And the result is a boolean indicating whether this is okay or not.So we call the address addr, unit is always unit, context ctx.And we do a case distinction on the script context purpose, the purpose of the context.So if it's certifying, we just say true.So that means we allow arbitrary delegation and the registration.For minting and spending it's false, but the interesting case is rewarding, so rewarding credential.And here we must check that what we said is satisfied so this specified address addr receives at least half of the rewards.So if not then we log this error, a trace's error, insufficient reward sharing.And we check that this here will be the amount, the amount I'm withdrawing, the total rewards.And twice of what we pay to the specified address must be greater or equal to the total rewards which the other way around means that paid to address is at least half of the total amount.So this is the logic and now we just have to compute the various things.
+
+```haskell
+   info :: TxInfo
+   info = scriptContextTxInfo ctx
+```
+So as often before we define info which is the tx info field sitting in the script context.
+
+```haskell
+    amount :: StakingCredential -> Integer
+    amount cred = go $ txInfoWdrl info
+      where
+        go :: [(StakingCredential, Integer)] -> Integer
+        go [] = traceError "withdrawal not found"
+        go ((cred', amt) : xs)
+            | cred' == cred = amt
+            | otherwise     = go xs
+```
+
+Now to get the amount, the total reward amount, given the staking credentials and those we receive here in the purpose and then we can use them as an argument here.So giving the staking credentials, we have this helper function that receive a list of pairs of staking credentials and integers.And we call that with the field we just looked at in the tx info this txinfo wdrl field, which contains such pairs.So if it's the empty list, then we didn't find the correct withdrawal and we trace an error.And if it's not empty so there is at least one pair with some credential and some amount, Check whether the credential is the one I'm interested in, the one I'm validating right now.And if so, then we have found my amount so we return that.And otherwise we recursively look at the tail of the list.So this amount function will give me the number of withdrawn lovelace.
+
+```haskell
+    paidToAddress :: Integer
+    paidToAddress = foldl f 0 $ txInfoOutputs info
+      where
+        f :: Integer -> TxOut -> Integer
+        f n o
+            | txOutAddress o == addr = n + getLovelace (fromValue $ txOutValue o)
+            | otherwise              = n
+```
+
+And the paid to address is  supposed to be the total number of lovelace paid to the specified address.So we use a fold left which is defined in the Plutus prelude, it starts with an accumulator value of zero and the idea is we just loop over all the outputs and if they go to this address,I extract the amount of lovelace contained in that output and added to the accumulator.So this here is the list of all outputs and this function now defines how to accumulate.So first argument is the previous value of the accumulator, then the output I'm focusing innow and the updated value of the accumulator.So we call this previous value n and the output o.I look at the address of that output and if it's the given address then we add to my old accumulator the number of lovelace contained in the value of this output.And otherwise we just keep the value of the old accumulator.So the effect will be as sum up all the lovelace values contained in all the outputs that go to the specified address.And that's already it, that's the logic of my validator.Now we have to compile it to Plutus core script.And this is similar to what we have seen before.So you notice that this is a typed script, so I'm not using built-in data, I'm usingHaskell types unit and script context.And we saw how to handle that for spending purposes and for minting purposes.For staking it's, for whatever reason done a bit differently.
+
+So if we look at module Ledger.Type.Scripts, there's this function wrap stake validator.
+
+```
+type WrappedStakeValidatorType = BuiltinData -> BuiltinData -> () 
+```
+```
+wrapStakeValidator :: UnsafeFromData r => (r -> ScriptContext -> Bool) -> WrappedStakeValidatorType
+```
+
+And provided we have a redeemer type that can be converted to built-in data and we have something of this type, which fits well to what we have defined in the example.So redeemer script context going to bool, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.So using that, given an address we can use the function we just defined, apply the address to it.Then we get something of this type unit to script context to bool, which is exactly what we can pass to wrap stake validator.So the result of applying wrap stake validator to that is of type built-indata to built-in data to unit.So the whole thing together with the address is then of type address to built-in data to built-in data to unit.I compile this and we lift the given address and apply it to this compiled Plutus script so then we end up with something of the right type namely built-in data to built-in data to unit.So this is very similar to what we did with typed validators for spending orminting it's just a little bit different how to apply this wrap stake validator.And out comes a stake validator and that's all we need, so it's refreshingly short actually.Now of course to use this in the cardano cli, we have to serialize the script to disk and this is very similar to what we did before.So this write stake validator we basically just copied the function from week03 where we showed this same for spending validator for normal Plutus spending script.It's almost exactly the same, so we first apply stake validator to the address to get my stake validator and now we have to unwrap that to get to the underlying script and there's a function called get stake validator.So that was different for  spending script, but this was the only difference, the rest of this pipeline where is exactly the same that we used before.So this will write the validator to disk given the address.And in order to conveniently do that we also need the ability to take the address in the format that the cli uses and convert it to a Plutus address and we had the same problem before in week06.So we basically just copy pasted the code we had there so these two helper functions credential ledger to Plutus and stake reference ledger to plutus and then this try read address function.So let's just copy it from week06.So given a string it passes that into a Plutus address or tries to pass it into a Plutus address.Finally, we 
+defined an  executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
