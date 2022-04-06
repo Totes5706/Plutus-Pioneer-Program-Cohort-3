@@ -170,7 +170,6 @@ Congrats! Your network is ready for use!
 Now the testnet is created, and the stake pool is set up. Now everything is running. We should keep this running in a separate tab of our terminal so we can easily interact with it.
 
 So in particular we have a node socket here and we can use that to interact with this testnet node with one of the tested nodes.
-
 ```
 ...
 wait until socket is detected, socket: private-testnet/node-bft1/node.sock
@@ -216,7 +215,6 @@ Output:
 pool-owner1-stake.addr      pool-owner1-stake.vkey  pool-owner1.vkey        user1-stake.reg.cert  user1.addr
 pool-owner1-stake.reg.cert  pool-owner1.addr        user1-stake.addr        user1-stake.skey      user1.skey
 pool-owner1-stake.skey      pool-owner1.skey        user1-stake.deleg.cert  user1-stake.vkey      user1.vkey
-
 ```
 
 But in particular we see a user1 has been created with verification key, signing key, payment address, staking key pair, verification key, signing key, corresponding staking address. If you recall from last time, we talked about the Cardano-CLI, there is a very useful query command, query UTxO to get the UTxO at an address. Looking at **query-utxo-user1.sh**:
@@ -287,7 +285,6 @@ Output:
         "rewardAccountBalance": 1849873538
     }
 ]
-
 ```
 
 Executing that script, gives us the following information that this stake address delegates to a pool, which of course, is the only pool there is. This is the stake address in question and we see that we already have quite a lot of accumulated rewards. If we count digits correctly it's at the moment 1,849 ADA. So how can we withdraw those rewards? Looking at **withdraw-user1.sh**:
@@ -379,7 +376,6 @@ Output:
 --------------------------------------------------------------------------------------
 2207d6294a2a7b8ba664c85f18bed9d49d5837240de52547df0b101762a2a4a7     0        450000000000 lovelace + TxOutDatumNone
 7883b4137d93db90b4bed1d806b0d5de2deb460c7d05a188a1d2d9be6450a307     0        452241568709 lovelace + TxOutDatumNone
-
 ```
 
 We can now check UTxOs again, and here we see this has changed. As expected, the second one was spent and the new one was created here. We see that the original 449,999 ADA are now 452,241 ADA, so the rewards have indeed been added.
@@ -396,8 +392,6 @@ Output:
         "rewardAccountBalance": 251322789
     }
 ]
-
-
 ```
 
 
