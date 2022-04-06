@@ -535,7 +535,7 @@ stakeValidator addr = mkStakeValidatorScript $
     `PlutusTx.applyCode`
     PlutusTx.liftCode addr
 ```
-The idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address. Therefore, any person can withdraw rewards from thestaking address, but half of the rewards always have to go to a previously specified address.
+The idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address. Therefore, any person can withdraw rewards from the staking address, but half of the rewards always have to go to a previously specified address.
 
 ```haskell
 {-# INLINABLE mkStakingValidator #-}
