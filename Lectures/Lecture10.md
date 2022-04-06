@@ -889,7 +889,7 @@ echo "stake address: $(cat $script_stake_addr)"
 ```
 There is the stake address build Cardano-CLI command for this.
 
-- It take the magic
+- It take the testnet magic
 - The location of the script file
 - The name of the out file.
 
@@ -905,7 +905,73 @@ cardano-cli address build \
 echo "payment address: $(cat $script_payment_addr)"
 ```
 
-Now we want to build the new address for user1 where the...as we said, the payment component is the verification key of user1, butthe stake component is our new script.So we use the address build command testnet magic.Here the payment verification key file is the one belonging to user1, but thestake part is given by a stake script file our new script file that we generated.And we write the result to script payment address.I log it.Now we can generate the certificates, so there is cardano cli stake address  registration certificate.It just takes the name of the script file and the output file.Then we use cardano cli stake address delegation certificate, which takes again the script file.Then the stake pool id we want to delegate to, so we get that from the command we looked at earlier, the query stake pools.And write the resulting certificate to the delegation file.Now we need the protocol parameters we saw that before, there's this query protocol parameters command.And finally we can build my transaction.So takes the magic, as change address we use the new payment address for user we do that so that that address also is funded and can then accumulate rewards.Of course, we could do that in a separate transaction, but why use two transactions if we can do it in one.So we just use this new address as the change address.Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
+Now we want to build the new address for user1, where the payment component is the verification key of user1, but the stake component is our new script.
+
+So we use the address build command: 
+
+- It takes testnet magic
+- Here the payment verification key file is the one belonging to user1
+- The stake part is given by a stake-script-file; our new script file that we generated.
+- We write the result to ```$script_payment_addr```
+- We log it
+
+```
+cardano-cli stake-address registration-certificate \
+    --stake-script-file $script \
+    --out-file $registration
+
+cardano-cli stake-address delegation-certificate \
+    --stake-script-file $script \
+    --stake-pool-id=$(scripts/query-stake-pools.sh) \
+    --out-file $delegation
+
+cardano-cli query protocol-parameters \
+    --testnet-magic 42 \
+    --out-file $pp
+ ```
+
+Now we can generate the certificates, so there is Cardano-CLI stake address registration certificate.
+
+- First, it takes the name of the script file
+- Second, it takes the output file
+
+Then we use Cardano-CLI stake address delegation certificate.
+
+- First, takes the script file
+- Then the stake-pool=id we want to delegate to (we get that from the command we looked at earlier, the query stake pools)
+- Lastly, write the resulting certificate to the delegation file.
+ 
+Then we need the protocol parameters we saw that before, which there is this query protocol parameters command.
+
+```
+cardano-cli transaction build \
+    --testnet-magic 42 \
+    --change-address $(cat $script_payment_addr) \
+    --out-file $raw \
+    --tx-in $txin \
+    --tx-in-collateral $txin \
+    --certificate-file $registration \
+    --certificate-file $delegation \
+    --certificate-script-file $script \
+    --certificate-redeemer-file unit.json \
+    --protocol-params-file $pp
+
+cardano-cli transaction sign \
+    --testnet-magic 42 \
+    --tx-body-file $raw \
+    --out-file $signed \
+    --signing-key-file cardano-private-testnet-setup/private-testnet/addresses/user1.skey
+
+cardano-cli transaction submit \
+    --testnet-magic 42 \
+    --tx-file $signed
+```
+
+Finally, we can build our transaction.
+
+- It takes the magic
+- As change address, we use the new payment address for user. We do that so that that address also is funded, and can then accumulate rewards.
+- Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
 
 
 
