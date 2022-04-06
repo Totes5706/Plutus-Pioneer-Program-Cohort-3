@@ -576,7 +576,14 @@ Just as before we define info which is the tx info field sitting in the script c
             | otherwise     = go xs
 ```
 
-Now to get the amount, the total reward amount, given the staking credentials and those we receive here in the purpose and then we can use them as an argument here.So giving the staking credentials, we have this helper function that receive a list of pairs of staking credentials and integers.And we call that with the field we just looked at in the tx info this txinfo wdrl field, which contains such pairs.So if it's the empty list, then we didn't find the correct withdrawal and we trace an error.And if it's not empty so there is at least one pair with some credential and some amount, Check whether the credential is the one I'm interested in, the one I'm validating right now.And if so, then we have found my amount so we return that.And otherwise we recursively look at the tail of the list.So this amount function will give me the number of withdrawn lovelace.
+Now to get the total reward amount, we need the staking credentials as input. We have this helper function that receives a list of pairs of staking credentials and integers. 
+
+We call that with the field we just looked at ```txInfoWdrl``` field, which contains such pairs. 
+- If it's the empty list, then we didn't find the correct withdrawal and we trace an error
+- If there is at least one pair with some credential and some amount; check whether the credential is the one I an validating right now. If so, then we have found my amount so we return that.
+- Otherwise we recursively look at the tail of the list.
+
+So this amount function will give me the number of withdrawn lovelace.
 
 ```haskell
     paidToAddress :: Integer
@@ -588,7 +595,18 @@ Now to get the amount, the total reward amount, given the staking credentials an
             | otherwise              = n
 ```
 
-And the paid to address is  supposed to be the total number of lovelace paid to the specified address.So we use a fold left which is defined in the Plutus prelude, it starts with an accumulator value of zero and the idea is we just loop over all the outputs and if they go to this address,I extract the amount of lovelace contained in that output and added to the accumulator.So this here is the list of all outputs and this function now defines how to accumulate.So first argument is the previous value of the accumulator, then the output I'm focusing innow and the updated value of the accumulator.So we call this previous value n and the output o.I look at the address of that output and if it's the given address then we add to my old accumulator the number of lovelace contained in the value of this output.And otherwise we just keep the value of the old accumulator.So the effect will be as sum up all the lovelace values contained in all the outputs that go to the specified address.And that's already it, that's the logic of my validator.Now we have to compile it to Plutus core script.And this is similar to what we have seen before.So you notice that this is a typed script, so I'm not using built-in data, I'm usingHaskell types unit and script context.And we saw how to handle that for spending purposes and for minting purposes.For staking it's, for whatever reason done a bit differently.
+The paidToAddress is supposed to be the total number of lovelace paid to the specified address. 
+
+Here we use a fold left which is defined in the Plutus prelude. It starts with an accumulator value of zero, and the idea is we just loop over all the outputs. If they go to this address, I extract the amount of lovelace contained in that output and add that to the accumulator.
+
+The first argument is the previous value of the accumulator, then the output we are focusing on now including the updated value of the accumulator. We call this previous value n and the output o. 
+
+- We look at the address of that output and if it is the given address then we add to my old accumulatorthe number of lovelace contained in the value of this output.
+- Otherwise we just keep the value of the old accumulator.
+
+The effect will be as sum up all the lovelace values contained in all the outputs that go to the specified address.
+
+Now we have to compile it to Plutus core script, and this is similar to what we have seen before. For staking it's, for whatever reason done a bit differently.
 
 So if we look at module Ledger.Type.Scripts, there's this function wrap stake validator.
 
@@ -599,7 +617,7 @@ type WrappedStakeValidatorType = BuiltinData -> BuiltinData -> ()
 wrapStakeValidator :: UnsafeFromData r => (r -> ScriptContext -> Bool) -> WrappedStakeValidatorType
 ```
 
-And provided we have a redeemer type that can be converted to built-in data and we have something of this type, which fits well to what we have defined in the example.So redeemer script context going to bool, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.
+Provided we have a redeemer type that can be converted to built-in data, and we have something of this type, which fits well to what we have defined in the example. The redeemer script context going to boolean, then this wrap stake validator converts it into a function of type wrap stake validator type which is built-in data to built-in data to unit.
 
 ```haskell
 stakeValidator :: Address -> StakeValidator
@@ -608,7 +626,11 @@ stakeValidator addr = mkStakeValidatorScript $
     `PlutusTx.applyCode`
     PlutusTx.liftCode addr
 ```
-So using that, given an address we can use the function we just defined, apply the address to it.Then we get something of this type unit to script context to bool, which is exactly what we can pass to wrap stake validator.So the result of applying wrap stake validator to that is of type built-indata to built-in data to unit. So the whole thing together with the address is then of type address to built-in data to built-in data to unit.I compile this and we lift the given address and apply it to this compiled Plutus script so then we end up with something of the right type namely built-in data to built-in data to unit.So this is very similar to what we did with typed validators for spending orminting it's just a little bit different how to apply this wrap stake validator.And out comes a stake validator and that's all we need, so it's refreshingly short actually.
+So using that, given an address we can use the function we just defined, apply the address to it.
+
+Then we get something of this type unit to script context to bool, which is exactly what we can pass to wrap stake validator. The result of applying wrap stake validator to that is of type built-in data to built-in data to unit. The whole thing together with the address is then of type address to built-in data to built-in data to unit.
+
+I compile this and we lift the given address and apply it to this compiled Plutus script so then we end up with something of the right type namely built-in data to built-in data to unit. So this is very similar to what we did with typed validators for spending or minting it's just a little bit different how to apply this wrap stake validator. Out comes a stake validator and that's all we need.
 
 ```haskell
 {-# LANGUAGE GADTs             #-}
@@ -659,7 +681,7 @@ tryReadAddress x = case deserialiseAddress AsAddressAny $ pack x of
         }
 ```
 
-Now of course to use this in the cardano cli, we have to serialize the script to disk and this is very similar to what we did before.
+Now of course to use this in the Cardano-CLI, we have to serialize the script to disk and this is very similar to what we did before.
 
 ```haskell
 writeStakeValidator :: FilePath -> Plutus.Address -> IO (Either (FileError ()) ())
