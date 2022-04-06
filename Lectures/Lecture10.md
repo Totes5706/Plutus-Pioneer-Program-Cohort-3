@@ -971,7 +971,16 @@ Finally, we can build our transaction.
 
 - It takes the magic
 - As change address, we use the new payment address for user. We do that so that that address also is funded, and can then accumulate rewards.
-- Out file as input the parameter we have to give to the script.This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.So any transaction involving executing Plutus needs collateral.So as collateral can use the same input.Remember, collateral must be a pure lovelace UTxO.Okay then we attach the registration certificate and the delegation certificate.And for the delegation certificate we must also provide witnesses so that could be in the case of a normal stake address it would be the signing key belong to this.But now it's our script file and the redeemer and as redeemer remember we had type unit andI used type unit before so in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.And we need to provide the protocol parameters.And then we just sign so the payment input for this transaction comes from our old user1 address.So user 1 needs to sign it so we assign it with the signing key of user1 and finally we transmit.
+- The Out file 
+- txin as input, the parameter we have to give to the script. This involves Plutus, because the Plutus script has to be executed to check whether the delegation is valid.
+- Any transaction involving executing Plutus needs collateral. So as collateral can use the same input. Remember, collateral must be a pure lovelace UTxO.
+- Then we attach the registration certificate 
+- Followed by the delegation certificate, and for the delegation certificate we must also provide witnesses (that could be in the case of a normal stake address; it would be the signing key belong to this).
+- Now it is our script file the we provide
+- As redeemer, remember we had type unit and in order to have a serialized form of the unit value we use this unit.json which we just copied from lecture 3.
+- Then we provide the protocol parameters
+
+Lastly, we just sign the transaction; so the payment input for this transaction comes from our old user1 address. User1 needs to sign it, so we assign it with the signing key of user1, and finally we submit.
 
 
 
