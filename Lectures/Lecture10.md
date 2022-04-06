@@ -466,17 +466,18 @@ TxInfo
     txInfoId :: TxId                                      Hash of the pending transaction (excluding witnesses)
 ```
 
-So if we look at the tx info field we have seen examples of various of the fields content in it like the inputs, the outputs, talked about the minted value, we talked about the valid range that allows us to argue about time, the signatures.
+So if we look at the tx info field we have seen examples of various of the fields content in it like the inputs, outputs, minted value, walid range, and the signatures.
 
 ```
  txInfoDCert :: [DCert]                                Digests of certificates included in this transaction
  txInfoWdrl :: Map StakingCredential Integer           Withdrawals
 ```
 
-But we haven't looked at these two fields here. So here we have a field with all the certificates that are attached to the transaction. And now relevant for this lecture, we have a list of pairs containing of staking credentials and integers for withdrawals.So each pair corresponds to the withdrawal of rewards from the state address given by the staking credential.So the staking credential corresponds to our staking address given by a Plutus script.And the integer is the amount of lovelace we are withdrawing. So whenever we withdraw rewards from a script staking address.Then the corresponding Plutus script will be executed and we receive this credentials argument in the script purpose.
+However so far we have not looked at these two fields; txInfoDCert and txInfoWdrl. Here we have a field with all the certificates that are attached to the transaction. Now relevant for this lecture, we have a list of pairs containing of staking credentials and integers for withdrawals. 
 
+Each pair corresponds to the withdrawal of rewards from the state address given by the staking credential. The staking credential corresponds to our staking address given by a Plutus script, where the Integer is the amount of lovelace we are withdrawing. Whenever we withdraw rewards from a script staking address, then the corresponding Plutus script will be executed and we receive this credentials argument in the script purpose.
 
-We created module week 10.Staking to provide an example:
+We created module **week10.Staking.hs** to provide an example:
 
 ```haskell
 {-# LANGUAGE DataKinds             #-}
@@ -673,7 +674,7 @@ main = do
         Right () -> printf "wrote stake validator to %s\n" file
 ```
 
-Finally, we defined an  executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
+Finally, we defined an executable, which receives two command line parameters, a  file name and an address.So it passes the command line, passes these two parameters.Then passes the address, the Plutus address from this given string.And then it uses this write stake validator with the provided file and the past address to compute the stake validator parameterized by this address and serialize it to this file.And this is already all the Haskell or Plutus code that we need.So now we can try this out in the private testnet.
 
 ## Trying it on the Testnet
 
