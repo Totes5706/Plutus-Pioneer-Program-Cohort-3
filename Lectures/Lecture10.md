@@ -535,7 +535,7 @@ stakeValidator addr = mkStakeValidatorScript $
     `PlutusTx.applyCode`
     PlutusTx.liftCode addr
 ```
-And it's probably not a very useful realistic example.So the idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address.So anybody can withdraw rewards from the staking address.But half of the rewards always have to go to a previously specified address.
+The idea is that withdrawals are only allowed if at least half of the withdrawn rewards goes to a previously specified address. Therefore, any person can withdraw rewards from thestaking address, but half of the rewards always have to go to a previously specified address.
 
 ```haskell
 {-# INLINABLE mkStakingValidator #-}
@@ -546,13 +546,24 @@ mkStakingValidator addr () ctx = case scriptContextPurpose ctx of
     _              -> False
 ```
 
-So let's look how we can do this.So it's a parameterized contract, so the first argument is the parameter, theaddress, that will always receive half.Next comes the redeemer so  we just use unit and then as always for Plutus scripts, the script context.And the result is a boolean indicating whether this is okay or not.So we call the address addr, unit is always unit, context ctx.And we do a case distinction on the script context purpose, the purpose of the context.So if it's certifying, we just say true.So that means we allow arbitrary delegation and the registration.For minting and spending it's false, but the interesting case is rewarding, so rewarding credential.And here we must check that what we said is satisfied so this specified address addr receives at least half of the rewards.So if not then we log this error, a trace's error, insufficient reward sharing.And we check that this here will be the amount, the amount I'm withdrawing, the total rewards.And twice of what we pay to the specified address must be greater or equal to the total rewards which the other way around means that paid to address is at least half of the total amount.So this is the logic and now we just have to compute the various things.
+So let's look how we can do this.
+
+- It is a parameterized contract, where the first argument is the parameter; Address which will always receive half
+- Next comes the redeemer so we use type unit 
+- Then as always for Plutus scripts, the script context
+- The result is a boolean indicating whether this is okay or not to pass validation.
+
+Next we do a case distinction on the script context purpose.
+
+- If it's certifying, we just say true which means we allow arbitrary delegation and the registration
+- For minting and spending it fails validation (false) 
+- The interesting case is rewarding credential. Here we must check that what we said is satisfied, so this specified address ```addr``` receives at least half of the rewards. If not then we log this error as insufficient reward sharing. We check that this will be the amount that I am withdrawing; the total rewards. Twice of what we pay to the specified address must be greater or equal to the total rewards, which in other words means that paid to address is at least half of the total amount. So this is the logic and now we just have to compute the various things.
 
 ```haskell
    info :: TxInfo
    info = scriptContextTxInfo ctx
 ```
-So as often before we define info which is the tx info field sitting in the script context.
+Just as before we define info which is the tx info field sitting in the script context.
 
 ```haskell
     amount :: StakingCredential -> Integer
